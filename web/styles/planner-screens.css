@@ -131,9 +131,43 @@
   min-height: 100dvh;
 }
 
+.team-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+.team-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 20px;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #283a2e, #1b2922);
+}
+.team-stat strong {
+  font-size: 32px;
+  font-weight: 500;
+  color: var(--gold);
+}
+.team-stat span {
+  color: var(--muted);
+}
+
 .save-status {
   align-self: center;
   font-size: 0.75rem;
   color: var(--muted);
   max-width: 160px;
+}
+
+@media (max-width: 600px) {
+
+  .team-stats {
+    gap: 8px;
+  }
+  .team-stat {
+    padding: 14px 8px;
+  }
 }
