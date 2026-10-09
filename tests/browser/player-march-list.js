@@ -8,6 +8,8 @@ export async function playerMarchList({ page, driveFiles }) {
   await portrait.evaluate((image) => image.decode());
   assert.equal(await portrait.evaluate((image) => image.naturalWidth > 0), true);
   await page.locator("#player-add-march").click();
+  assert.equal(await page.evaluate(() => document.activeElement?.id), "player-march-name");
+  assert.equal(await page.locator("#player-march-name").evaluate((input) => input.selectionStart), 0);
   await page.locator("#player-form [type=submit]").click();
   const playerFile = [...driveFiles.values()].find(
     ({ data }) => data?.format === "evony-consilium-player",
