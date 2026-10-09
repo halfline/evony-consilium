@@ -107,6 +107,7 @@ export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
       profile: $("player-screen"),
       add: $("add-player-dialog"),
       avatars: $("avatar-dialog"),
+      sync: $("player-sync-dialog"),
     },
     search: $("players-search"),
     getPlan,

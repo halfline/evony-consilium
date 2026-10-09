@@ -2,6 +2,7 @@ import { createPlayersScreen } from "./players-screen.js";
 import { createAddPlayerDialog } from "./add-player-dialog.js";
 import { createAvatarBrowser } from "./avatar-browser.js";
 import { createPlayerScreen } from "./player-screen.js";
+import { createPlayerFileControls } from "./player-file-controls.js";
 
 // The first player screen supports the roster and creating a linked player file.
 export function createPlayerWorkflow({
@@ -62,6 +63,7 @@ export function createPlayerWorkflow({
     getPlan().keeps.find((player) => player.id === selectedId);
   const editingPlan = () =>
     getWorkspace()?.profiles.editingPlan(selectedId) || getPlan();
+  let fileControls;
   const profile = createPlayerScreen({
     root: roots.profile,
     getPlan: editingPlan,
@@ -71,7 +73,7 @@ export function createPlayerWorkflow({
     browseAvatar: avatars.open,
     canEdit: () => !!getWorkspace()?.players.state(cachedPlayer()).canEdit,
     commit: async (player) => {
-      await getWorkspace().profiles.save(player);
+      await getWorkspace().profiles.save(player, fileControls.resolve);
       lastTag = player.allianceTag;
       list.render();
       refreshAccess();
@@ -84,6 +86,19 @@ export function createPlayerWorkflow({
     },
     status,
   });
+  fileControls = createPlayerFileControls({
+    root: roots.profile,
+    dialog: roots.sync,
+    getPlayer: cachedPlayer,
+    getFiles: () => getWorkspace()?.players,
+    unlock: () => getWorkspace().profiles.unlock(selectedId),
+    status,
+    refresh: () => {
+      profile.render();
+      list.render();
+      refreshAccess();
+    },
+  });
   return {
     renderList: () => {
       list.render();
@@ -94,6 +109,7 @@ export function createPlayerWorkflow({
     selected: () => getPlan().keeps.find((player) => player.id === selectedId),
     renderProfile: () => {
       profile.render();
+      fileControls.render();
       refreshAccess();
       getWorkspace()?.players.probe(cachedPlayer());
     },
