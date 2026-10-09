@@ -162,7 +162,7 @@ export function bindMapInteraction({
       renderer.draw();
       return;
     }
-    if (drag && !drag.pan && !drag.blocked && !drag.band) {
+    if (drag?.id) {
       const pt = point(event);
       const start = renderer.world(drag.pt.x, drag.pt.y);
       const end = renderer.world(pt.x, pt.y);
@@ -176,7 +176,7 @@ export function bindMapInteraction({
       renderer.draw();
       return;
     }
-    if (!drag?.pan) return;
+    if (!drag || drag.blocked) return;
     const pt = point(event);
     renderer.camera.x = drag.camera.x - (pt.x - drag.pt.x) / drag.camera.zoom;
     renderer.camera.y = drag.camera.y - (pt.y - drag.pt.y) / drag.camera.zoom;
