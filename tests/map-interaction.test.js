@@ -120,3 +120,19 @@ test("double-clicking a placed keep opens its player profile", () => {
   canvas.ondblclick({ clientX: 20, clientY: 30 });
   assert.deepEqual(opened, ["keep"]);
 });
+
+test("Delete unplaces selected keep while preserving the player", () => {
+  let plan = createEmptyPlan();
+  plan.keeps.push({ id: "keep", name: "Player", x: 10, y: 10, w: 2, h: 2, locked: false });
+  const canvas = {};
+  let selected = "keep", prevented = false;
+  bindMapInteraction({
+    canvas, getPlan: () => plan, getSelection: () => selected,
+    commit: (next) => { plan = next; }, select: (id) => { selected = id; },
+  });
+  canvas.onkeydown({ key: "Delete", preventDefault: () => { prevented = true; } });
+  assert.equal(prevented, true);
+  assert.equal(selected, null);
+  assert.equal(plan.keeps[0].name, "Player");
+  assert.equal(plan.keeps[0].x, null);
+});
