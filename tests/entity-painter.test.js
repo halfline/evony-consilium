@@ -198,6 +198,7 @@ test("formation renderer paints placed keeps and exposes their hit region", () =
     const ctx = {
       setTransform() {}, fillRect() {}, beginPath() {}, moveTo() {}, lineTo() {},
       closePath() {}, fill() { painted++; }, stroke() {}, fillText() {},
+      createRadialGradient: () => ({ addColorStop() {} }),
     };
     const canvas = { getContext: () => ctx, parentElement: {} };
     const renderer = new MapRenderer(canvas, () => plan);
@@ -229,6 +230,7 @@ test("formation renderer paints overlapping entities back to front", () => {
     const ctx = {
       setTransform() {}, fillRect() {}, drawImage: (image) => images.push(image),
       beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, stroke() {},
+      createRadialGradient: () => ({ addColorStop() {} }),
     };
     const canvas = { getContext: () => ctx, parentElement: {} };
     const assets = new Map([

@@ -19,6 +19,7 @@ test("map background uses the active map anchor, dimensions, and opacity", () =>
       setTransform() {}, fillRect() {}, save() { calls.push("save"); },
       restore() { calls.push("restore"); },
       beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, stroke() {},
+      createRadialGradient: () => ({ addColorStop() {} }),
       translate(...args) { calls.push(["translate", ...args]); },
       scale(...args) { calls.push(["scale", ...args]); },
       set globalAlpha(value) { calls.push(["alpha", value]); },

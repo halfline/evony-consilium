@@ -13,6 +13,7 @@ test("map grid fits the canvas and zoom preserves the pointer world location", (
     const ctx = {
       setTransform() {}, fillRect() {}, beginPath() {}, moveTo() {}, lineTo() {}, closePath() {},
       stroke() { strokes++; },
+      createRadialGradient: () => ({ addColorStop() {} }),
     };
     const canvas = {
       parentElement: {},
@@ -44,7 +45,8 @@ test("Server maps expose painted subcity marker hit regions", () => {
   globalThis.devicePixelRatio = 1;
   try {
     const ctx = new Proxy({}, { get: (_target, key) => key === "measureText"
-      ? () => ({ width: 10 }) : () => {} });
+      ? () => ({ width: 10 }) : key === "createRadialGradient"
+        ? () => ({ addColorStop() {} }) : () => {} });
     const canvas = {
       parentElement: {}, getContext: () => ctx,
       getBoundingClientRect: () => ({ width: 800, height: 600 }),
@@ -73,7 +75,8 @@ test("fit frames placed formation more closely than the whole map", () => {
   globalThis.devicePixelRatio = 1;
   try {
     const ctx = new Proxy({}, { get: (_target, key) => key === "measureText"
-      ? () => ({ width: 10 }) : () => {} });
+      ? () => ({ width: 10 }) : key === "createRadialGradient"
+        ? () => ({ addColorStop() {} }) : () => {} });
     const canvas = { parentElement: {}, getContext: () => ctx,
       getBoundingClientRect: () => ({ width: 800, height: 600 }) };
     const plan = createEmptyPlan();
@@ -100,7 +103,8 @@ test("map boundary remains visible when the grid is hidden", () => {
   try {
     const strokes = [];
     const ctx = new Proxy({}, { get: (target, key) => key === "stroke"
-      ? () => strokes.push(target.strokeStyle) : target[key] ?? (() => {}) });
+      ? () => strokes.push(target.strokeStyle) : key === "createRadialGradient"
+        ? () => ({ addColorStop() {} }) : target[key] ?? (() => {}) });
     const canvas = { parentElement: {}, getContext: () => ctx,
       getBoundingClientRect: () => ({ width: 800, height: 600 }) };
     const plan = createEmptyPlan();
@@ -115,6 +119,34 @@ test("map boundary remains visible when the grid is hidden", () => {
     assert.equal(strokes.at(-1), "#e1d2a255");
   } finally {
     globalThis.ResizeObserver = previousObserver;
+    globalThis.devicePixelRatio = previousDpr;
+  }
+});
+
+test("map vignette shades the canvas edge after painting", () => {
+  const previousDpr = globalThis.devicePixelRatio;
+  globalThis.devicePixelRatio = 1;
+  try {
+    const plan = createEmptyPlan();
+    plan.showGrid = false;
+    const stops = [], gradients = [], fills = [];
+    const gradient = { addColorStop: (...args) => stops.push(args) };
+    const ctx = {
+      setTransform() {}, beginPath() {}, moveTo() {}, lineTo() {},
+      closePath() {}, stroke() {},
+      fillRect(...args) { fills.push([this.fillStyle, ...args]); },
+      createRadialGradient(...args) { gradients.push(args); return gradient; },
+    };
+    const renderer = Object.assign(Object.create(MapRenderer.prototype), {
+      ctx, width: 400, height: 300,
+      camera: { x: 0, y: 0, zoom: 1 },
+      getPlan: () => plan, terrainFor: () => undefined, onDraw() {},
+    });
+    renderer.draw();
+    assert.deepEqual(gradients, [[200, 150, 50, 200, 150, 260]]);
+    assert.deepEqual(stops, [[0, "#16271a00"], [1, "#14241b55"]]);
+    assert.deepEqual(fills.at(-1), [gradient, 0, 0, 400, 300]);
+  } finally {
     globalThis.devicePixelRatio = previousDpr;
   }
 });
