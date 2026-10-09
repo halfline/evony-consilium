@@ -64,7 +64,11 @@ export function bindMapInteraction({
         const entity = [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]
           .find((item) => item.id === id);
         if (canEdit() && entity && !entity.locked) {
-          drag = { pt, entity, pointerId: event.pointerId, moved: false };
+          const members = group.has(id)
+            ? [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]
+              .filter((item) => group.has(item.id) && !item.locked && item.x !== null)
+            : [entity];
+          drag = { pt, entity, members, pointerId: event.pointerId, moved: false };
           canvas.setPointerCapture(event.pointerId);
         }
         return;
@@ -115,8 +119,9 @@ export function bindMapInteraction({
       const dx = Math.round(end.x - start.x), dy = Math.round(end.y - start.y);
       drag.moved = drag.moved || dx !== 0 || dy !== 0;
       const preview = previewPlacementMove(
-        getPlan(), [drag.entity], dx, dy, terrainFor(getPlan().map));
-      renderer.preview = { ...preview.positions[0], valid: preview.valid };
+        getPlan(), drag.members, dx, dy, terrainFor(getPlan().map));
+      renderer.previews = preview.positions.map((item) => ({ ...item, valid: preview.valid }));
+      renderer.preview = renderer.previews.find((item) => item.id === drag.entity.id);
       renderer.draw();
       return;
     }
@@ -142,10 +147,12 @@ export function bindMapInteraction({
         commit(removePlacements(getPlan(), new Set([drag.entity.id])));
         select(null);
       } else if (!canceled && drag.moved && renderer.preview?.valid)
-        commit(movePlacements(getPlan(), [renderer.preview], terrainFor(getPlan().map)));
+        commit(movePlacements(getPlan(), renderer.previews || [renderer.preview],
+          terrainFor(getPlan().map)));
       if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
       drag = null;
       renderer.preview = null;
+      renderer.previews = null;
       renderer.draw();
       return;
     }

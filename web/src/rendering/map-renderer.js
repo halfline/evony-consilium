@@ -17,6 +17,7 @@ export class MapRenderer {
     this.selected = null;
     this.selectedIds = new Set();
     this.preview = null;
+    this.previews = null;
     this.selectionBox = null;
     this.subcityHits = [];
     this.images = new ImageCache(() => this.draw());
@@ -151,11 +152,11 @@ export class MapRenderer {
       if (entity.x !== null && entity.y !== null)
         drawEntity(this, entity, p, this.camera.zoom);
     drawSubcities(this, p, this.subcityTypes);
-    if (this.preview) {
-      this.path(this.preview);
-      c.fillStyle = this.preview.valid ? "#cfe3a944" : "#e85e4a66";
+    for (const preview of this.previews || (this.preview ? [this.preview] : [])) {
+      this.path(preview);
+      c.fillStyle = preview.valid ? "#cfe3a944" : "#e85e4a66";
       c.fill();
-      c.strokeStyle = this.preview.valid ? "#e4f7b4" : "#ffad98";
+      c.strokeStyle = preview.valid ? "#e4f7b4" : "#ffad98";
       c.lineWidth = 2;
       c.stroke();
     }
