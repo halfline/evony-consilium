@@ -117,9 +117,9 @@ export class TeamEntry {
   }
   async start() {
     this.show("login");
-    this.$("project-tab-open").hidden = true;
+    this.$("project-tab-open").hidden = false;
     this.$("project-tab-create").hidden = false;
-    this.$("project-browse").hidden = true;
+    this.$("project-browse").hidden = false;
     this.$("drive-save").hidden = true;
     this.$("project-reload").hidden = true;
     this.$("google-login").onclick = () => this.signIn();
@@ -129,11 +129,17 @@ export class TeamEntry {
       e.preventDefault();
       this.run(() => this.create(), "Creating team…");
     };
+    this.$("project-join").onsubmit = (e) => {
+      e.preventDefault();
+      this.run(() => this.join(), "Opening team…");
+    };
     this.$("project-back").onclick = () =>
       this.run(async () => {
         await this.workspace.flush();
         this.show("projects");
       });
+    this.$("project-browse").onclick = () =>
+      this.run(() => this.join(true), "Opening team…");
     if (!this.workspace.configured()) {
       this.$("google-login").disabled = true;
       this.$("login-detail").textContent =
@@ -167,8 +173,7 @@ export class TeamEntry {
     });
   }
   list() {
-    this.teamList.render();
-    this.$("project-tab-teams").hidden = false;
+    this.tabs.setTeamsAvailable(this.teamList.render() > 0);
   }
   async open(file, discardDraft = false) {
     const draft = await this.workspace.open(file, discardDraft);
@@ -188,5 +193,12 @@ export class TeamEntry {
     await this.workspace.create(this.$("project-name").value, this.pendingLogo);
     this.show("planner");
     this.clearLogo();
+  }
+  async join(browse = false) {
+    const draft = await this.workspace.join(
+      browse ? null : this.$("project-url").value.trim(),
+    );
+    this.show("planner");
+    if (draft.restored) this.status("Restored unsaved changes.");
   }
 }
