@@ -14,11 +14,14 @@ export function bindMapViewControls({ root, renderer, getPlan, selected, mutate 
   $("overview-map").onclick = () => renderer.fit(true);
   $("show-grid").onchange = () =>
     mutate((plan) => { plan.showGrid = $("show-grid").checked; });
+  $("show-labels").onchange = () =>
+    mutate((plan) => { plan.labels = $("show-labels").checked; });
   $("map-zoom-controls").hidden = false;
   return {
     render({ zoom }) {
       $("zoom-level").textContent = Math.round(zoom * 100) + "%";
       $("show-grid").checked = getPlan().showGrid;
+      $("show-labels").checked = getPlan().labels;
     },
   };
 }
