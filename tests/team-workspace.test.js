@@ -257,3 +257,17 @@ test("team opening reconnects only player files this account previously opened",
   f.workspace.clear();
   assert.equal(f.workspace.players.state({}).connected, false);
 });
+
+test("central folder authorization rejects an unrelated Drive folder", async () => {
+  const f = fixture();
+  await f.workspace.signIn();
+  await f.workspace.open({ id: "folder" });
+  f.drive.metadata = async (resource) =>
+    resource.id === "file"
+      ? { ...f.file, parents: ["central"] }
+      : (() => {
+          throw Object.assign(new Error("Grant needed"), { status: 404 });
+        })();
+  f.workspace.picker.folder = async () => ({ id: "elsewhere" });
+  await assert.rejects(f.workspace.playerFolder(), /central team folder/);
+});
