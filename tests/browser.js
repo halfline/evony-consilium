@@ -1,3 +1,4 @@
+import { subcities } from "./browser/subcities.js";
 import { playerSharing } from "./browser/player-sharing.js";
 import { teamImprovements } from "./browser/team-improvements.js";
 import { entryWorkflow } from "./browser/entry.js";
@@ -197,6 +198,7 @@ try {
   await mapLabels({ page, driveFiles });
   await teamImprovements({ browser });
   await playerSharing({ browser });
+  await subcities({ browser });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
