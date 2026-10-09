@@ -8,6 +8,7 @@ import { renderMarchSettings } from "./player-march-settings.js";
 export function createPlayerMarches({ root, getSizes }) {
   const $ = view(root);
   const draft = new MarchDraft(getSizes);
+  const addTier = $("player-add-tier");
   let editing = false;
   function updateTotal() {
     const march = draft.current;
@@ -51,6 +52,10 @@ export function createPlayerMarches({ root, getSizes }) {
     });
     const tableRoot = $("player-troops");
     const grid = table(["Tier", "Share", names[marchType(march)]]);
+    grid.classList.add("player-layer-table");
+    const tierHeader = element("span", undefined, "player-tier-header");
+    tierHeader.append(element("span", "Tier"), addTier);
+    grid.tHead.rows[0].cells[0].replaceChildren(tierHeader);
     const typeSelect = element("select");
     typeSelect.id = "player-march-type";
     typeSelect.setAttribute("aria-label", "March troop type");
@@ -72,9 +77,18 @@ export function createPlayerMarches({ root, getSizes }) {
       renderMarch();
     };
     grid.tHead.rows[0].cells[2].replaceChildren(typeSelect);
-    for (let tier = march.generation.highestTier; tier >= 10; tier--) {
+    const tiers = [
+      ...new Set([
+        ...Array.from({ length: march.generation.highestTier - 9 }, (_, index) => index + 10),
+        ...(march.layers || []).map((row) => row.tier),
+      ]),
+    ].sort((a, b) => b - a);
+    for (const tier of tiers) {
       const row = grid.tBodies[0].insertRow();
-      row.append(element("th", `T${tier}`));
+      row.dataset.tierRow = tier;
+      const tierLabel = element("th", String(tier), "player-tier-number");
+      tierLabel.scope = "row";
+      row.append(tierLabel);
       const share = numberInput(march.generation.weights[tier], `T${tier} share (%)`, true);
       share.max = "100";
       share.dataset.share = tier;
@@ -169,7 +183,7 @@ export function createPlayerMarches({ root, getSizes }) {
     draft.remove();
     showList();
   };
-  $("player-add-tier").onclick = () => {
+  addTier.onclick = () => {
     draft.addTier();
     renderMarch();
   };
