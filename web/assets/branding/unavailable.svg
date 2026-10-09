@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="280" height="220" viewBox="0 0 280 220">
+  <rect width="280" height="220" rx="12" fill="#26332d"/>
+  <text x="140" y="104" text-anchor="middle" font-family="sans-serif" font-size="17" fill="#d3d8cb">Preview unavailable</text>
+  <text x="140" y="132" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#a5b1a2">Missing from resource snapshot</text>
+</svg>
