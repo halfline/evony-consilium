@@ -4,21 +4,11 @@ import { ProjectSync } from "./project-sync.js";
 import { DraftQueue } from "../persistence/draft-queue.js";
 import { teamDraftKey, resolveTeamDraft } from "../persistence/team-draft.js";
 import { createEmptyPlan } from "../domain/plan.js";
+import { projectFingerprint } from "../domain/map-plans.js";
 import { parseDriveLink } from "../domain/drive-links.js";
 import { PlayerFiles } from "./player-files.js";
 import { PlayerProfiles } from "./player-profiles.js";
 import { PlayerCacheSync } from "./player-cache-sync.js";
-
-const teamFingerprint = (plan) =>
-  JSON.stringify(plan, (_key, value) =>
-    value && typeof value === "object" && !Array.isArray(value)
-      ? Object.fromEntries(
-          Object.keys(value)
-            .sort()
-            .map((key) => [key, value[key]]),
-        )
-      : value,
-  );
 
 // Account and shared-document lifetime; callers supply presentation callbacks.
 export class TeamWorkspace {
@@ -112,7 +102,7 @@ export class TeamWorkspace {
         changed(state);
         if (this.sync?.file) setReadOnly(!this.sync.file.capabilities?.canEdit);
       },
-      fingerprint: teamFingerprint,
+      fingerprint: projectFingerprint,
       status,
       expired,
       canCheck: () => canCheck() && !!session.token(),
