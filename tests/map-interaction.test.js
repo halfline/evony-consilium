@@ -64,3 +64,32 @@ test("mouse wheel zooms around the pointer and suppresses page scrolling", () =>
   assert.deepEqual(zooms[0].slice(1), [20, 30]);
   assert.ok(zooms[0][0] > 1);
 });
+
+test("dragging a selected keep previews and commits one valid position", () => {
+  let plan = createEmptyPlan();
+  plan.keeps.push({ id: "keep", x: 10, y: 10, w: 2, h: 2, locked: false });
+  const captures = new Set(), selected = [];
+  const canvas = {
+    getBoundingClientRect: () => ({ left: 0, top: 0 }),
+    setPointerCapture: (id) => captures.add(id),
+    hasPointerCapture: (id) => captures.has(id),
+    releasePointerCapture: (id) => captures.delete(id),
+  };
+  const renderer = {
+    hit: () => "keep", world: (x, y) => ({ x, y }), draw() {},
+    preview: null,
+  };
+  bindMapInteraction({
+    canvas, renderer, getPlan: () => plan, getPending: () => null,
+    select: (id) => selected.push(id), commit: (next) => { plan = next; },
+  });
+  canvas.onpointerdown({ button: 0, pointerId: 7, clientX: 10, clientY: 10 });
+  canvas.onpointermove({ pointerId: 7, clientX: 14, clientY: 10 });
+  assert.equal(renderer.preview.valid, true);
+  assert.equal(renderer.preview.x, 14);
+  canvas.onpointerup({ pointerId: 7 });
+  assert.deepEqual([plan.keeps[0].x, plan.keeps[0].y], [14, 10]);
+  assert.equal(renderer.preview, null);
+  assert.equal(captures.size, 0);
+  assert.deepEqual(selected, ["keep"]);
+});
