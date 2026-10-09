@@ -394,7 +394,10 @@ export function bindMapInteraction({
     keydown(event);
   };
   const documentKeydown = (event) => {
-    if (event.target === canvas) return;
+    if (event.target === canvas) {
+      if (event.key === "Delete" || event.key === "Backspace") keydown(event);
+      return;
+    }
     if (event.key === "Escape") {
       if (!canEdit() || event.target?.closest?.("input,select,textarea"))
         return;
