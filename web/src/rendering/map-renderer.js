@@ -54,8 +54,14 @@ export class MapRenderer {
       : this.ctx.moveTo(point.x, point.y));
     this.ctx.closePath();
   }
+  drawTerrain(...args) {
+    drawTerrain(this, ...args);
+  }
   drawMoatOverlay(...args) {
     drawMoatOverlay(this, ...args);
+  }
+  entity(...args) {
+    drawEntity(this, ...args);
   }
   hitSubcity(x, y) {
     return [...this.subcityHits].reverse().find((hit) =>
@@ -138,7 +144,7 @@ export class MapRenderer {
       c.translate(this.width / 2 - this.camera.x * this.camera.zoom,
         this.height / 2 - this.camera.y * this.camera.zoom);
       c.scale(this.camera.zoom, this.camera.zoom);
-      drawTerrain(this, terrain, minX, minY, maxX, maxY, p.grid);
+      this.drawTerrain(terrain, minX, minY, maxX, maxY, p.grid);
       c.restore();
     }
     const background = p.backgrounds[p.map];
@@ -177,13 +183,16 @@ export class MapRenderer {
       c.stroke();
     }
     this.hits = [];
-    const entities = [...p.obstacles, ...p.structures, ...p.keeps]
+    const landmarks = terrain?.landmarks || [];
+    const entities = [...landmarks, ...p.obstacles, ...p.structures, ...p.keeps]
       .filter((entity) => entity.x !== null && entity.y !== null)
       .sort((a, b) =>
         project(a.x + a.w, a.y + a.h, p.grid).y -
         project(b.x + b.w, b.y + b.h, p.grid).y);
+    for (const landmark of landmarks)
+      this.drawMoatOverlay(landmark, p, this.camera.zoom);
     for (const entity of entities)
-      drawEntity(this, entity, p, this.camera.zoom);
+      this.entity(entity, p, this.camera.zoom, landmarks.includes(entity));
     drawSubcities(this, p, this.subcityTypes);
     for (const preview of this.previews || (this.preview ? [this.preview] : [])) {
       this.path(preview);
