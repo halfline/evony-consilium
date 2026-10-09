@@ -1,6 +1,7 @@
 import { createPlayersScreen } from "./players-screen.js";
 import { createAddPlayerDialog } from "./add-player-dialog.js";
 import { createAvatarBrowser } from "./avatar-browser.js";
+import { createPlayerScreen } from "./player-screen.js";
 
 // The first player screen supports the roster and creating a linked player file.
 export function createPlayerWorkflow({
@@ -9,10 +10,13 @@ export function createPlayerWorkflow({
   getPlan,
   getAvatars,
   assets,
+  catalog,
   browseCastle,
   getWorkspace,
   remove,
   status,
+  navigate,
+  refreshAccess,
 }) {
   let selectedId = null;
   let lastTag = getPlan().keeps.at(-1)?.allianceTag || "";
@@ -44,7 +48,7 @@ export function createPlayerWorkflow({
     getSelection: () => selectedId,
     open: (id) => {
       selectedId = id;
-      list.render();
+      navigate("player");
     },
     remove: (id) => {
       remove(id);
@@ -54,6 +58,32 @@ export function createPlayerWorkflow({
     add: dialog.open,
     fileState: (player) => getWorkspace()?.players.state(player),
   });
+  const cachedPlayer = () =>
+    getPlan().keeps.find((player) => player.id === selectedId);
+  const editingPlan = () =>
+    getWorkspace()?.profiles.editingPlan(selectedId) || getPlan();
+  const profile = createPlayerScreen({
+    root: roots.profile,
+    getPlan: editingPlan,
+    getPlayer: () => editingPlan().keeps.find((player) => player.id === selectedId),
+    getAvatars,
+    catalog,
+    browseAvatar: avatars.open,
+    canEdit: () => !!getWorkspace()?.players.state(cachedPlayer()).canEdit,
+    commit: async (player) => {
+      await getWorkspace().profiles.save(player);
+      lastTag = player.allianceTag;
+      list.render();
+      refreshAccess();
+    },
+    unlock: (id) => getWorkspace().profiles.unlock(id),
+    remove: (id) => {
+      remove(id);
+      selectedId = null;
+      navigate("players");
+    },
+    status,
+  });
   return {
     renderList: () => {
       list.render();
@@ -62,5 +92,11 @@ export function createPlayerWorkflow({
     },
     openAdd: dialog.open,
     selected: () => getPlan().keeps.find((player) => player.id === selectedId),
+    renderProfile: () => {
+      profile.render();
+      refreshAccess();
+      getWorkspace()?.players.probe(cachedPlayer());
+    },
+    canEditPlayer: () => !!getWorkspace()?.players.state(cachedPlayer()).canEdit,
   };
 }

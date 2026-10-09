@@ -16,7 +16,11 @@ export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
   const getPlan = () => store.plan;
   let workspace, entry, players;
   let screen = "project";
-  const access = createReadOnlyView($("planner"), () => store.readOnly);
+  const access = createReadOnlyView(
+    $("planner"),
+    () => store.readOnly,
+    () => !!players?.canEditPlayer(),
+  );
   const catalogBrowser = createCatalogBrowser({
     root: $("catalog-dialog"),
     variantDialog: $("variant-dialog"),
@@ -25,17 +29,21 @@ export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
     selected: () => players?.selected() || null,
   });
   function showScreen(next) {
-    if (!["project", "players"].includes(next)) return;
+    if (!["project", "players", "player"].includes(next)) return;
     screen = next;
     for (const name of ["project", "players"]) {
-      const active = name === screen;
+      const active = name === screen || (name === "players" && screen === "player");
       $(name + "-screen").hidden = !active;
       const tab = document.querySelector(`[data-screen="${name}"]`);
       tab.classList.toggle("active", active);
       tab.setAttribute("aria-pressed", String(active));
     }
+    if (screen === "player") $("players-screen").hidden = true;
+    $("player-screen").hidden = screen !== "player";
+    $("players-return-arrow").hidden = screen !== "player";
     $("players-search-control").hidden = screen !== "players";
     if (screen === "players") players.renderList();
+    if (screen === "player") players.renderProfile();
   }
   const team = createTeamScreen({
     root: $("project-screen"),
@@ -52,6 +60,7 @@ export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
     $("undo").disabled = !store.canUndo;
     team.render();
     players?.renderList();
+    if (screen === "player") players?.renderProfile();
     access.render();
   }
   store.subscribe(({ kind }) => {
@@ -95,6 +104,7 @@ export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
   players = createPlayerWorkflow({
     roots: {
       list: $("players-screen"),
+      profile: $("player-screen"),
       add: $("add-player-dialog"),
       avatars: $("avatar-dialog"),
     },
@@ -102,10 +112,13 @@ export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
     getPlan,
     getAvatars: () => avatarCatalog,
     assets: store.assets,
+    catalog,
     browseCastle: catalogBrowser.open,
     getWorkspace: () => workspace,
     remove: (id) => store.commit(removePlayer(getPlan(), id)),
     status: toast,
+    navigate: showScreen,
+    refreshAccess: () => access.render(),
   });
   entry = new TeamEntry({
     header: $("planner").querySelector(".topbar"),
