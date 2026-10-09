@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createEmptyPlan } from "../web/src/domain/plan.js";
 import { MAPS, MAP_ICONS } from "../web/src/domain/maps.js";
+import { validatePlan } from "../web/src/domain/validation.js";
 import { createLayout } from "../web/src/domain/layout.js";
 import { syncMapLayouts, defaultFormationName, createMapPlan, selectMapPlan, removeMapPlan } from "../web/src/domain/map-plans.js";
 
@@ -13,6 +14,17 @@ test("new teams expose verified named map choices and a blank canvas", () => {
   assert.equal(plan.mapPresets.find(({ id }) => id === "blank").verified, false);
   assert.equal(plan.mapPresets.find(({ id }) => id === "server").verified, true);
   assert.ok(MAP_ICONS.server.endsWith("server.webp"));
+});
+
+test("import validates map choices and restores the blank fallback", () => {
+  const plan = createEmptyPlan();
+  plan.mapPresets = plan.mapPresets.filter(({ id }) => id !== "blank");
+  assert.ok(validatePlan(plan).mapPresets.some(({ id }) => id === "blank"));
+  plan.mapPresets[0].color = "red";
+  assert.throws(() => validatePlan(plan), /map color/);
+  plan.mapPresets[0].color = "#647947";
+  plan.map = "unknown";
+  assert.throws(() => validatePlan(plan), /Unknown map/);
 });
 
 test("removing an active map selects a remaining map or clears placement", () => {
