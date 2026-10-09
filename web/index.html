@@ -233,7 +233,7 @@
       </header>
       <nav class="workflow-nav tabs" aria-label="Team screens">
         <button data-screen="project" aria-pressed="false">Team</button>
-        <button data-screen="players" aria-pressed="false">
+        <button data-screen="players" class="active" aria-pressed="true">
           <span id="players-return-arrow" aria-hidden="true" hidden>← </span
           >Players
         </button>
@@ -241,7 +241,7 @@
         <button data-screen="maps" aria-pressed="false"><span id="maps-return-arrow" aria-hidden="true" hidden>← </span>Maps</button>
 
 
-        <label id="players-search-control" class="tab-search" hidden>
+        <label id="players-search-control" class="tab-search">
           <svg
             viewBox="0 0 24 24"
             width="18"
@@ -373,7 +373,7 @@
           </div>
         </div>
       </section>
-      <section id="players-screen" class="players-screen" aria-label="Players" hidden>
+      <section id="players-screen" class="players-screen" aria-label="Players">
         <div class="players-workspace">
           <section id="players-panel" class="players-panel">
             <div id="players" class="players">
