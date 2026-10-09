@@ -98,3 +98,60 @@ export function validateGeneration(march) {
   if (g.strategy === "small-siege" && g.highestTier < 11)
     throw new Error("Small siege requires T11.");
 }
+export function regenerateMarch(march, sizes) {
+  validateGeneration(march);
+  if (!march.generation || march.generation.manual)
+    return structuredClone(march);
+  const capacity = marchCapacity(march, sizes);
+  const next = structuredClone(march);
+  const g = next.generation,
+    type = marchType(next);
+  const bulk = Object.entries(g.weights)
+    .filter(([, weight]) => weight > 0)
+    .map(([tier, weight]) => ({ tier: Number(tier), weight }));
+  if (capacity == null) {
+    next.layers = [];
+    next.bases = {};
+    next.baseThrough = 9;
+    return next;
+  }
+  number(capacity, 0, Number.MAX_SAFE_INTEGER, "march capacity");
+  const reserve = (4 * g.highestTier - bulk.length) * g.layerSize;
+  if (!Number.isSafeInteger(reserve) || reserve > capacity)
+    throw new Error("March capacity is smaller than its support layers.");
+  const remaining = capacity - reserve;
+  // Integer arithmetic avoids losing troops even at large capacities.
+  const weighted = bulk.map((row) => ({
+    ...row,
+    units: BigInt(Math.round(row.weight * 1000000)),
+  }));
+  const units = weighted.reduce((sum, row) => sum + row.units, 0n);
+  const allocation = weighted.map(({ tier, units: weight }) => {
+    const product = BigInt(remaining) * weight;
+    return { tier, count: Number(product / units), fraction: product % units };
+  });
+  let leftover =
+    remaining - allocation.reduce((sum, row) => sum + row.count, 0);
+  for (const row of [...allocation].sort((a, b) =>
+    a.fraction === b.fraction
+      ? b.tier - a.tier
+      : a.fraction > b.fraction
+        ? -1
+        : 1,
+  )) {
+    if (leftover-- > 0) row.count++;
+  }
+  next.bases = Object.fromEntries(TROOP_TYPES.map((t) => [t, g.layerSize]));
+  next.baseThrough = 9;
+  next.layers = Array.from({ length: g.highestTier - 9 }, (_, i) => {
+    const tier = i + 10;
+    const row = {
+      tier,
+      ...Object.fromEntries(TROOP_TYPES.map((t) => [t, g.layerSize])),
+    };
+    const main = allocation.find((a) => a.tier === tier);
+    if (main) row[type] = main.count;
+    return row;
+  });
+  return next;
+}
