@@ -1,4 +1,5 @@
 import { policyPage } from "./policy-pages.js";
+import { browserConfigModule } from "./browser-config.js";
 import http from "node:http";
 import { readFile } from "node:fs/promises";
 import { resolve, extname, sep } from "node:path";
@@ -17,6 +18,11 @@ http
       const pathname = decodeURIComponent(
         new URL(req.url, "http://localhost").pathname,
       );
+      if (pathname === "/google-config.js" && root === resolve("web")) {
+        res.setHeader("Content-Type", "text/javascript; charset=utf-8");
+        res.end(browserConfigModule());
+        return;
+      }
       if (pathname === "/privacy.html" || pathname === "/terms.html") {
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         res.end(

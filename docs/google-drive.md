@@ -33,15 +33,7 @@ Use one Google Cloud project for all three public configuration values. No backe
 4. Create an OAuth client of type **Web application**. Add authorized JavaScript origins, for example `https://USERNAME.github.io` and `http://127.0.0.1:4173`. Origins do not include `/evony-consilium/`. The current popup token flow does not use a server redirect endpoint.
 5. Create a public browser **API key** for Google Picker. Restrict it to Google Picker API. With Website restrictions, allow the deployment (`https://USERNAME.github.io/*`), any actual development origin, and **`https://docs.google.com/*`**, because Picker runs in a Google-hosted iframe. The app's direct Drive requests use OAuth tokens, not the API key. Follow Google's [Picker setup and key restrictions](https://developers.google.com/workspace/drive/picker/guides/web-picker).
 6. Find the numeric **Cloud project number**, not the textual project ID. Picker's app ID must be this number from the same project as the OAuth client and API key.
-7. Set all three values in `web/google-config.js`:
-
-   ```js
-   export const googleConfig = {
-     clientId: "YOUR_WEB_CLIENT.apps.googleusercontent.com",
-     apiKey: "YOUR_RESTRICTED_PICKER_API_KEY",
-     appId: "123456789012",
-   };
-   ```
+7. Set `GOOGLE_CLIENT_ID`, `GOOGLE_PICKER_API_KEY`, and `GOOGLE_CLOUD_PROJECT_NUMBER` in the environment for local development. Add the same names as GitHub Actions repository secrets for Pages. The build writes `dist/google-config.js`; the development server serves the values from its environment. These browser settings are visible in the deployed JavaScript, so restrict the key and OAuth client to the intended origins and APIs.
 
 8. Change the audience publishing status to **In production** for deployment. Build and publish the static site. Check branding/verification prompts in the console; production publishing and branding verification are separate actions.
 

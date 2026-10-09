@@ -7,6 +7,7 @@ __pycache__/
 *.pyc
 *.egg-info/
 secrets/
+/web/google-config.js
 
 # Download-derived resources; maintained branding stays in source control.
 /web/assets/*

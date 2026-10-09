@@ -1,4 +1,5 @@
 import { policyPage } from "./policy-pages.js";
+import { browserConfigModule } from "./browser-config.js";
 import { prepareAssets } from "./assets.js";
 import { cp, mkdir, rm, writeFile } from "node:fs/promises";
 import { resolve, sep } from "node:path";
@@ -21,5 +22,6 @@ await prepareAssets("dist/assets");
 await Promise.all([
   writeFile("dist/privacy.html", await policyPage("PRIVACY.md")),
   writeFile("dist/terms.html", await policyPage("TERMS.md")),
+  writeFile("dist/google-config.js", browserConfigModule()),
 ]);
 console.log("Static site built in dist/");
