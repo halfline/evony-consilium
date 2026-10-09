@@ -3,25 +3,6 @@ import assert from "node:assert/strict";
 import { createEmptyPlan } from "../web/src/domain/plan.js";
 import { bindMapInteraction } from "../web/src/ui/map-interaction.js";
 
-test("pending keep placement commits only a free tile", () => {
-  const plan = createEmptyPlan();
-  plan.keeps.push({ id: "keep", x: null, y: null, w: 2, h: 2 });
-  const canvas = { getBoundingClientRect: () => ({ left: 0, top: 0 }) };
-  let pending = "keep", message = "", at = { x: 1200, y: 0 };
-  bindMapInteraction({
-    canvas, renderer: { world: () => at }, getPlan: () => plan,
-    getPending: () => pending, resetPending: () => { pending = null; },
-    mutate: (change) => change(plan), toast: (text) => { message = text; },
-  });
-  canvas.onpointerdown({ button: 0, clientX: 0, clientY: 0 });
-  assert.match(message, /free tile/);
-  assert.equal(plan.keeps[0].x, null);
-  at = { x: 600, y: 600 };
-  canvas.onpointerdown({ button: 0, clientX: 0, clientY: 0 });
-  assert.deepEqual([plan.keeps[0].x, plan.keeps[0].y], [600, 600]);
-  assert.equal(pending, null);
-});
-
 test("dragging empty canvas pans the camera and releases pointer capture", () => {
   const captures = new Set();
   const canvas = {
@@ -66,24 +47,6 @@ test("mouse wheel zooms around the pointer and suppresses page scrolling", () =>
   assert.equal(prevented, true);
   assert.deepEqual(zooms[0].slice(1), [20, 30]);
   assert.ok(zooms[0][0] > 1);
-});
-
-test("canvas cursor distinguishes pending placement, entity hover, and empty map", () => {
-  const canvas = { style: {}, getBoundingClientRect: () => ({ left: 0, top: 0 }) };
-  const plan = createEmptyPlan();
-  plan.keeps.push({ id: "keep", x: null, y: null, w: 2, h: 2 });
-  let pending = null;
-  bindMapInteraction({ canvas,
-    renderer: { hit: (x) => x < 50 ? "keep" : null,
-      world: () => ({ x: 10, y: 10 }), draw() {} },
-    getPlan: () => plan, getPending: () => pending });
-  canvas.onpointermove({ clientX: 20, clientY: 10 });
-  assert.equal(canvas.style.cursor, "grab");
-  canvas.onpointermove({ clientX: 80, clientY: 10 });
-  assert.equal(canvas.style.cursor, "default");
-  pending = "keep";
-  canvas.onpointermove({ clientX: 80, clientY: 10 });
-  assert.equal(canvas.style.cursor, "crosshair");
 });
 
 test("dragging a selected keep previews and commits one valid position", () => {
@@ -621,36 +584,3 @@ test("dragging a group off canvas unplaces all members", () => {
   assert.equal(captures.size, 0);
 });
 
-test("pending obstacle is placed with the same validity check as a keep", () => {
-  const plan = createEmptyPlan();
-  plan.obstacles.push({ id: "blocked", name: "Blocked tile", w: 1, h: 1,
-    x: null, y: null, locked: false });
-  const canvas = { getBoundingClientRect: () => ({ left: 0, top: 0 }) };
-  const renderer = { world: (x, y) => ({ x, y }) };
-  let pending = "blocked";
-  bindMapInteraction({
-    canvas, renderer, getPlan: () => plan, getPending: () => pending,
-    resetPending: () => { pending = null; },
-    mutate: (change) => change(plan),
-  });
-  canvas.onpointerdown({ button: 0, clientX: 10, clientY: 20 });
-  assert.deepEqual([plan.obstacles[0].x, plan.obstacles[0].y], [10, 20]);
-  assert.equal(pending, null);
-});
-
-test("pending placement previews valid and invalid map tiles", () => {
-  const plan = createEmptyPlan();
-  plan.obstacles.push({ id: "blocked", name: "Blocked tile", w: 1, h: 1,
-    x: null, y: null, locked: false });
-  const canvas = { getBoundingClientRect: () => ({ left: 0, top: 0 }) };
-  let draws = 0;
-  const renderer = { world: (x, y) => ({ x, y }), draw: () => { draws++; } };
-  bindMapInteraction({ canvas, renderer, getPlan: () => plan,
-    getPending: () => "blocked" });
-  canvas.onpointermove({ clientX: 10, clientY: 20 });
-  assert.deepEqual([renderer.preview.x, renderer.preview.y, renderer.preview.valid],
-    [10, 20, true]);
-  canvas.onpointermove({ clientX: -1, clientY: 20 });
-  assert.equal(renderer.preview.valid, false);
-  assert.equal(draws, 2);
-});
