@@ -3,16 +3,16 @@ import { numeric } from "./player-fields.js";
 import { createPlayerBuffs } from "./player-buffs.js";
 import { createPlayerMarches } from "./player-marches.js";
 import { createPlayerMarchSizes } from "./player-march-sizes.js";
-
-export function createPlayerDetails({ root, getPlayer }) {
+export function createPlayerDetails({ root }) {
   const $ = view(root);
-  let signature, original = {};
-  const buffs = createPlayerBuffs({ root });
-  const marchSizes = createPlayerMarchSizes({ root });
-  const marches = createPlayerMarches({
-    root,
-    getSizes: () => marchSizes.read().marchSizes,
-  });
+  let signature,
+    original = {};
+  const buffs = createPlayerBuffs({ root }),
+    marchSizes = createPlayerMarchSizes({ root }),
+    marches = createPlayerMarches({
+      root,
+      getSizes: () => marchSizes.read().marchSizes,
+    });
   $("player-march-sizes").onchange = () => marches.syncSizes();
   function showTab(tab) {
     for (const button of root.querySelectorAll("[data-player-tab]")) {
@@ -62,15 +62,19 @@ export function createPlayerDetails({ root, getPlayer }) {
     return result;
   }
   function render(player) {
-    const nextSignature = JSON.stringify([player.id, player.details, player.level]);
+    const nextSignature = JSON.stringify([
+      player.id,
+      player.details,
+      player.level,
+    ]);
     if (signature === nextSignature) return;
     const changedPlayer = !signature || JSON.parse(signature)[0] !== player.id;
     signature = nextSignature;
     original = structuredClone(player.details || {});
+    $("player-rally-capacity").value = original.rallyCapacity ?? "";
     buffs.render(original);
     marchSizes.render(original);
     marches.render(original, player.level);
-    $("player-rally-capacity").value = original.rallyCapacity ?? "";
     if (changedPlayer) showTab("overview");
   }
   return { read, render };
