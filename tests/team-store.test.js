@@ -7,7 +7,7 @@ import { setRallySetter } from "../web/src/domain/rally.js";
 import { catalog } from "./fixtures/catalog.js";
 
 test("team store validates and freezes opened documents", () => {
-  const store = new TeamStore();
+  const store = new TeamStore(catalog);
   const plan = { ...createEmptyPlan(), title: "Shared" };
   store.replace(plan);
   plan.title = "Mutated outside";
@@ -18,7 +18,7 @@ test("team store validates and freezes opened documents", () => {
 });
 
 test("view-only team cannot replace its document without explicit force", () => {
-  const store = new TeamStore();
+  const store = new TeamStore(catalog);
   store.readOnly = true;
   assert.equal(
     store.replace({ ...createEmptyPlan(), title: "Blocked" }),
@@ -30,7 +30,7 @@ test("view-only team cannot replace its document without explicit force", () => 
 });
 
 test("team edits use immutable transactions and ignore no-op changes", () => {
-  const store = new TeamStore();
+  const store = new TeamStore(catalog);
   const events = [];
   store.subscribe(({ kind }) => events.push(kind));
   assert.equal(
@@ -58,7 +58,7 @@ test("team edits use immutable transactions and ignore no-op changes", () => {
 });
 
 test("Undo restores the previous team edit and respects read-only access", () => {
-  const store = new TeamStore();
+  const store = new TeamStore(catalog);
   assert.equal(store.canUndo, false);
   store.mutate((plan) => {
     plan.title = "First";
@@ -129,7 +129,7 @@ test("switching maps restores that map's manual rally preference", () => {
 });
 
 test("opening a map emits navigation without adding an Undo step", () => {
-  const store = new TeamStore();
+  const store = new TeamStore(catalog);
   const events = [];
   store.subscribe(({ kind }) => events.push(kind));
   store.commit(createMapPlan(store.plan, "server", "Hive"));
@@ -149,7 +149,7 @@ test("map navigation does not enter undo history but layout edits do", () => {
   let plan = createMapPlan(createEmptyPlan(), "server", "Hive");
   const first = plan.activeMapId;
   plan = createMapPlan(plan, "bog", "Rally");
-  const store = new TeamStore();
+  const store = new TeamStore(catalog);
   store.replace(plan);
   assert.equal(store.commit(selectMapPlan(store.plan, first)), false);
   assert.equal(store.canUndo, false);
@@ -174,7 +174,7 @@ test("locking an unplaced keep is a saved edit", () => {
     x: null, y: null, w: 2, h: 2, locked: false,
   }];
   plan = createMapPlan(plan, "blank", "Formation");
-  const store = new TeamStore();
+  const store = new TeamStore(catalog);
   assert.equal(store.commit(plan), true);
   assert.equal(store.mutate((next) => { next.keeps[0].locked = true; }), true);
   assert.equal(store.plan.keeps[0].locked, true);
