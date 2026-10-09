@@ -567,6 +567,36 @@ canvas:focus-visible {
   margin: 20px 0;
 }
 
+.building-tools {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.building-tools button {
+  font-size: 11px;
+  padding: 14px 8px;
+}
+.panel details {
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 12px;
+  margin-top: 16px;
+}
+.panel summary {
+  cursor: pointer;
+  color: var(--gold);
+  font-size: 12px;
+}
+.panel > label {
+  margin-top: 18px;
+}
+.panel details label {
+  margin-top: 10px;
+}
+.panel details button {
+  margin-top: 12px;
+}
+
 .toast {
   position: fixed;
   bottom: 24px;
