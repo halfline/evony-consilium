@@ -1,7 +1,14 @@
 import { view } from "./dom.js";
+import { bindTileActions } from "./tile-actions.js";
 
 export function createFormationList({ root, assets, getPlan, getSelection, group, select, canEdit, place, center, setRally }) {
   const $ = view(root);
+  bindTileActions($("formation-players"), {
+    tileSelector: ".formation-player-row",
+    triggerSelector: ".players-row",
+    className: "rally-actions-open",
+    enabled: canEdit,
+  });
   function describe(button, entity) {
     const asset = assets.get(entity.skin);
     if (asset) {
