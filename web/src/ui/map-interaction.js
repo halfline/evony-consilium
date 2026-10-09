@@ -64,7 +64,7 @@ export function bindMapInteraction({
   };
   canvas.onpointerdown = (event) => {
     if (event.button !== 0) return;
-    canvas.focus?.();
+    canvas.focus();
     const pt = point(event);
     const cityId = renderer.hitSubcity?.(pt.x, pt.y);
     if (
@@ -154,7 +154,7 @@ export function bindMapInteraction({
       const pt = point(event);
       canvas.style.cursor = getPending()
         ? "crosshair"
-        : renderer.hit?.(pt.x, pt.y)
+        : renderer.hit(pt.x, pt.y)
           ? "grab"
           : "default";
     }
@@ -235,14 +235,14 @@ export function bindMapInteraction({
         valid: preview.valid,
       }));
       renderer.preview = renderer.previews.find((item) => item.id === drag.id);
-      if (canvas.style) canvas.style.cursor = "grabbing";
+      canvas.style.cursor = "grabbing";
       renderer.draw();
       return;
     }
     if (drag.blocked) return;
     renderer.camera.x = drag.camera.x - (pt.x - drag.pt.x) / drag.camera.zoom;
     renderer.camera.y = drag.camera.y - (pt.y - drag.pt.y) / drag.camera.zoom;
-    if (canvas.style) canvas.style.cursor = "grabbing";
+    canvas.style.cursor = "grabbing";
     renderer.draw();
   };
   canvas.onpointerup = (event) => {
@@ -298,8 +298,8 @@ export function bindMapInteraction({
     drag = null;
     renderer.preview = null;
     renderer.previews = null;
-    if (canvas.style) canvas.style.cursor = "default";
-    renderer.draw?.();
+    canvas.style.cursor = "default";
+    renderer.draw();
   };
   canvas.onpointercancel = () => {
     group.clear();
