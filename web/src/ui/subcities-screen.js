@@ -13,6 +13,7 @@ export function createSubcitiesScreen({
   browser,
   ownerBrowser,
   getAvatars,
+  locate,
   getPlan,
   getCatalog,
   canEdit,
@@ -29,6 +30,7 @@ export function createSubcitiesScreen({
     root: ownerBrowser,
     getPlan,
     getAvatars,
+    locate,
   });
   const editor = createSubcityDialog({
     dialog,
@@ -44,6 +46,7 @@ export function createSubcitiesScreen({
     canEdit,
     commit,
     context,
+    locate,
   });
   bindTileActions(grid, {
     tileSelector: ".subcity-tile",

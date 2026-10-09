@@ -70,6 +70,20 @@ export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
     navigate: showScreen,
     status: toast,
   });
+  function locateSubcity(city) {
+    const map = getPlan().maps.find((map) => map.type === "server");
+    if (!map) {
+      toast("Add a Server map to locate subcities.", true);
+      return;
+    }
+    store.openMap(map.id);
+    showScreen("formation");
+    requestAnimationFrame(() => {
+      renderer.resize();
+      renderer.camera.zoom = 1;
+      renderer.center(city.x, city.y);
+    });
+  }
   const subcities = createSubcitiesScreen({
     root: $("subcities-screen"),
     search: $("subcities-search"),
@@ -79,7 +93,7 @@ export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
     getAvatars: () => avatarCatalog,
     getPlan,
     getCatalog: () => catalog,
-    locate: () => toast("Add a Server map to locate subcities.", true),
+    locate: locateSubcity,
     canEdit: () => !store.readOnly,
     commit: (plan) => store.commit(plan),
     context: () => workspace?.key(),

@@ -11,6 +11,7 @@ export function createSubcityDialog({
   browse,
   browseOwner,
   renderOwner,
+  locate,
   closeBrowser,
   canEdit,
   commit,
@@ -89,6 +90,12 @@ export function createSubcityDialog({
       refreshOwner();
     });
   }
+  $("subcity-locate").onclick = () => {
+    const city = getPlan().subcities.find((city) => city.id === editing);
+    if (!city || city.x === null || city.y === null || openedContext !== context()) return;
+    dialog.close();
+    locate(city);
+  };
   function refreshAccess() {
     if (!dialog.open) return;
     if (openedContext !== context()) {
@@ -129,7 +136,7 @@ export function createSubcityDialog({
     $("subcity-x").value = city?.x ?? "";
     $("subcity-y").value = city?.y ?? "";
     $("subcity-error").textContent = "";
-    $("subcity-locate").hidden = true;
+    $("subcity-locate").hidden = !city || city.x === null || city.y === null;
     renderChoice();
     dialog.showModal();
     refreshAccess();
