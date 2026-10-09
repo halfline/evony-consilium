@@ -77,3 +77,45 @@ export function linkedPlayer(player, profile, file) {
   };
   return next;
 }
+export function profileFingerprint(value) {
+  if (Array.isArray(value))
+    return `[${value.map(profileFingerprint).join(",")}]`;
+  if (value && typeof value === "object")
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${profileFingerprint(value[key])}`)
+      .join(",")}}`;
+  return JSON.stringify(value);
+}
+const equal = (a, b) => profileFingerprint(a) === profileFingerprint(b);
+const object = (value) =>
+  value && typeof value === "object" && !Array.isArray(value);
+// Arrays (including marches) are one unit; unrelated object fields merge independently.
+export function mergePlayerProfiles(base, team, remote, resolution = null) {
+  const conflicts = [];
+  function merge(before, local, source, path) {
+    if (equal(local, source) || equal(before, source))
+      return structuredClone(local);
+    if (equal(before, local)) return structuredClone(source);
+    if (object(before) && object(local) && object(source)) {
+      const result = {};
+      for (const key of new Set([
+        ...Object.keys(before),
+        ...Object.keys(local),
+        ...Object.keys(source),
+      ])) {
+        const value = merge(
+          before[key],
+          local[key],
+          source[key],
+          path ? `${path}.${key}` : key,
+        );
+        if (value !== undefined) result[key] = value;
+      }
+      return result;
+    }
+    conflicts.push(path);
+    return structuredClone(resolution === "player" ? source : local);
+  }
+  return { profile: merge(base, team, remote, ""), conflicts };
+}
