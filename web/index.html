@@ -233,12 +233,12 @@
       </header>
       <nav class="workflow-nav tabs" aria-label="Team screens">
         <button data-screen="project" aria-pressed="false">Team</button>
-        <button data-screen="players" aria-pressed="false" hidden>
+        <button data-screen="players" aria-pressed="false">
           <span id="players-return-arrow" aria-hidden="true" hidden>← </span
           >Players
         </button>
-        <button data-screen="subcities" aria-pressed="false" hidden>Subcities</button>
-        <button data-screen="maps" aria-pressed="false" hidden>Maps</button>
+        <button data-screen="subcities" aria-pressed="false">Subcities</button>
+        <button data-screen="maps" aria-pressed="false"><span id="maps-return-arrow" aria-hidden="true" hidden>← </span>Maps</button>
 
 
         <label id="players-search-control" class="tab-search" hidden>
@@ -265,7 +265,7 @@
         <label id="subcities-search-control" class="tab-search" hidden>
           <input id="subcities-search" type="search" placeholder="Find a subcity…" aria-label="Search subcities" />
         </label>
-        <div class="map-toolbar" hidden>
+        <div class="map-toolbar" data-map-action hidden>
           <strong id="formation-name"></strong>
           <div class="view-options">
             <label><input id="show-grid" type="checkbox" /> Grid</label>

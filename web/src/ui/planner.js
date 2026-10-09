@@ -16,6 +16,7 @@ import { bindMapInteraction } from "./map-interaction.js";
 import { createFormationList } from "./formation-list.js";
 import { PlacementSelection } from "../application/placement-selection.js";
 import { createPlacementView } from "./placement-view.js";
+import { createPlannerScreens } from "./planner-screens.js";
 import { createPlayerSubcities } from "./player-subcities.js";
 import { removePlayer } from "../domain/players.js";
 import { createMapPlan, removeMapPlan } from "../domain/map-plans.js";
@@ -46,6 +47,9 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
   });
   function showScreen(next) {
     if (!["project", "players", "player", "subcities", "maps", "formation"].includes(next)) return;
+    screens.show(next);
+  }
+  const screens = createPlannerScreens($("planner"), (next) => {
     if (next !== "formation") {
       mapInteraction?.cancel();
       selection.clear();
@@ -53,20 +57,6 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
       placementInspector?.render();
     }
     screen = next;
-    for (const name of ["project", "players", "subcities", "maps"]) {
-      const active = name === screen || (name === "players" && screen === "player") || (name === "maps" && screen === "formation");
-      $(name + "-screen").hidden = name !== screen;
-      const tab = document.querySelector(`[data-screen="${name}"]`);
-      tab.classList.toggle("active", active);
-      tab.setAttribute("aria-pressed", String(active));
-    }
-    if (screen === "player") $("players-screen").hidden = true;
-    $("player-screen").hidden = screen !== "player";
-    $("formation-screen").hidden = screen !== "formation";
-    document.querySelector(".map-toolbar").hidden = screen !== "formation";
-    $("players-return-arrow").hidden = screen !== "player";
-    $("players-search-control").hidden = screen !== "players";
-    $("subcities-search-control").hidden = screen !== "subcities";
     if (screen === "players") players.renderList();
     if (screen === "player") players.renderProfile();
     if (screen === "player") playerSubcities?.render();
@@ -76,7 +66,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
       renderer.resize();
       renderer.fit();
     });
-  }
+  });
   const team = createTeamScreen({
     root: $("project-screen"),
     getPlan,
@@ -251,16 +241,6 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     renderer.fit();
     $("help-dialog").close();
   };
-  document.querySelector('[data-screen="project"]').onclick = () => showScreen("project");
-  const playersTab = document.querySelector('[data-screen="players"]');
-  playersTab.hidden = false;
-  playersTab.onclick = () => showScreen("players");
-  const subcitiesTab = document.querySelector('[data-screen="subcities"]');
-  subcitiesTab.hidden = false;
-  subcitiesTab.onclick = () => showScreen("subcities");
-  const mapsTab = document.querySelector('[data-screen="maps"]');
-  mapsTab.hidden = false;
-  mapsTab.onclick = () => showScreen("maps");
   $("team-players").hidden = false;
   $("team-subcities").hidden = false;
   $("team-maps").hidden = false;
