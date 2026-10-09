@@ -518,6 +518,16 @@
           </div>
         </form>
       </dialog>
+      <dialog id="player-sync-dialog">
+        <div class="dialog-heading"><h2>Player edits conflict</h2></div>
+        <p>Someone saved different values for these fields while you were editing. Other edits will be merged.</p>
+        <p id="player-sync-conflicts"></p>
+        <div class="dialog-actions">
+          <button data-resolution="cancel" type="button">Cancel</button>
+          <button data-resolution="team" type="button">Keep my edits</button>
+          <button data-resolution="player" type="button">Use latest saved values</button>
+        </div>
+      </dialog>
       <dialog id="catalog-dialog" class="catalog-dialog">
         <div class="dialog-heading">
           <div>
