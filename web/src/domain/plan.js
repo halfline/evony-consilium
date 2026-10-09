@@ -1,5 +1,6 @@
 import { MAPS } from "./maps.js";
 import { autoFormation } from "./formation.js";
+import { createLayout } from "./layout.js";
 
 export function createDemoPlan(catalog) {
   const assets = catalog.assets.filter((a) => a.kind === "keep");
@@ -23,6 +24,7 @@ export function createDemoPlan(catalog) {
 }
 
 export function createEmptyPlan() {
+  const { positions, ...layout } = createLayout();
   return {
     version: 1,
     title: "Alliance formation",
@@ -30,19 +32,7 @@ export function createEmptyPlan() {
     discordUrl: "",
     maps: [],
     activeMapId: null,
-    map: "blank",
-    extent: 1200,
-    center: { x: 600, y: 600 },
-    spacing: 0,
-    formation: "rings",
-    grid: { ax: 48, ay: 24, bx: -48, by: 24 },
-    structures: [],
-    obstacles: [],
-    rallyId: null,
-    rallyManual: false,
-    backgrounds: {},
-    labels: true,
-    showGrid: true,
+    ...layout,
     keeps: [],
     subcities: [],
     customAssets: [],
