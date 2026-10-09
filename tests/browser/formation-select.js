@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 
 export async function formationSelect({ page }) {
-  const row = page.locator("#formation-players button").first();
+  const row = page.locator("#formation-players .players-row").first();
   await row.click();
   assert.equal(await row.evaluate((button) => button.classList.contains("selected")), true);
   const box = await page.locator("#map").boundingBox();

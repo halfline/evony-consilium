@@ -7,7 +7,7 @@ export async function formationPlace({ page, driveFiles }) {
   await page.locator("#new-formation-name").fill("Player formation");
   await page.locator('#add-map-form button[type="submit"]').click();
   await page.locator("#add-map-dialog").waitFor({ state: "hidden" });
-  const row = page.locator("#formation-players button").first();
+  const row = page.locator("#formation-players .players-row").first();
   assert.match(await row.textContent(), /Unplaced/);
   await row.click();
   assert.match(await page.locator("#map-guide").textContent(), /Click a free map tile/);

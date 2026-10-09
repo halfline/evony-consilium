@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 
 export async function formationEscape({ page }) {
-  const row = page.locator("#formation-players button").first();
+  const row = page.locator("#formation-players .players-row").first();
   await row.click();
   assert.match(await page.locator("#map-guide").textContent(), /Click a free map tile/);
   await page.locator("#map").press("Escape");

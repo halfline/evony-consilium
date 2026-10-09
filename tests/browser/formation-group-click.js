@@ -8,7 +8,7 @@ export async function formationGroupClick({ page }) {
   await page.locator("#add-player-dialog").waitFor({ state: "hidden" });
   await page.locator('[data-screen="maps"]').click();
   await page.locator("#maps-list .map-row").filter({ hasText: "Player formation" }).click();
-  const rows = page.locator("#formation-players button");
+  const rows = page.locator("#formation-players .players-row");
   assert.equal(await rows.count(), 2);
   await rows.last().click();
   let box = await page.locator("#map").boundingBox();
@@ -22,5 +22,5 @@ export async function formationGroupClick({ page }) {
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
     await page.keyboard.up("Control");
   }
-  assert.equal(await page.locator("#formation-players button.selected").count(), 2);
+  assert.equal(await page.locator("#formation-players .players-row.selected").count(), 2);
 }

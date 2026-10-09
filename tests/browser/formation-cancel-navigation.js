@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 
 export async function formationCancelNavigation({ page, driveFiles }) {
-  const row = page.locator("#formation-players button").first();
+  const row = page.locator("#formation-players .players-row").first();
   await row.click();
   let box = await page.locator("#map").boundingBox();
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
@@ -16,7 +16,7 @@ export async function formationCancelNavigation({ page, driveFiles }) {
   await page.mouse.up();
   await page.locator('[data-screen="maps"]').click();
   await page.locator("#maps-list .map-row").filter({ hasText: "Player formation" }).click();
-  assert.equal(await page.locator("#formation-players button").first().textContent(), before);
+  assert.equal(await page.locator("#formation-players .players-row").first().textContent(), before);
   await page.locator("#drive-save").click();
   let plan;
   for (let attempt = 0; attempt < 40; attempt++) {

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 export async function formationDelete({ page, driveFiles }) {
   await page.locator('[data-screen="maps"]').click();
   await page.locator("#maps-list .map-row").filter({ hasText: "Player formation" }).click();
-  const row = page.locator("#formation-players button").first();
+  const row = page.locator("#formation-players .players-row").first();
   assert.doesNotMatch(await row.textContent(), /Unplaced/);
   await row.click();
   await page.locator("#map").press("Delete");

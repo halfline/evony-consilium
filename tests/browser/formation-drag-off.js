@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 export async function formationDragOff({ page, driveFiles }) {
   const teamFile = () => [...driveFiles.values()].find(
     ({ data }) => data?.format === "evony-consilium-team");
-  const row = page.locator("#formation-players button").first();
+  const row = page.locator("#formation-players .players-row").first();
   await row.click();
   let box = await page.locator("#map").boundingBox();
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);

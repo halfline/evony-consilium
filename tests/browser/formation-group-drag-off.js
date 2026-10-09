@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 
 export async function formationGroupDragOff({ page, driveFiles }) {
-  const rows = page.locator("#formation-players button");
+  const rows = page.locator("#formation-players .players-row");
   assert.equal(await rows.count(), 2);
-  assert.equal(await page.locator("#formation-players button.selected").count(), 2);
+  assert.equal(await page.locator("#formation-players .players-row.selected").count(), 2);
   const box = await page.locator("#map").boundingBox();
   const first = { x: box.x + box.width / 2 + 60, y: box.y + box.height / 2 + 30 };
   await page.mouse.move(first.x, first.y);
@@ -32,5 +32,5 @@ export async function formationGroupDragOff({ page, driveFiles }) {
   await page.mouse.move(box.x + box.width - 2, box.y + box.height - 2, { steps: 8 });
   await page.mouse.up();
   await page.keyboard.up("Shift");
-  assert.equal(await page.locator("#formation-players button.selected").count(), 2);
+  assert.equal(await page.locator("#formation-players .players-row.selected").count(), 2);
 }

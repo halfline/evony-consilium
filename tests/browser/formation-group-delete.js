@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 
 export async function formationGroupDelete({ page, driveFiles }) {
-  assert.equal(await page.locator("#formation-players button.selected").count(), 2);
+  assert.equal(await page.locator("#formation-players .players-row.selected").count(), 2);
   await page.locator("#map").press("Delete");
-  assert.equal(await page.locator("#formation-players button").count(), 2);
-  for (const row of await page.locator("#formation-players button").all())
+  assert.equal(await page.locator("#formation-players .players-row").count(), 2);
+  for (const row of await page.locator("#formation-players .players-row").all())
     assert.match(await row.textContent(), /Unplaced/);
   await page.locator("#drive-save").click();
   let plan;

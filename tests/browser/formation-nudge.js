@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 
 export async function formationNudge({ page, driveFiles }) {
-  const row = page.locator("#formation-players button").first();
+  const row = page.locator("#formation-players .players-row").first();
   await row.click();
   const box = await page.locator("#map").boundingBox();
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
