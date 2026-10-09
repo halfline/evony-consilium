@@ -155,7 +155,7 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
     placementView.select(id);
   }
   const formationList = createFormationList({
-    root: $("formation-screen"), getPlan,
+    root: $("formation-screen"), assets: store.assets, getPlan,
     getSelection: () => selection.id, group: selection.ids, select: selectKeep,
     canEdit: () => !store.readOnly,
     setRally: (id) => store.commit(setRallySetter(getPlan(), id)),

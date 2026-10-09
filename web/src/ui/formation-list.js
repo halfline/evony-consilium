@@ -1,7 +1,35 @@
 import { view } from "./dom.js";
 
-export function createFormationList({ root, getPlan, getSelection, group, select, canEdit, place, center, setRally }) {
+export function createFormationList({ root, assets, getPlan, getSelection, group, select, canEdit, place, center, setRally }) {
   const $ = view(root);
+  function describe(button, entity) {
+    const asset = assets.get(entity.skin);
+    if (asset) {
+      const image = document.createElement("img");
+      image.src = asset.previewSrc || asset.src;
+      image.alt = "";
+      button.append(image);
+    }
+    const text = document.createElement("span");
+    const name = document.createElement("span");
+    name.className = "name";
+    name.textContent = entity.name + (entity.locked ? " · Locked" : "");
+    const detail = document.createElement("span");
+    detail.className = "detail";
+    detail.textContent = entity.x === null
+      ? "Unplaced · click to position"
+      : `X ${entity.x} · Y ${entity.y}`;
+    if (!("level" in entity) && asset?.name)
+      detail.textContent += " · " + asset.name;
+    text.append(name, detail);
+    button.append(text);
+    if ("level" in entity) {
+      const level = document.createElement("span");
+      level.className = "level";
+      level.textContent = "K" + entity.level;
+      button.append(level);
+    }
+  }
   function render() {
     $("formation-players").replaceChildren(
       ...getPlan().keeps.map((keep) => {
@@ -9,7 +37,7 @@ export function createFormationList({ root, getPlan, getSelection, group, select
         button.type = "button";
         button.className = "players-row" +
           (getSelection() === keep.id || group.has(keep.id) ? " selected" : "");
-        button.textContent = `${keep.name} · ${keep.x === null ? "Unplaced · click to position" : `X ${keep.x} · Y ${keep.y}`}`;
+        describe(button, keep);
         button.disabled = keep.x === null && !canEdit();
         button.onclick = () => {
           select(keep.id);
@@ -37,8 +65,7 @@ export function createFormationList({ root, getPlan, getSelection, group, select
         button.type = "button";
         button.className = "players-row" +
           (getSelection() === entity.id || group.has(entity.id) ? " selected" : "");
-        button.textContent = `${entity.name} · ${entity.x === null
-          ? "Unplaced · click to position" : `X ${entity.x} · Y ${entity.y}`}`;
+        describe(button, entity);
         button.disabled = entity.x === null && !canEdit();
         button.onclick = () => {
           select(entity.id);
