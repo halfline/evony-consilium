@@ -2,10 +2,12 @@ import { createSubcityCard } from "./subcity-card.js";
 import { createSubcityBrowser } from "./subcity-browser.js";
 import { createSubcityDialog } from "./subcity-dialog.js";
 import { view } from "./dom.js";
+import { bindTileActions } from "./tile-actions.js";
+import { removeSubcity } from "../domain/subcities.js";
 
 export function createSubcitiesScreen({
   root, search, dialog, browser, getPlan, getCatalog,
-  canEdit, commit, context,
+  canEdit, commit, context, status,
 }) {
   const $ = view(root);
   const grid = $("subcities"), addButton = $("add-subcity");
@@ -17,12 +19,23 @@ export function createSubcitiesScreen({
   });
   $("subcities-type").hidden = true;
   $("subcities-color").hidden = true;
+  bindTileActions(grid, {
+    tileSelector: ".subcity-tile",
+    triggerSelector: ".subcity-card",
+    className: "player-actions-open",
+    enabled: canEdit,
+  });
   addButton.onclick = () => editor.open();
   search.oninput = render;
   function tile(city) {
     const card = createSubcityCard({ city, types: types(), owner:
       getPlan().keeps.find((player) => player.id === city.ownerId) || null,
-      open: () => editor.open(city) });
+      open: () => editor.open(city),
+      remove: canEdit() ? () => {
+        try {
+          if (canEdit()) commit(removeSubcity(getPlan(), city.id));
+        } catch (error) { status(error.message, true); }
+      } : null });
     return card;
   }
   function render() {
