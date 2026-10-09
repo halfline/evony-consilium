@@ -81,11 +81,13 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     status: toast,
   });
   function locateSubcity(city) {
-    const map = getPlan().maps.find((map) => map.type === "server");
+    const map = getPlan().maps.find((map) => map.layout?.map === "server");
     if (!map) {
       toast("Add a Server map to locate subcities.", true);
       return;
     }
+    selection.clear();
+    placementView.reset();
     store.openMap(map.id);
     showScreen("formation");
     requestAnimationFrame(() => {
