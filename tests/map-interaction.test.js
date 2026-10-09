@@ -319,6 +319,17 @@ test("document shortcuts work outside canvas and are disposed", () => {
   }
 });
 
+test("plus and minus keys zoom the focused map canvas", () => {
+  const canvas = {};
+  const factors = [];
+  bindMapInteraction({ canvas, renderer: { zoom: (factor) => factors.push(factor) } });
+  let prevented = 0;
+  for (const key of ["+", "=", "-"])
+    canvas.onkeydown({ key, preventDefault: () => prevented++ });
+  assert.deepEqual(factors, [1.2, 1.2, 1 / 1.2]);
+  assert.equal(prevented, 3);
+});
+
 test("arrow keys nudge selected keep by one tile", () => {
   let plan = createEmptyPlan();
   plan.keeps.push({ id: "keep", x: 10, y: 10, w: 2, h: 2, locked: false });
