@@ -137,11 +137,6 @@ export function bindMapInteraction({
       }
       return;
     }
-    if (drag?.blocked) {
-      const pt = point(event);
-      drag.moved ||= Math.hypot(pt.x - drag.pt.x, pt.y - drag.pt.y) > 4;
-      return;
-    }
     if (drag?.band) {
       const pt = point(event);
       const box = {
@@ -161,12 +156,13 @@ export function bindMapInteraction({
       renderer.draw();
       return;
     }
+    if (!drag) return;
+    const pt = point(event);
+    drag.moved ||= Math.hypot(pt.x - drag.pt.x, pt.y - drag.pt.y) > 4;
     if (drag?.id) {
-      const pt = point(event);
       const start = renderer.world(drag.pt.x, drag.pt.y);
       const end = renderer.world(pt.x, pt.y);
       const dx = Math.round(end.x - start.x), dy = Math.round(end.y - start.y);
-      drag.moved ||= Math.hypot(pt.x - drag.pt.x, pt.y - drag.pt.y) > 4;
       const preview = previewPlacementMove(
         getPlan(), drag.members, dx, dy, terrainFor(getPlan().map));
       renderer.previews = preview.positions.map((item) => ({ ...item, valid: preview.valid }));
@@ -175,8 +171,7 @@ export function bindMapInteraction({
       renderer.draw();
       return;
     }
-    if (!drag || drag.blocked) return;
-    const pt = point(event);
+    if (drag.blocked) return;
     renderer.camera.x = drag.camera.x - (pt.x - drag.pt.x) / drag.camera.zoom;
     renderer.camera.y = drag.camera.y - (pt.y - drag.pt.y) / drag.camera.zoom;
     if (canvas.style) canvas.style.cursor = "grabbing";
