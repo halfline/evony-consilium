@@ -1,11 +1,16 @@
 import { project, unproject } from "../domain/geometry.js";
+import { ImageCache } from "./image-cache.js";
+import { drawSubcities } from "./subcity-painter.js";
 
 export class MapRenderer {
-  constructor(canvas, getPlan, { onDraw = () => {} } = {}) {
+  constructor(canvas, getPlan, { onDraw = () => {}, subcityTypes = [] } = {}) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
     this.getPlan = getPlan;
     this.onDraw = onDraw;
+    this.subcityTypes = subcityTypes;
+    this.subcityHits = [];
+    this.images = new ImageCache(() => this.draw());
     this.camera = { x: 0, y: 0, zoom: 1 };
     this.width = 0;
     this.height = 0;
@@ -20,6 +25,11 @@ export class MapRenderer {
     this.canvas.width = Math.round(box.width * dpr);
     this.canvas.height = Math.round(box.height * dpr);
     this.draw();
+  }
+  image(src) { return this.images.get(src); }
+  hitSubcity(x, y) {
+    return [...this.subcityHits].reverse().find((hit) =>
+      x >= hit.left && x <= hit.right && y >= hit.top && y <= hit.bottom)?.id || null;
   }
   screen(x, y) {
     const p = project(x, y, this.getPlan().grid);
@@ -95,6 +105,7 @@ export class MapRenderer {
       }
       c.stroke();
     }
+    drawSubcities(this, p, this.subcityTypes);
     this.onDraw({ zoom: this.camera.zoom });
   }
 }

@@ -103,6 +103,7 @@ export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
   });
   let mapViewControls;
   const renderer = new MapRenderer($("map"), getPlan, {
+    subcityTypes: catalog.subcityTypes || [],
     onDraw: (state) => mapViewControls?.render(state),
   });
   mapViewControls = bindMapViewControls({ root: $("formation-screen"), renderer });
