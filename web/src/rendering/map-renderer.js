@@ -1,34 +1,45 @@
-import { project, unproject } from "../domain/geometry.js";
-import { ImageCache } from "./image-cache.js";
 import { drawSubcities } from "./subcity-painter.js";
 import { drawTerrain, drawMoatOverlay } from "./terrain-painter.js";
 import { drawEntity } from "./entity-painter.js";
-
+import { ImageCache } from "./image-cache.js";
+import { project, unproject } from "../domain/geometry.js";
 export class MapRenderer {
-  constructor(canvas, getPlan, { onDraw = () => {}, subcityTypes = [], terrainFor = () => undefined,
-    assets = new Map(), selection = { id: null, ids: new Set() } } = {}) {
-    this.canvas = canvas;
-    this.ctx = canvas.getContext("2d");
-    this.getPlan = getPlan;
+  constructor(
+    canvas,
+    assets,
+    getPlan,
+    {
+      onDraw = () => {},
+      subcityTypes = [],
+      terrainFor = () => undefined,
+      selection = { id: null, ids: new Set() },
+    } = {},
+  ) {
     this.onDraw = onDraw;
     this.subcityTypes = subcityTypes;
-    this.terrainFor = terrainFor;
-    this.assets = assets;
-    this.hits = [];
-    this.selection = selection;
-    this.preview = null;
-    this.previews = null;
-    this.selectionBox = null;
     this.subcityHits = [];
+    this.terrainFor = terrainFor;
+    this.canvas = canvas;
+    this.ctx = canvas.getContext("2d");
+    this.assets = assets;
+    this.getPlan = getPlan;
     this.images = new ImageCache(() => this.draw());
     this.camera = { x: 0, y: 0, zoom: 1 };
+    this.selection = selection;
+    this.selectionBox = null;
+    this.preview = null;
+    this.hits = [];
     this.width = 0;
     this.height = 0;
     this.observer = new ResizeObserver(() => this.resize());
     this.observer.observe(canvas.parentElement);
   }
-  get selected() { return this.selection?.id; }
-  get selectedIds() { return this.selection?.ids; }
+  get selected() {
+    return this.selection?.id;
+  }
+  get selectedIds() {
+    return this.selection?.ids;
+  }
   resize() {
     const box = this.canvas.getBoundingClientRect();
     this.width = box.width;
@@ -38,36 +49,8 @@ export class MapRenderer {
     this.canvas.height = Math.round(box.height * dpr);
     this.draw();
   }
-  image(src) { return this.images.get(src); }
-  hit(x, y) {
-    return [...this.hits].reverse().find((region) =>
-      x >= region.left && x <= region.right && y >= region.top && y <= region.bottom)?.id || null;
-  }
-  path(entity) {
-    const points = [
-      [entity.x, entity.y],
-      [entity.x + entity.w, entity.y],
-      [entity.x + entity.w, entity.y + entity.h],
-      [entity.x, entity.y + entity.h],
-    ].map(([x, y]) => this.screen(x, y));
-    this.ctx.beginPath();
-    points.forEach((point, index) => index
-      ? this.ctx.lineTo(point.x, point.y)
-      : this.ctx.moveTo(point.x, point.y));
-    this.ctx.closePath();
-  }
-  drawTerrain(...args) {
-    drawTerrain(this, ...args);
-  }
-  drawMoatOverlay(...args) {
-    drawMoatOverlay(this, ...args);
-  }
-  entity(...args) {
-    drawEntity(this, ...args);
-  }
-  hitSubcity(x, y) {
-    return [...this.subcityHits].reverse().find((hit) =>
-      x >= hit.left && x <= hit.right && y >= hit.top && y <= hit.bottom)?.id || null;
+  image(src) {
+    return this.images.get(src);
   }
   screen(x, y) {
     const p = project(x, y, this.getPlan().grid);
@@ -93,7 +76,11 @@ export class MapRenderer {
     const before = this.world(sx, sy);
     this.camera.zoom = Math.max(0.002, Math.min(3, this.camera.zoom * factor));
     const after = this.world(sx, sy);
-    const delta = project(after.x - before.x, after.y - before.y, this.getPlan().grid);
+    const delta = project(
+      after.x - before.x,
+      after.y - before.y,
+      this.getPlan().grid,
+    );
     this.camera.x -= delta.x;
     this.camera.y -= delta.y;
     this.draw();
@@ -101,81 +88,138 @@ export class MapRenderer {
   fit(whole = false) {
     const p = this.getPlan();
     const extent = this.terrainFor(p.map)?.extent ?? p.extent;
-    const placed = [...p.keeps, ...p.structures, ...p.obstacles]
-      .filter((entity) => entity.x !== null);
-    let points;
-    if (whole) points = [[0, 0], [extent, 0], [0, extent], [extent, extent]]
-      .map(([x, y]) => project(x, y, p.grid));
-    else if (placed.length) points = placed.flatMap((entity) => [
-      [entity.x, entity.y], [entity.x + entity.w, entity.y],
-      [entity.x, entity.y + entity.h], [entity.x + entity.w, entity.y + entity.h],
-    ].map(([x, y]) => project(x, y, p.grid)));
+    const list = [...p.keeps, ...p.structures, ...p.obstacles].filter(
+      (e) => e.x !== null,
+    );
+    let points = [];
+    if (whole)
+      points = [
+        [0, 0],
+        [extent, 0],
+        [0, extent],
+        [extent, extent],
+      ].map(([x, y]) => project(x, y, p.grid));
+    else if (list.length)
+      points = list.flatMap((e) =>
+        [
+          [e.x, e.y],
+          [e.x + e.w, e.y + e.h],
+          [e.x, e.y + e.h],
+          [e.x + e.w, e.y],
+        ].map(([x, y]) => project(x, y, p.grid)),
+      );
     else {
       this.camera.zoom = 1;
       this.center(p.center.x, p.center.y);
       return;
     }
-    const xs = points.map(({ x }) => x), ys = points.map(({ y }) => y);
-    const minX = Math.min(...xs), maxX = Math.max(...xs);
-    const minY = Math.min(...ys), maxY = Math.max(...ys);
+    const xs = points.map((v) => v.x),
+      ys = points.map((v) => v.y);
+    const minX = Math.min(...xs),
+      maxX = Math.max(...xs),
+      minY = Math.min(...ys),
+      maxY = Math.max(...ys);
     this.camera = {
       x: (minX + maxX) / 2,
       y: (minY + maxY) / 2 - 30,
-      zoom: Math.max(0.002, Math.min(1.1,
-        (this.width - 130) / (maxX - minX + 180),
-        (this.height - 220) / (maxY - minY + 180))),
+      zoom: Math.max(
+        0.002,
+        Math.min(
+          1.1,
+          (this.width - 130) / (maxX - minX + 180),
+          (this.height - 220) / (maxY - minY + 180),
+        ),
+      ),
     };
     this.draw();
   }
+  path(e) {
+    const pts = [
+      [e.x, e.y],
+      [e.x + e.w, e.y],
+      [e.x + e.w, e.y + e.h],
+      [e.x, e.y + e.h],
+    ].map(([x, y]) => this.screen(x, y));
+    const c = this.ctx;
+    c.beginPath();
+    pts.forEach((p, i) => (i ? c.lineTo(p.x, p.y) : c.moveTo(p.x, p.y)));
+    c.closePath();
+    return pts;
+  }
+  drawTerrain(...args) {
+    drawTerrain(this, ...args);
+  }
+  drawMoatOverlay(...args) {
+    drawMoatOverlay(this, ...args);
+  }
   draw() {
     if (!this.width || !this.height) return;
-    const c = this.ctx, p = this.getPlan(), dpr = devicePixelRatio || 1;
+    const c = this.ctx,
+      p = this.getPlan(),
+      z = this.camera.zoom,
+      dpr = devicePixelRatio || 1;
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const map = p.mapPresets.find(({ id }) => id === p.map);
+    const map = p.mapPresets.find((m) => m.id === p.map);
     c.fillStyle = map?.color || "#647947";
     c.fillRect(0, 0, this.width, this.height);
     const terrain = this.terrainFor(p.map);
     const extent = terrain?.extent ?? p.extent;
-    const corners = [[0, 0], [this.width, 0], [0, this.height], [this.width, this.height]]
-      .map(([x, y]) => this.world(x, y));
-    const minX = Math.max(0, Math.floor(Math.min(...corners.map(({ x }) => x))) - 2);
-    const maxX = Math.min(extent, Math.ceil(Math.max(...corners.map(({ x }) => x))) + 2);
-    const minY = Math.max(0, Math.floor(Math.min(...corners.map(({ y }) => y))) - 2);
-    const maxY = Math.min(extent, Math.ceil(Math.max(...corners.map(({ y }) => y))) + 2);
-    if (terrain) {
-      c.save();
-      c.translate(this.width / 2 - this.camera.x * this.camera.zoom,
-        this.height / 2 - this.camera.y * this.camera.zoom);
-      c.scale(this.camera.zoom, this.camera.zoom);
-      this.drawTerrain(terrain, minX, minY, maxX, maxY, p.grid);
-      c.restore();
-    }
-    const background = p.backgrounds[p.map];
-    if (background) {
-      const image = this.image(background.src);
-      if (image) {
-        const anchor = project(background.x, background.y, p.grid);
-        c.save();
-        c.translate(this.width / 2 - this.camera.x * this.camera.zoom,
-          this.height / 2 - this.camera.y * this.camera.zoom);
-        c.scale(this.camera.zoom, this.camera.zoom);
-        c.globalAlpha = background.opacity;
-        c.drawImage(image, anchor.x, anchor.y, background.width, background.height);
-        c.restore();
+    const corners = [
+      [0, 0],
+      [this.width, 0],
+      [0, this.height],
+      [this.width, this.height],
+    ].map(([x, y]) => this.world(x, y));
+    const minX = Math.max(
+        0,
+        Math.floor(Math.min(...corners.map((q) => q.x))) - 2,
+      ),
+      maxX = Math.min(
+        extent,
+        Math.ceil(Math.max(...corners.map((q) => q.x))) + 2,
+      );
+    const minY = Math.max(
+        0,
+        Math.floor(Math.min(...corners.map((q) => q.y))) - 2,
+      ),
+      maxY = Math.min(
+        extent,
+        Math.ceil(Math.max(...corners.map((q) => q.y))) + 2,
+      );
+    c.save();
+    c.translate(
+      this.width / 2 - this.camera.x * z,
+      this.height / 2 - this.camera.y * z,
+    );
+    c.scale(z, z);
+    if (terrain) this.drawTerrain(terrain, minX, minY, maxX, maxY, p.grid);
+    const bg = p.backgrounds[p.map];
+    if (bg) {
+      const im = this.image(bg.src);
+      if (im) {
+        const anchor = project(bg.x, bg.y, p.grid);
+        c.globalAlpha = bg.opacity;
+        c.drawImage(im, anchor.x, anchor.y, bg.width, bg.height);
+        c.globalAlpha = 1;
       }
     }
+    c.restore();
     if (p.showGrid) {
-      const stride = this.camera.zoom < 0.25 ? 10 : 1;
       c.strokeStyle = "#17261b35";
       c.lineWidth = 0.6;
+      const stride = z < 0.25 ? 10 : 1;
       c.beginPath();
       for (let x = minX; x <= maxX; x += stride) {
-        const a = this.screen(x, minY), b = this.screen(x, maxY);
-        c.moveTo(a.x, a.y); c.lineTo(b.x, b.y);
+        const a = this.screen(x, minY),
+          b = this.screen(x, maxY);
+        c.moveTo(a.x, a.y);
+        c.lineTo(b.x, b.y);
       }
       for (let y = minY; y <= maxY; y += stride) {
-        const a = this.screen(minX, y), b = this.screen(maxX, y);
-        c.moveTo(a.x, a.y); c.lineTo(b.x, b.y);
+        const a = this.screen(minX, y),
+          b = this.screen(maxX, y);
+        c.moveTo(a.x, a.y);
+        c.lineTo(b.x, b.y);
       }
       c.stroke();
     }
@@ -183,41 +227,73 @@ export class MapRenderer {
     c.lineWidth = 1;
     this.path({ x: 0, y: 0, w: extent, h: extent });
     c.stroke();
+    const all = [
+      ...(terrain?.landmarks || []),
+      ...p.obstacles,
+      ...p.structures,
+      ...p.keeps,
+    ]
+      .filter((e) => e.x !== null)
+      .sort(
+        (a, b) =>
+          project(a.x + a.w, a.y + a.h, p.grid).y -
+          project(b.x + b.w, b.y + b.h, p.grid).y,
+      );
+    for (const landmark of terrain?.landmarks || [])
+      this.drawMoatOverlay(landmark, p, z);
     this.hits = [];
-    const landmarks = terrain?.landmarks || [];
-    const entities = [...landmarks, ...p.obstacles, ...p.structures, ...p.keeps]
-      .filter((entity) => entity.x !== null && entity.y !== null)
-      .sort((a, b) =>
-        project(a.x + a.w, a.y + a.h, p.grid).y -
-        project(b.x + b.w, b.y + b.h, p.grid).y);
-    for (const landmark of landmarks)
-      this.drawMoatOverlay(landmark, p, this.camera.zoom);
-    for (const entity of entities)
-      this.entity(entity, p, this.camera.zoom, landmarks.includes(entity));
+    const landmarks = new Set(terrain?.landmarks || []);
+    for (const e of all) this.entity(e, p, z, landmarks.has(e));
     drawSubcities(this, p, this.subcityTypes);
-    for (const preview of this.previews || (this.preview ? [this.preview] : [])) {
-      this.path(preview);
-      c.fillStyle = preview.valid ? "#cfe3a944" : "#e85e4a66";
+    for (const e of this.previews || (this.preview ? [this.preview] : [])) {
+      this.path(e);
+      c.fillStyle = e.valid ? "#cfe3a944" : "#e85e4a66";
       c.fill();
-      c.strokeStyle = preview.valid ? "#e4f7b4" : "#ffad98";
+      c.strokeStyle = e.valid ? "#e4f7b4" : "#ffad98";
       c.lineWidth = 2;
       c.stroke();
     }
     const vignette = c.createRadialGradient(
-      this.width / 2, this.height / 2, 50,
-      this.width / 2, this.height / 2,
-      Math.max(this.width, this.height) * 0.65);
+      this.width / 2,
+      this.height / 2,
+      50,
+      this.width / 2,
+      this.height / 2,
+      Math.max(this.width, this.height) * 0.65,
+    );
     vignette.addColorStop(0, "#16271a00");
     vignette.addColorStop(1, "#14241b55");
     c.fillStyle = vignette;
     c.fillRect(0, 0, this.width, this.height);
     if (this.selectionBox) {
-      const box = this.selectionBox;
-      c.fillStyle = "#cfe3a922";
-      c.fillRect(box.x, box.y, box.w, box.h);
-      c.strokeStyle = "#e4f7b4";
-      c.strokeRect(box.x, box.y, box.w, box.h);
+      const { x, y, w, h } = this.selectionBox;
+      c.fillStyle = "#e7d59722";
+      c.strokeStyle = "#e7d597";
+      c.lineWidth = 1;
+      c.fillRect(x, y, w, h);
+      c.strokeRect(x, y, w, h);
     }
-    this.onDraw({ zoom: this.camera.zoom });
+    this.onDraw({ zoom: z });
+  }
+  entity(e, p, z, fixed = false) {
+    drawEntity(this, e, p, z, fixed);
+  }
+  hitSubcity(x, y) {
+    return (
+      [...this.subcityHits]
+        .reverse()
+        .find(
+          (hit) =>
+            x >= hit.left && x <= hit.right && y >= hit.top && y <= hit.bottom,
+        )?.id || null
+    );
+  }
+  hit(x, y) {
+    return (
+      [...this.hits]
+        .reverse()
+        .find((h) => x >= h.left && x <= h.right && y >= h.top && y <= h.bottom)
+        ?.id || null
+    );
   }
 }

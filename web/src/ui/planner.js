@@ -128,8 +128,7 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
     status: toast,
   });
   let mapViewControls;
-  const renderer = new MapRenderer($("map"), getPlan, {
-    assets: store.assets,
+  const renderer = new MapRenderer($("map"), store.assets, getPlan, {
     subcityTypes: catalog.subcityTypes || [],
     terrainFor: (id) => terrainCatalog?.get(id),
     selection,
