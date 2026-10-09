@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 export async function entryWorkflow({ page, context }) {
   await page.goto("http://127.0.0.1:4174", { waitUntil: "domcontentloaded" });
   await page.locator("#loading").waitFor({ state: "hidden" });
+  assert.equal(await page.locator("#loading").count(), 1);
+  assert.equal(await page.locator("#loading").isVisible(), false);
   assert.equal(await page.title(), "Evony Consilium · Alliance war room");
   // A stylesheet can return HTTP 200 while containing the wrong document.
   assert.equal(
