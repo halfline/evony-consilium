@@ -1,6 +1,16 @@
 import assert from "node:assert/strict";
 
 export async function formationAllianceBuilding({ page, driveFiles }) {
+  for (const [kind, file] of [
+    ["alliance", "map-world_castle_guild.webp"],
+    ["warehouse", "map-world_warehouse_guild.webp"],
+    ["resource", "map-world_food_guild.webp"],
+    ["objective", "map-battlefield-knighthall.webp"],
+  ]) {
+    const portrait = page.locator(`[data-building="${kind}"] .building-portrait img`);
+    assert.equal(await portrait.getAttribute("alt"), "");
+    assert.ok((await portrait.getAttribute("src")).endsWith(file));
+  }
   await page.locator('[data-building="alliance"]').click();
   await page.locator("#catalog-dialog").waitFor({ state: "visible" });
   await page.locator('#catalog-grid [data-asset="map-world_castle_guild"]').click();
