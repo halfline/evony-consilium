@@ -8,6 +8,7 @@ import { captureLayout } from "./layout.js";
 import { defaultFormationName } from "./map-plans.js";
 import { migratePlan } from "./document-migrations.js";
 import { unproject } from "./geometry.js";
+import { MAX_ENTITIES, ENTITY_COLLECTIONS } from "./entities.js";
 
 function validateMapPresets(plan) {
   if (!Array.isArray(plan.mapPresets) || plan.mapPresets.length > 30)
@@ -44,6 +45,44 @@ function validateCustomAssets(plan) {
       )
     )
       throw new Error("Invalid asset kind.");
+  }
+}
+
+function validateEntities(plan, catalog) {
+  const assets = new Set(
+    [...(catalog.assets || []), ...plan.customAssets].map((asset) => asset.id),
+  );
+  const ids = new Set();
+  for (const collection of ENTITY_COLLECTIONS) {
+    if (!Array.isArray(plan[collection]) && collection === "keeps")
+      throw new Error("Invalid player list.");
+    if (!Array.isArray(plan[collection]) || plan[collection].length > MAX_ENTITIES)
+      throw new Error("Too many " + collection + ".");
+    for (const entity of plan[collection]) {
+      string(entity.id, 120, "ID");
+      if (!entity.id || ids.has(entity.id))
+        throw new Error(
+          collection === "keeps" ? "Duplicate player ID." : "Duplicate entity ID.",
+        );
+      ids.add(entity.id);
+      string(entity.name, 100, "name");
+      number(entity.w, 1, 20, "footprint");
+      number(entity.h, 1, 20, "footprint");
+      if (entity.x === null) {
+        if (entity.y !== null) throw new Error("Invalid coordinates.");
+      } else {
+        number(entity.x, 0, plan.extent - entity.w, "X");
+        number(entity.y, 0, plan.extent - entity.h, "Y");
+      }
+      if (collection === "keeps") {
+        validatePlayerProfile(entity, plan.allianceTag || "");
+        if (entity.playerSource !== undefined)
+          validatePlayerSource(entity.playerSource);
+      }
+      if (collection !== "obstacles" && !assets.has(entity.skin))
+        throw new Error("Missing castle sprite: " + entity.skin);
+      entity.locked = Boolean(entity.locked);
+    }
   }
 }
 
@@ -118,27 +157,7 @@ export function validatePlan(input, catalog = { assets: [] }) {
     number(plan.grid?.[key], -200, 200, "grid", false);
   unproject(0, 0, plan.grid);
   validateCustomAssets(plan);
-  if (!Array.isArray(plan.keeps)) throw new Error("Invalid player list.");
-  if (plan.keeps.length > 500) throw new Error("Too many keeps.");
-  const ids = new Set();
-  const assets = new Set(
-    [...(catalog.assets || []), ...(plan.customAssets || [])].map((asset) => asset.id),
-  );
-  for (const player of plan.keeps) {
-    string(player.id, 120, "ID");
-    if (!player.id || ids.has(player.id)) throw new Error("Duplicate player ID.");
-    ids.add(player.id);
-    validatePlayerProfile(player, plan.allianceTag || "");
-    if (player.playerSource !== undefined) validatePlayerSource(player.playerSource);
-    if (!assets.has(player.skin)) throw new Error("Missing castle sprite: " + player.skin);
-    number(player.w, 1, 20, "footprint");
-    number(player.h, 1, 20, "footprint");
-    if (player.x !== null || player.y !== null) {
-      number(player.x, 0, plan.extent - player.w, "X");
-      number(player.y, 0, plan.extent - player.h, "Y");
-    }
-    player.locked = Boolean(player.locked);
-  }
+  validateEntities(plan, catalog);
   delete plan.allianceTag;
   plan.subcities ||= [];
   validateSubcities(plan.subcities, catalog.subcityTypes || null, plan.keeps);
