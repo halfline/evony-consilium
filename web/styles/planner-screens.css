@@ -775,3 +775,16 @@
   pointer-events: none;
 }
 #formation-screen .map-caption h2 { margin: 2px 0 0; font-size: 18px; }
+#map-zoom-controls {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  border-radius: 8px;
+  background: #17261bdf;
+}
+#map-zoom-controls button { min-width: 36px; min-height: 36px; }
+#map-zoom-controls #zoom-level { min-width: 48px; text-align: center; }
