@@ -108,7 +108,6 @@ export function createPlayerWorkflow({
     resetTag: () => {
       lastTag = getPlan().keeps.at(-1)?.allianceTag || "";
     },
-    selected: () => getPlan().keeps.find((player) => player.id === selection.id),
     renderProfile: () => {
       const focused = roots.profile.ownerDocument.activeElement;
       if (
