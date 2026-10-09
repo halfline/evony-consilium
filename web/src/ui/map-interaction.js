@@ -24,6 +24,13 @@ export function bindMapInteraction({
     if (canvas.style) canvas.style.cursor = "default";
     renderer.draw();
   }
+  function removeObjects(ids) {
+    commit(removePlacements(getPlan(), ids));
+    group.clear();
+    select(null);
+    groupChanged();
+    resetPending?.();
+  }
   const point = (event) => {
     const box = canvas.getBoundingClientRect();
     return { x: event.clientX - box.left, y: event.clientY - box.top };
@@ -213,10 +220,7 @@ export function bindMapInteraction({
         (preview.x + preview.w <= 0 || preview.y + preview.h <= 0 ||
           preview.x > getPlan().extent || preview.y > getPlan().extent);
       if (!canceled && drag.moved && (outside || beyondMap)) {
-        commit(removePlacements(getPlan(), new Set(drag.members.map((item) => item.id))));
-        group.clear();
-        groupChanged();
-        select(null);
+        removeObjects(new Set(drag.members.map((item) => item.id)));
       } else if (!canceled && drag.moved && renderer.preview?.valid)
         commit(movePlacements(getPlan(), renderer.previews || [renderer.preview],
           terrainFor(getPlan().map)));
@@ -289,11 +293,7 @@ export function bindMapInteraction({
     if (!["Delete", "Backspace"].includes(event.key) || !canEdit() ||
         (!selected() && !group.size)) return;
     event.preventDefault();
-    commit(removePlacements(getPlan(), group.size ? group : new Set([selected().id])));
-    group.clear();
-    select(null);
-    groupChanged();
-    resetPending?.();
+    removeObjects(group.size ? group : new Set([selected().id]));
   };
   const documentKeydown = (event) => {
     if (!canEdit() || event.target === canvas ||
