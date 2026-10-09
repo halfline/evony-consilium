@@ -597,6 +597,99 @@ canvas:focus-visible {
   margin-top: 12px;
 }
 
+.catalog-dialog {
+  width: min(930px, 95vw);
+  max-width: 95vw;
+}
+.dialog-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+.dialog-heading h2 {
+  font-size: 30px;
+  margin-top: 5px;
+}
+.dialog-heading button {
+  border: none;
+  background: none;
+  font-size: 24px;
+  padding: 5px;
+}
+.catalog-filters {
+  display: flex;
+  gap: 12px;
+  margin: 18px 0;
+}
+.catalog-filters input {
+  flex: 1;
+}
+.catalog-filters select {
+  width: 180px;
+}
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+  max-height: 58vh;
+  overflow: auto;
+  padding: 4px;
+}
+.castle-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  background: #26352a;
+  padding: 12px 8px;
+  min-height: 165px;
+}
+.castle-card img {
+  width: 110px;
+  height: 104px;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 6px #0005);
+}
+.castle-card strong {
+  font-size: 11px;
+  font-weight: 500;
+  text-align: center;
+  margin-top: 6px;
+}
+.castle-card small {
+  font-size: 9px;
+  color: var(--gold);
+  margin-top: 4px;
+}
+.castle-card.selected {
+  border-color: var(--gold);
+}
+dialog {
+  border: 1px solid #6a745b;
+  background: #1b2722;
+  color: var(--text);
+  border-radius: 9px;
+  padding: 24px;
+  max-width: min(600px, 95vw);
+  max-height: 90dvh;
+  box-shadow: 0 20px 70px #0008;
+}
+dialog::backdrop {
+  background: #07130eb3;
+  backdrop-filter: blur(3px);
+}
+dialog form label {
+  margin: 18px 0;
+}
+dialog form > button {
+  margin-top: 15px;
+}
+.help-content p {
+  font-size: 12px;
+  margin: 16px 0;
+  color: #b9c5b6;
+}
 .toast {
   position: fixed;
   bottom: 24px;
@@ -819,82 +912,3 @@ code {
   font-size: 24px;
   padding: 4px 8px;
 }
-.catalog-dialog {
-  width: min(930px, 95vw);
-  max-width: 95vw;
-}
-.dialog-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 15px;
-}
-.dialog-heading h2 {
-  font-size: 30px;
-  margin-top: 5px;
-}
-.dialog-heading button {
-  border: none;
-  background: none;
-  font-size: 24px;
-  padding: 5px;
-}
-.catalog-filters {
-  display: flex;
-  gap: 12px;
-  margin: 18px 0;
-}
-.catalog-filters input { flex: 1; }
-.catalog-filters select { width: 180px; }
-.catalog-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 10px;
-  max-height: 58vh;
-  overflow: auto;
-  padding: 4px;
-}
-.castle-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  background: #26352a;
-  padding: 12px 8px;
-  min-height: 165px;
-}
-.castle-card img {
-  width: 110px;
-  height: 104px;
-  object-fit: contain;
-  filter: drop-shadow(0 3px 6px #0005);
-}
-.castle-card strong {
-  font-size: 11px;
-  font-weight: 500;
-  text-align: center;
-  margin-top: 6px;
-}
-.castle-card small {
-  font-size: 9px;
-  color: var(--gold);
-  margin-top: 4px;
-}
-.castle-card.selected { border-color: var(--gold); }
-dialog {
-  border: 1px solid #6a745b;
-  background: #1b2722;
-  color: var(--text);
-  border-radius: 9px;
-  padding: 24px;
-  max-width: min(600px, 95vw);
-  max-height: 90dvh;
-  box-shadow: 0 20px 70px #0008;
-}
-dialog::backdrop {
-  background: #07130eb3;
-  backdrop-filter: blur(3px);
-}
-dialog form label { margin: 18px 0; }
-dialog form > button { margin-top: 15px; }
-
