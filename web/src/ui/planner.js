@@ -153,7 +153,8 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
       $("map-guide").textContent = "Choose an unplaced player, then click a free map tile.";
     },
     canEdit: () => !store.readOnly,
-    mutate: (change) => store.mutate(change), toast,
+    mutate: (change) => store.mutate(change),
+    commit: (plan) => store.commit(plan), toast,
     select: selectKeep,
   });
   function render() {
