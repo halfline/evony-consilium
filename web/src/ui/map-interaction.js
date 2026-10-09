@@ -123,6 +123,22 @@ export function bindMapInteraction({
       renderer.draw();
       return;
     }
+    const arrow = {
+      ArrowLeft: [-1, 0], ArrowRight: [1, 0],
+      ArrowUp: [0, -1], ArrowDown: [0, 1],
+    }[event.key];
+    if (arrow && canEdit() && getSelection()) {
+      event.preventDefault();
+      const entity = [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]
+        .find((item) => item.id === getSelection());
+      if (!entity || entity.locked || entity.x === null) return;
+      try {
+        commit(movePlacements(getPlan(), [{ id: entity.id,
+          x: entity.x + arrow[0], y: entity.y + arrow[1] }],
+        terrainFor(getPlan().map)));
+      } catch (error) { toast(error.message, true); }
+      return;
+    }
     if (event.key !== "Delete" || !canEdit() || !getSelection()) return;
     event.preventDefault();
     commit(removePlacements(getPlan(), new Set([getSelection()])));
