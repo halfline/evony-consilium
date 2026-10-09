@@ -70,14 +70,22 @@ export function drawEntity(view, entity, plan, zoom) {
     bottom: center.y + Math.max(height / 2, 10),
   });
   if (plan.labels && zoom > 0.16) {
-    const label = (entity.id === plan.rallyId ? "★ " : "") + entity.name;
-    ctx.font = `500 ${Math.max(9, Math.min(12, 12 * zoom))}px sans-serif`;
+    const label = (rally ? "★ " : "") +
+      (entity.allianceTag ? `[${entity.allianceTag}] ` : "") + entity.name;
+    ctx.font = `500 ${Math.max(9, Math.min(12, 12 * zoom))}px "DM Sans", sans-serif`;
     ctx.textAlign = "center";
-    ctx.fillStyle = entity.id === plan.rallyId ? "#f1d28b" : "#e9f0db";
+    ctx.textBaseline = "middle";
+    const text = label.length > 32 ? label.slice(0, 31) + "…" : label;
+    const textWidth = ctx.measureText(text).width;
+    const labelY = center.y + 24 * zoom;
+    ctx.fillStyle = "#132218dd";
+    ctx.fillRect(center.x - textWidth / 2 - 7, labelY - 8,
+      textWidth + 14, 17);
+    ctx.fillStyle = rally ? "#f1d28b" : "#e9f0db";
     ctx.fillText(
-      label.length > 32 ? label.slice(0, 31) + "…" : label,
+      text,
       center.x,
-      center.y + 24 * zoom,
+      labelY + 0.5,
     );
   }
 }
