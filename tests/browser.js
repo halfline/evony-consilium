@@ -50,6 +50,7 @@ import { formationRubberBand } from "./browser/formation-rubber-band.js";
 import { formationGroupDrag } from "./browser/formation-group-drag.js";
 import { formationGroupDelete } from "./browser/formation-group-delete.js";
 import { formationCancelNavigation } from "./browser/formation-cancel-navigation.js";
+import { formationGroupDragOff } from "./browser/formation-group-drag-off.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -141,12 +142,13 @@ try {
   await formationGroupClick({ page });
   await formationRubberBand({ page });
   await formationGroupDrag({ page, driveFiles });
+  await formationGroupDragOff({ page, driveFiles });
   await formationGroupDelete({ page, driveFiles });
   await formationCancelNavigation({ page, driveFiles });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
-    "Browser checks passed: team entry, linked players, subcities, maps, terrain, group actions, and gesture cancellation.",
+    "Browser checks passed: team entry, linked players, subcities, maps, terrain, group actions, and gesture lifecycle.",
   );
 } catch (error) {
   console.error(
