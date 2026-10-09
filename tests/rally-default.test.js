@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { defaultRallySetter, ensureRallySetter, setRallySetter } from "../web/src/domain/rally.js";
+import { defaultRallySetter, ensureRallySetter, setRallySetter, ensureMapRallySetters } from "../web/src/domain/rally.js";
 
 test("default rally setter prefers strongest keep and breaks ties by name", () => {
   const plan = { keeps: [
@@ -35,4 +35,21 @@ test("manual rally choice is immutable and survives stronger recruits", () => {
   ensureRallySetter(chosen);
   assert.equal(chosen.rallyId, "a");
   assert.throws(() => setRallySetter(plan, "missing"), /Choose a player/);
+});
+
+test("each map keeps its manual rally choice while other maps use default", () => {
+  const plan = { keeps: [
+    { id: "a", name: "Alpha", level: 30 },
+    { id: "b", name: "Beta", level: 45 },
+  ], rallyId: null, rallyManual: false, maps: [
+    { layout: { rallyId: "a", rallyManual: true } },
+    { layout: { rallyId: null, rallyManual: false } },
+  ] };
+  ensureMapRallySetters(plan);
+  assert.equal(plan.rallyId, "b");
+  assert.deepEqual(plan.maps.map(({ layout }) => layout.rallyId), ["a", "b"]);
+  plan.keeps = plan.keeps.filter(({ id }) => id !== "a");
+  ensureMapRallySetters(plan);
+  assert.equal(plan.maps[0].layout.rallyId, "b");
+  assert.equal(plan.maps[0].layout.rallyManual, false);
 });
