@@ -38,6 +38,65 @@ test("remembered folders stay account scoped and deduplicate", () => {
   );
   assert.deepEqual(rememberedProjects(storage, "bob"), []);
 });
+test("Drive save refuses stale versions and view-only access without uploading", async () => {
+  const calls = [];
+  let meta = { id: "f", version: "2", capabilities: { canEdit: true } };
+  const drive = new Drive(
+    () => "token",
+    async (url, options) => {
+      calls.push(options.method);
+      return json(meta);
+    },
+  );
+  await assert.rejects(
+    drive.save({ id: "f", version: "1" }, {}),
+    (e) => e.status === 409,
+  );
+  meta.capabilities.canEdit = false;
+  await assert.rejects(
+    drive.save({ id: "f", version: "2" }, {}),
+    (e) => e.status === 403,
+  );
+  assert.deepEqual(calls, ["GET", "GET"]);
+});
+test("expired sessions never send a request", async () => {
+  const drive = new Drive(
+    () => "",
+    () => {
+      throw new Error("should not fetch");
+    },
+  );
+  await assert.rejects(drive.metadata({ id: "f" }), (e) => e.status === 401);
+});
+
+test("saving writes the team document to its existing file", async () => {
+  let upload;
+  const drive = new Drive(
+    () => "token",
+    async (url, options) => {
+      if (options.method === "PATCH")
+        upload = { url, data: JSON.parse(options.body) };
+      return json({
+        id: "team",
+        version: "1",
+        capabilities: { canEdit: true },
+      });
+    },
+  );
+  const plan = {
+    title: "Preserved",
+    keeps: [{ id: "p" }],
+    maps: [{ id: "m" }],
+  };
+  await drive.save({ id: "team", version: "1" }, plan);
+  assert.match(upload.url, /files\/team\?/);
+  assert.deepEqual(upload.data, {
+    format: "evony-consilium-team",
+    schema: 1,
+    plan,
+  });
+});
+
 test("obsolete formation envelopes are rejected", async () => {
   const drive = new Drive(
     () => "token",
