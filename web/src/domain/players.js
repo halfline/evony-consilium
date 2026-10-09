@@ -1,8 +1,8 @@
 import { footprint, addEntity } from "./entities.js";
-import { number, string } from "./constraints.js";
-import { castleForLevel } from "./castles.js";
 import { validatePlayerDetails } from "./player-details-schema.js";
+import { number, string } from "./constraints.js";
 import { syncMapLayouts } from "./map-plans.js";
+import { castleForLevel } from "./castles.js";
 export function newPlayer(assets, allianceTag = "") {
   const variants = [...assets.values()].filter(
     (asset) => asset.family === "culture-japan",

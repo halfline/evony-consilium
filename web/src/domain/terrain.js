@@ -23,20 +23,6 @@ export class TerrainCatalog {
     return this.#maps.get(id);
   }
 }
-
-export function terrainTileAt(terrain, layer, x, y) {
-  const clearing = terrain.landmarks.find(
-    (landmark) =>
-      landmark.groundTile &&
-      x >= landmark.x &&
-      x < landmark.x + landmark.w &&
-      y >= landmark.y &&
-      y < landmark.y + landmark.h,
-  );
-  if (clearing) return layer.name === "surface" ? clearing.groundTile : 0;
-  return layer.tiles[y * terrain.width + x];
-}
-
 export function terrainAllowsPlacement(terrain, entity) {
   if (!terrain) return true;
   if (
@@ -50,4 +36,17 @@ export function terrainAllowsPlacement(terrain, entity) {
     for (let x = entity.x; x < entity.x + entity.w; x++)
       if (terrain.blocked[y * terrain.width + x]) return false;
   return !terrain.landmarks.some((landmark) => overlap(entity, landmark));
+}
+
+export function terrainTileAt(terrain, layer, x, y) {
+  const clearing = terrain.landmarks.find(
+    (landmark) =>
+      landmark.groundTile &&
+      x >= landmark.x &&
+      x < landmark.x + landmark.w &&
+      y >= landmark.y &&
+      y < landmark.y + landmark.h,
+  );
+  if (clearing) return layer.name === "surface" ? clearing.groundTile : 0;
+  return layer.tiles[y * terrain.width + x];
 }

@@ -1,14 +1,14 @@
+import { PlayerProfiles } from "./player-profiles.js";
+import { PlayerCacheSync } from "./player-cache-sync.js";
+import { PlayerFiles } from "./player-files.js";
 import { OperationCancelled } from "./cancellation.js";
 import { loadTeamFiles } from "./team-files.js";
 import { ProjectSync } from "./project-sync.js";
 import { DraftQueue } from "../persistence/draft-queue.js";
 import { teamDraftKey, resolveTeamDraft } from "../persistence/team-draft.js";
-import { createEmptyPlan } from "../domain/plan.js";
 import { projectFingerprint } from "../domain/map-plans.js";
+import { createEmptyPlan } from "../domain/plan.js";
 import { parseDriveLink } from "../domain/drive-links.js";
-import { PlayerFiles } from "./player-files.js";
-import { PlayerProfiles } from "./player-profiles.js";
-import { PlayerCacheSync } from "./player-cache-sync.js";
 
 // Account and shared-document lifetime; callers supply presentation callbacks.
 export class TeamWorkspace {
@@ -53,10 +53,10 @@ export class TeamWorkspace {
     repository,
     getPlan,
     getPlayer = () => null,
-    playersChanged = () => {},
     commitPlan,
     validatePlan = () => {},
     isEditingPlayer = () => false,
+    playersChanged = () => {},
     openPlan,
     setReadOnly,
     status,
@@ -221,6 +221,7 @@ export class TeamWorkspace {
     this.sync.opened(draft.file, plan, file.version);
     this.remember();
     const opened = new Set(this.repository.openedPlayers?.(account.sub) || []);
+    // Only revisit files this account explicitly opened; viewers need just the team grant.
     for (const player of draft.plan.keeps) {
       if (opened.has(player.playerSource?.fileId)) this.players.probe(player);
     }

@@ -1,5 +1,10 @@
 import { ensureMapRallySetters } from "./rally.js";
-import { createLayout, captureLayout, applyLayout, LAYOUT_FIELDS } from "./layout.js";
+import {
+  createLayout,
+  captureLayout,
+  applyLayout,
+  LAYOUT_FIELDS,
+} from "./layout.js";
 const copy = (value) => structuredClone(value);
 export const defaultFormationName = (type) =>
   type === "server" ? "Hive" : type === "blank" ? "Formation" : "Rally";

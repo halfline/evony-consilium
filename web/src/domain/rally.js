@@ -5,7 +5,6 @@ export function defaultRallySetter(plan) {
     )[0]?.id || null
   );
 }
-
 export function ensureRallySetter(plan) {
   if (
     !plan.rallyManual ||
@@ -16,7 +15,6 @@ export function ensureRallySetter(plan) {
   }
   return plan;
 }
-
 export function setRallySetter(plan, id) {
   if (!plan.keeps.some((player) => player.id === id))
     throw new Error("Choose a player on this team.");

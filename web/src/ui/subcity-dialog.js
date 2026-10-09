@@ -92,7 +92,13 @@ export function createSubcityDialog({
   }
   $("subcity-locate").onclick = () => {
     const city = getPlan().subcities.find((city) => city.id === editing);
-    if (!city || city.x === null || city.y === null || openedContext !== context()) return;
+    if (
+      !city ||
+      city.x === null ||
+      city.y === null ||
+      openedContext !== context()
+    )
+      return;
     dialog.close();
     locate(city);
   };
