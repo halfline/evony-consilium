@@ -104,3 +104,19 @@ test("clicking a mapped subcity opens its details without beginning a drag", () 
   canvas.onpointerdown({ button: 0, clientX: 20, clientY: 30 });
   assert.deepEqual(opened, ["city"]);
 });
+
+test("double-clicking a placed keep opens its player profile", () => {
+  const plan = createEmptyPlan();
+  plan.keeps.push({ id: "keep", x: 10, y: 10, w: 2, h: 2 });
+  const canvas = { getBoundingClientRect: () => ({ left: 0, top: 0 }) };
+  const opened = [];
+  bindMapInteraction({
+    canvas, renderer: { hit: () => "keep" }, getPlan: () => plan,
+    getPending: () => null, resetPending() {},
+    openPlayer: (id) => opened.push(id),
+  });
+  canvas.ondblclick({ clientX: 20, clientY: 30, shiftKey: true });
+  assert.deepEqual(opened, []);
+  canvas.ondblclick({ clientX: 20, clientY: 30 });
+  assert.deepEqual(opened, ["keep"]);
+});
