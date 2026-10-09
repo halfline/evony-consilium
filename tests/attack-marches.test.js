@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { marchTotals } from "../web/src/domain/attack-marches.js";
+import { marchTotals, validateMarches } from "../web/src/domain/attack-marches.js";
 
 test("march totals include every lower-tier base layer", () => {
   const march = {
@@ -10,4 +10,14 @@ test("march totals include every lower-tier base layer", () => {
   };
   assert.equal(marchTotals(march).total, 2_295_435 + 4 * 5_000 * 9);
   assert.equal(marchTotals(march).ground, 2_295_435 + 5_000 * 9);
+});
+
+test("attack march validation rejects duplicate IDs and overlapping bases", () => {
+  const march = { id: "ground", name: "Ground", layers: [{ tier: 15, ground: 100 }], bases: { ground: 5000 }, baseThrough: 9 };
+  assert.doesNotThrow(() => validateMarches([march]));
+  assert.throws(() => validateMarches([march, march]), /duplicate march ID/);
+  assert.throws(
+    () => validateMarches([{ ...march, layers: [{ tier: 9, ground: 100 }] }]),
+    /overlap/,
+  );
 });
