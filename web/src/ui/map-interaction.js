@@ -14,15 +14,14 @@ export function bindMapInteraction({
   groupChanged = () => {},
   coordinates = () => {},
 }) {
-  let pan = null;
   let drag = null;
   let band = null;
   let blocked = null;
   function cancel() {
-    for (const state of [pan, drag, band, blocked])
+    for (const state of [drag, band, blocked])
       if (state?.pointerId !== undefined && canvas.hasPointerCapture(state.pointerId))
         canvas.releasePointerCapture(state.pointerId);
-    pan = drag = band = blocked = null;
+    drag = band = blocked = null;
     renderer.preview = renderer.previews = renderer.selectionBox = null;
     if (canvas.style) canvas.style.cursor = "default";
     renderer.draw();
@@ -96,7 +95,7 @@ export function bindMapInteraction({
       select(id);
       if (id) {
         if (!canEdit()) {
-          pan = { pt, camera: { ...renderer.camera }, pointerId: event.pointerId };
+          drag = { pt, camera: { ...renderer.camera }, pointerId: event.pointerId, pan: true };
           canvas.setPointerCapture(event.pointerId);
           return;
         }
@@ -117,7 +116,7 @@ export function bindMapInteraction({
         }
         return;
       }
-      pan = { pt, camera: { ...renderer.camera }, pointerId: event.pointerId };
+      drag = { pt, camera: { ...renderer.camera }, pointerId: event.pointerId, pan: true };
       canvas.setPointerCapture(event.pointerId);
       return;
     }
@@ -170,7 +169,7 @@ export function bindMapInteraction({
       renderer.draw();
       return;
     }
-    if (drag) {
+    if (drag && !drag.pan) {
       const pt = point(event);
       const start = renderer.world(drag.pt.x, drag.pt.y);
       const end = renderer.world(pt.x, pt.y);
@@ -184,10 +183,10 @@ export function bindMapInteraction({
       renderer.draw();
       return;
     }
-    if (!pan) return;
+    if (!drag?.pan) return;
     const pt = point(event);
-    renderer.camera.x = pan.camera.x - (pt.x - pan.pt.x) / pan.camera.zoom;
-    renderer.camera.y = pan.camera.y - (pt.y - pan.pt.y) / pan.camera.zoom;
+    renderer.camera.x = drag.camera.x - (pt.x - drag.pt.x) / drag.camera.zoom;
+    renderer.camera.y = drag.camera.y - (pt.y - drag.pt.y) / drag.camera.zoom;
     if (canvas.style) canvas.style.cursor = "grabbing";
     renderer.draw();
   };
@@ -207,7 +206,7 @@ export function bindMapInteraction({
       renderer.draw();
       return;
     }
-    if (drag) {
+    if (drag && !drag.pan) {
       const box = canvas.getBoundingClientRect();
       const outside = event.clientX < box.left || event.clientX > box.right ||
         event.clientY < box.top || event.clientY > box.bottom;
@@ -233,9 +232,9 @@ export function bindMapInteraction({
       renderer.draw();
       return;
     }
-    if (pan?.pointerId === event.pointerId && canvas.hasPointerCapture(event.pointerId))
+    if (drag?.pan && drag.pointerId === event.pointerId && canvas.hasPointerCapture(event.pointerId))
       canvas.releasePointerCapture(event.pointerId);
-    pan = null;
+    drag = null;
     if (canvas.style) canvas.style.cursor = "default";
   };
   canvas.onpointerup = (event) => endPan(event);
