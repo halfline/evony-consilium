@@ -78,8 +78,6 @@ export function createPlayerWorkflow({
       try {
         await getWorkspace().profiles.save(player, fileControls.resolve);
         status("Player saved.");
-        list.render();
-        refreshAccess();
       } finally {
         roots.profile.setAttribute("aria-busy", "false");
       }
