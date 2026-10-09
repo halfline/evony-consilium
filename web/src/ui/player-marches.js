@@ -80,11 +80,23 @@ export function createPlayerMarches({ root, getSizes }) {
       };
       row.insertCell().append(input);
     }
-    const base = table(["Base", ...columns.map((type) => names[type])]);
+    const label = element("label", "Base layers through tier", "player-boost");
+    const through = numberInput(march.baseThrough ?? 9, "Base layers through tier");
+    through.id = "player-base-through";
+    through.max = "100";
+    through.oninput = () => {
+      draft.current.baseThrough = numeric(through);
+      draft.manual();
+      updateTotal();
+    };
+    label.append(through);
+    const baseDetails = element("details");
+    baseDetails.append(element("summary", "Base layers"), label);
+    const base = table(["Each base tier", ...columns.map((type) => names[type])]);
     const row = base.tBodies[0].insertRow();
     row.append(element("th", "Troops"));
     for (const type of columns) {
-      const input = numberInput(march.bases?.[type], `${names[type]} base count`);
+      const input = numberInput(march.bases?.[type], `${names[type]} base count per tier`);
       input.dataset.base = type;
       input.oninput = () => {
         draft.base(type, numeric(input));
@@ -92,7 +104,8 @@ export function createPlayerMarches({ root, getSizes }) {
       };
       row.insertCell().append(input);
     }
-    tableRoot.replaceChildren(grid, base);
+    baseDetails.append(base);
+    tableRoot.replaceChildren(grid, baseDetails);
     updateTotal();
   }
   function showList() {
