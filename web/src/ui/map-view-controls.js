@@ -10,6 +10,7 @@ export function bindMapViewControls({ root, renderer, getPlan, selected }) {
     renderer.camera.zoom = 1;
     renderer.center(entity?.x ?? plan.center.x, entity?.y ?? plan.center.y);
   };
+  $("fit-map").onclick = () => renderer.fit();
   $("map-zoom-controls").hidden = false;
   return {
     render({ zoom }) {
