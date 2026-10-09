@@ -1104,3 +1104,9 @@
 #players-screen .players-workspace {
   width: 100%;
 }
+@media (max-width: 600px) {
+  #players-editor .entity-fields,
+  .player-capacities {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
