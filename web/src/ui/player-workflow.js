@@ -1,10 +1,9 @@
+import { createPlayerFileControls } from "./player-file-controls.js";
 import { createPlayersScreen } from "./players-screen.js";
+import { createPlayerScreen } from "./player-screen.js";
 import { createAddPlayerDialog } from "./add-player-dialog.js";
 import { createAvatarBrowser } from "./avatar-browser.js";
-import { createPlayerScreen } from "./player-screen.js";
-import { createPlayerFileControls } from "./player-file-controls.js";
 
-// The first player screen supports the roster and creating a linked player file.
 export function createPlayerWorkflow({
   roots,
   search,
@@ -13,13 +12,13 @@ export function createPlayerWorkflow({
   assets,
   catalog,
   terrainFor,
-  browseCastle,
-  getWorkspace,
   selection,
   select,
   remove,
-  status,
+  browseCastle,
   navigate,
+  status,
+  getWorkspace,
   refreshAccess,
 }) {
   let lastTag = getPlan().keeps.at(-1)?.allianceTag || "";
@@ -76,17 +75,18 @@ export function createPlayerWorkflow({
   });
   const profile = createPlayerScreen({
     root: roots.profile,
-    getPlan: editingPlan,
-    getPlayer: () => editingPlan().keeps.find((player) => player.id === selection.id),
-    terrainFor,
-    assets,
-    getAvatars,
-    catalog,
-    browseAvatar: avatars.open,
-    browseCastle,
     canEdit: () => !!getWorkspace()?.players.state(cachedPlayer()).canEdit,
+    getPlan: editingPlan,
+    terrainFor,
+    getPlayer: () =>
+      editingPlan().keeps.find((player) => player.id === selection.id),
+    assets,
+    catalog,
+    getAvatars,
+    browseCastle,
+    browseAvatar: avatars.open,
     commit: async (next) => {
-      const player = next.keeps.find((item) => item.id === selection.id);
+      const player = next.keeps.find((player) => player.id === selection.id);
       roots.profile.setAttribute("aria-busy", "true");
       try {
         await getWorkspace().profiles.save(player, fileControls.resolve);
@@ -95,19 +95,14 @@ export function createPlayerWorkflow({
         roots.profile.setAttribute("aria-busy", "false");
       }
     },
+    remove,
+    status,
     applied: (player) => {
       lastTag = player.allianceTag;
     },
-    remove,
-    status,
   });
   return {
     renderList: list.render,
-    openAdd: dialog.open,
-    draft: dialog.player,
-    resetTag: () => {
-      lastTag = getPlan().keeps.at(-1)?.allianceTag || "";
-    },
     renderProfile: () => {
       const focused = roots.profile.ownerDocument.activeElement;
       if (
@@ -119,6 +114,12 @@ export function createPlayerWorkflow({
       refreshAccess();
       getWorkspace()?.players.probe(cachedPlayer());
     },
-    canEditPlayer: () => !!getWorkspace()?.players.state(cachedPlayer()).canEdit,
+    canEditPlayer: () =>
+      !!getWorkspace()?.players.state(cachedPlayer()).canEdit,
+    openAdd: dialog.open,
+    draft: dialog.player,
+    resetTag: () => {
+      lastTag = getPlan().keeps.at(-1)?.allianceTag || "";
+    },
   };
 }
