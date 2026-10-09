@@ -93,6 +93,50 @@ test("opening for the roster rejects files outside the central folder", async ()
   await assert.rejects(f.files.open(null, folder), /central team folder/);
   assert.equal(f.files.state(f.linked()).connected, false);
 });
+test("read-only sources can refresh the cached team profile without any upload", async () => {
+  const f = fixture({ writable: false });
+  const cached = f.linked();
+  await f.files.open(cached);
+  f.editRemote((profile) => {
+    profile.name = "Player updated";
+  });
+  const result = await f.files.refreshCache(cached);
+  assert.equal(result.name, "Player updated");
+  assert.equal(result.id, cached.id);
+  assert.equal(result.x, cached.x);
+  const again = await f.files.refreshCache(result);
+  assert.equal(again, result);
+  const stale = await f.files.refreshCache({
+    ...result,
+    name: "Stale team value",
+  });
+  assert.equal(stale.name, "Player updated");
+  assert.equal(
+    f.calls.some(([kind]) => kind === "save"),
+    false,
+  );
+});
+test("cache refresh always follows the source and validates before applying", async () => {
+  const f = fixture();
+  const cached = f.linked();
+  await f.files.open(cached);
+  f.editRemote((profile) => {
+    profile.name = "Source edit";
+  });
+  await assert.rejects(
+    f.files.refreshCache(cached, () => {
+      throw new Error("Invalid team snapshot");
+    }),
+    /Invalid team snapshot/,
+  );
+  const result = await f.files.refreshCache({ ...cached, name: "Stale cache" });
+  assert.equal(result.name, "Source edit");
+  assert.equal(f.remote().name, "Source edit");
+  assert.equal(
+    f.calls.some(([kind]) => kind === "save"),
+    false,
+  );
+});
 test("personal editing saves only the player file and retains a recoverable draft on failure", async () => {
   const f = fixture();
   const cached = f.linked();
@@ -159,3 +203,31 @@ test("automatic probes leave denied files locked and avoid downloading read-only
   assert.deepEqual(f.calls, []);
 });
 
+test("a profile save waits for a background refresh of the same source", async () => {
+  const f = fixture();
+  const cached = f.linked();
+  await f.files.open(cached);
+  const load = f.options.drive.loadPlayer;
+  let release;
+  const gate = new Promise((resolve) => {
+    release = resolve;
+  });
+  let first = true;
+  f.options.drive.loadPlayer = async () => {
+    if (first) {
+      first = false;
+      await gate;
+    }
+    return load();
+  };
+  const refresh = f.files.refreshCache(cached);
+  const save = f.files.saveOwn({ ...cached, name: "Saved after refresh" });
+  assert.equal(
+    f.calls.some(([kind]) => kind === "save"),
+    false,
+  );
+  release();
+  await Promise.all([refresh, save]);
+  assert.equal(f.remote().name, "Saved after refresh");
+  assert.equal(f.files.state(cached).busy, false);
+});
