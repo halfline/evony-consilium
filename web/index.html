@@ -349,6 +349,17 @@
           </section>
         </div>
       </section>
+      <dialog id="avatar-dialog" class="catalog-dialog">
+        <div class="dialog-heading">
+          <h2>Choose an avatar</h2>
+          <button data-close="avatar-dialog" aria-label="Close avatar picker">×</button>
+        </div>
+        <div class="catalog-filters">
+          <input id="avatar-search" type="search" placeholder="Find avatar" aria-label="Find avatar" />
+          <select id="avatar-category" aria-label="Avatar category"></select>
+        </div>
+        <div id="avatar-grid" class="catalog-grid"></div>
+      </dialog>
     </div>
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
     <script type="module" src="app.js"></script>

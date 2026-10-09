@@ -28,6 +28,9 @@
   max-height: 60vh;
   overflow-y: auto;
 }
+.avatar-card img {
+  object-fit: contain;
+}
 
 @media (max-width: 900px) {
   .players-workspace {
