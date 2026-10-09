@@ -176,6 +176,8 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     fit: () => renderer.fit(),
     resetPlacement: () => {
       selection.pending = null;
+      renderer.preview = null;
+      renderer.draw();
       $("map-guide").textContent = "Choose an unplaced player, then click a free map tile.";
     },
     status: toast,
@@ -193,6 +195,8 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     getPending: () => selection.pending,
     resetPending: () => {
       selection.pending = null;
+      renderer.preview = null;
+      renderer.draw();
       $("map-guide").textContent = "Choose an unplaced player, then click a free map tile.";
     },
     canEdit: () => !store.readOnly,

@@ -109,6 +109,18 @@ export function bindMapInteraction({
       const world = renderer.world(pt.x, pt.y);
       coordinates({ x: Math.floor(world.x), y: Math.floor(world.y) });
     }
+    if (getPending() && canEdit()) {
+      const entity = [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]
+        .find((item) => item.id === getPending());
+      if (entity) {
+        const pt = point(event), world = renderer.world(pt.x, pt.y);
+        const x = Math.floor(world.x), y = Math.floor(world.y);
+        renderer.preview = { ...entity, x, y,
+          valid: canPlace(entity, x, y, getPlan(), [], terrainFor(getPlan().map)) };
+        renderer.draw();
+      }
+      return;
+    }
     if (band) {
       const pt = point(event);
       const box = {
