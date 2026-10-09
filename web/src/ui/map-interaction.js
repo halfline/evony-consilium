@@ -227,7 +227,11 @@ export function bindMapInteraction({
     if (canvas.style) canvas.style.cursor = "default";
   };
   canvas.onpointerup = (event) => endPan(event);
-  canvas.onpointercancel = () => cancel();
+  canvas.onpointercancel = () => {
+    group.clear();
+    groupChanged();
+    cancel();
+  };
   canvas.onwheel = (event) => {
     event.preventDefault();
     const pt = point(event);
