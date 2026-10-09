@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { assetFile } from "./asset-file.js";
 
 export async function teamDashboard({ page, driveFiles, projectLogo }) {
   const watchedFormation = [...driveFiles.values()].find(
@@ -108,7 +109,7 @@ export async function teamDashboard({ page, driveFiles, projectLogo }) {
   );
   await page
     .locator('#edit-project-logo [data-logo="file"]')
-    .setInputFiles("web/assets/terrain/worldmap1-75.webp");
+    .setInputFiles(assetFile("terrain/worldmap1-75.webp"));
   await page
     .locator('#edit-project-logo [data-logo="preview"]')
     .waitFor({ state: "visible" });

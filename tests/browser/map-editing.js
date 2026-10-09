@@ -2,6 +2,7 @@ import { loadTeamFixture } from "./team-fixture.js";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { createDemoPlan } from "../../web/src/domain/plan.js";
+import { assetFile } from "./asset-file.js";
 
 export async function mapEditing({
   page,
@@ -10,7 +11,7 @@ export async function mapEditing({
   driveFiles,
   projectLogo,
 }) {
-  const c = JSON.parse(await readFile("web/assets/catalog.json", "utf8"));
+  const c = JSON.parse(await readFile(assetFile("catalog.json"), "utf8"));
   const sample = createDemoPlan(c);
   sample.map = "blank";
   sample.projectLogo = projectLogo;

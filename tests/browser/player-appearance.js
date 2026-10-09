@@ -2,6 +2,7 @@ import { loadTeamFixture } from "./team-fixture.js";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { createDemoPlan } from "../../web/src/domain/plan.js";
+import { assetFile } from "./asset-file.js";
 
 export async function playerAppearance({
   page,
@@ -11,7 +12,7 @@ export async function playerAppearance({
   driveFiles,
 }) {
   const demoCatalog = JSON.parse(
-    await readFile("web/assets/catalog.json", "utf8"),
+    await readFile(assetFile("catalog.json"), "utf8"),
   );
   await loadTeamFixture(page, driveFiles, {
     ...createDemoPlan(demoCatalog),
