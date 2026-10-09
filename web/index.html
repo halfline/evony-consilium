@@ -730,6 +730,21 @@
         </div>
         <div id="variant-grid" class="catalog-grid"></div>
       </dialog>
+      <dialog id="add-map-dialog">
+        <div class="dialog-heading">
+          <h2>Add map</h2>
+          <button data-close="add-map-dialog" aria-label="Close Add map">×</button>
+        </div>
+        <form id="add-map-form">
+          <label>Map type<select id="new-formation-type"></select></label>
+          <label>Formation name<input id="new-formation-name" maxlength="100" required /></label>
+          <p id="new-formation-error" class="entry-error" role="alert"></p>
+          <div class="dialog-actions">
+            <button type="button" data-close="add-map-dialog">Cancel</button>
+            <button class="primary" type="submit">Add map</button>
+          </div>
+        </form>
+      </dialog>
     </div>
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
     <script type="module" src="app.js"></script>

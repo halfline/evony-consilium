@@ -727,3 +727,7 @@
   color: var(--gold);
   border-radius: 10px;
 }
+#add-map-form { display: flex; flex-direction: column; gap: 16px; }
+#add-map-dialog { width: min(480px, calc(100vw - 32px)); }
+#new-formation-error { color: var(--red); margin: 0; }
+#new-formation-error:empty { display: none; }
