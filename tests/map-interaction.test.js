@@ -282,3 +282,20 @@ test("group drag moves both keeps with unchanged relative spacing", () => {
   assert.deepEqual(plan.keeps.map(({ x, y }) => [x, y]), [[13, 14], [23, 24]]);
   assert.equal(captures.size, 0);
 });
+
+test("Delete unplaces every group member and keeps both players", () => {
+  let plan = createEmptyPlan();
+  plan.keeps.push(
+    { id: "a", x: 10, y: 10, w: 2, h: 2, locked: false },
+    { id: "b", x: 20, y: 20, w: 2, h: 2, locked: false },
+  );
+  const group = new Set(["a", "b"]), canvas = {};
+  bindMapInteraction({
+    canvas, group, getPlan: () => plan, getSelection: () => null,
+    commit: (next) => { plan = next; },
+  });
+  canvas.onkeydown({ key: "Delete", preventDefault() {} });
+  assert.equal(plan.keeps.length, 2);
+  assert.deepEqual(plan.keeps.map(({ x }) => x), [null, null]);
+  assert.equal(group.size, 0);
+});
