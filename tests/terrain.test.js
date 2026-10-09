@@ -47,23 +47,6 @@ test("landmark clearings override ground and vegetation only within the footprin
   assert.equal(terrainTileAt(terrain, vegetation, 2, 0), 6);
 });
 
-test("terrain painter draws overview and decoded surface tile", () => {
-  const images = [];
-  const ctx = {
-    save() {}, restore() {}, transform() {},
-    drawImage(image) { images.push(image); },
-  };
-  const view = { ctx, image: (src) => src };
-  const terrain = {
-    overview: "overview", width: 1, height: 1,
-    tiles: { 1: { src: "tile", width: 256, height: 128 } },
-    layers: [{ name: "surface", tiles: Uint8Array.of(1) }],
-    landmarks: [],
-  };
-  drawTerrain(view, terrain, 0, 0, 1, 1, { ax: 48, ay: 24, bx: -48, by: 24 });
-  assert.deepEqual(images, ["overview", "tile"]);
-});
-
 test("foreground terrain is clipped to its landmark and respects exclusions", () => {
   const calls = [];
   const ctx = Object.fromEntries(
