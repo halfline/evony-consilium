@@ -98,10 +98,13 @@ test("clicking a mapped subcity opens its details without beginning a drag", () 
   const canvas = { getBoundingClientRect: () => ({ left: 0, top: 0 }) };
   const opened = [];
   bindMapInteraction({
-    canvas, renderer: { hitSubcity: () => "city" },
-    getPending: () => null, openSubcity: (id) => opened.push(id),
+    canvas, renderer: { hitSubcity: () => "city", hit: () => null },
+    getPlan: createEmptyPlan, getPending: () => null,
+    openSubcity: (id) => opened.push(id),
   });
   canvas.onpointerdown({ button: 0, clientX: 20, clientY: 30 });
+  assert.deepEqual(opened, ["city"]);
+  canvas.onpointerdown({ button: 0, ctrlKey: true, clientX: 20, clientY: 30 });
   assert.deepEqual(opened, ["city"]);
 });
 
