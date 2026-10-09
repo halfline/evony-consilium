@@ -1,0 +1,81 @@
+import { footprint } from "../domain/entities.js";
+import { renderAvatarButton } from "./avatar-browser.js";
+import { renderCastleButton } from "./castle-button.js";
+import { updateKeepAppearances } from "../domain/castles.js";
+import { view } from "./dom.js";
+import { newPlayer } from "../domain/players.js";
+export function createAddPlayerDialog({
+  root,
+  assets,
+  lastTag,
+  browse,
+  add,
+  getAvatars,
+  browseAvatar,
+}) {
+  const $ = view(root);
+  const dialog = $("add-player-dialog");
+  let draft,
+    busy = false;
+  $("new-player-castle").onclick = () =>
+    browse("keep", (asset) => {
+      draft.skin = asset.id;
+      draft.w = draft.h = footprint(asset);
+      renderCastleButton($("new-player-castle"), asset);
+    });
+  $("new-player-avatar").onclick = () =>
+    browseAvatar(draft.avatarId, (avatar) => {
+      draft.avatarId = avatar.id;
+      renderAvatarButton($("new-player-avatar"), getAvatars(), draft.avatarId);
+    });
+  $("new-player-level").oninput = () => {
+    if (!draft) return;
+    const player = { ...draft, level: Number($("new-player-level").value) };
+    updateKeepAppearances([player], assets);
+    draft.skin = player.skin;
+    renderCastleButton($("new-player-castle"), assets.get(draft.skin));
+  };
+  $("new-player-form").onsubmit = async (event) => {
+    event.preventDefault();
+    if (busy) return;
+    busy = true;
+    const submit = $("new-player-form").querySelector("[type=submit]");
+    submit.disabled = true;
+    try {
+      const player = {
+        ...draft,
+        name: $("new-player-name").value.trim(),
+        accountId: $("new-player-account").value.trim(),
+        allianceTag: $("new-player-tag").value.trim(),
+        level: Number($("new-player-level").value),
+      };
+      if (!player.name) throw new Error("Enter a player name.");
+      await add(player);
+      dialog.close();
+    } catch (error) {
+      $("new-player-error").textContent = error.message;
+    } finally {
+      busy = false;
+      submit.disabled = false;
+    }
+  };
+  return {
+    player: () =>
+      dialog.open
+        ? { ...draft, level: Number($("new-player-level").value) }
+        : null,
+    open() {
+      if (dialog.open || busy) return;
+      draft = newPlayer(assets, lastTag());
+      draft.avatarId = getAvatars().defaultId;
+      renderAvatarButton($("new-player-avatar"), getAvatars(), draft.avatarId);
+      $("new-player-form").reset();
+      $("new-player-tag").value = draft.allianceTag;
+      $("new-player-level").value = draft.level;
+      renderCastleButton($("new-player-castle"), assets.get(draft.skin));
+      $("new-player-error").textContent = "";
+      dialog.showModal();
+      $("new-player-name").focus();
+    },
+  };
+}
