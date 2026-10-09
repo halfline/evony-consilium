@@ -701,23 +701,42 @@
         </div>
       </section>
       <main id="formation-screen" class="workspace" aria-label="Map and formation" hidden>
-        <aside class="formation-sidebar" aria-label="Formation players">
-          <h2>Formation</h2>
-          <div id="formation-players" class="players"></div>
-          <p id="map-guide" class="muted">Choose an unplaced player, then click a free map tile.</p>
-          <section class="formation-obstacles" aria-label="Blocked tiles">
-            <h2>Blocked tiles</h2>
+        <aside class="sidebar">
+          <div class="sidebar-heading">
+            <span class="eyebrow">YOUR ALLIANCE</span>
+            <div class="team-title">
+              <h1>Map &amp; formation</h1>
+            </div>
+          </div>
+          <nav class="tabs" aria-label="Planner panels">
+            <button class="active" data-tab="formation">Formation</button
+            ><button data-tab="hive">Hive & tiles</button>
+          </nav>
+          <section id="panel-formation" class="panel">
+            <h2>Formation</h2>
+            <div id="formation-players" class="players"></div>
+          </section>
+          <section id="panel-hive" class="panel" hidden>
+            <div class="section-line"><h2>Alliance buildings</h2></div>
+            <p class="muted">
+              Choose a building, then click a free tile on the map. Edit its
+              location and footprint below.
+            </p>
             <div class="building-tools">
-            <button data-building="alliance" type="button">Alliance castle</button>
-            <button data-building="warehouse" type="button">Warehouse</button>
-            <button data-building="resource" type="button">Resources</button>
-            <button data-building="objective" type="button">Landmarks</button>
-            <button id="add-obstacle" type="button">Add blocked tile</button>
+              <button data-building="alliance">Alliance castle</button
+              ><button data-building="warehouse">Warehouse</button
+              ><button data-building="resource">Resources</button
+              ><button data-building="objective">Landmarks</button
+              ><button id="add-obstacle">Blocked tile</button>
             </div>
             <div id="structure-list" class="players"></div>
+            <p class="note">
+              Buildings use verified client footprints when available. You can
+              adjust their size for your planning needs.
+            </p>
           </section>
           <footer class="sidebar-footer">
-            <button id="help" type="button">Help &amp; asset sources</button>
+            <button id="help">Help & asset sources</button>
           </footer>
         </aside>
         <section class="map-section" aria-label="Formation map">
@@ -726,6 +745,10 @@
             <div class="map-caption">
               <span class="eyebrow" id="map-kicker">MAP</span>
               <h2 id="map-name"></h2>
+            </div>
+            <div class="map-guide" id="map-guide">
+              Drag to move · Shift-drag / Ctrl-click to select · Delete to
+              remove · Scroll to zoom
             </div>
             <div id="map-zoom-controls" class="map-controls">
               <button id="zoom-in" type="button" aria-label="Zoom in">＋</button>

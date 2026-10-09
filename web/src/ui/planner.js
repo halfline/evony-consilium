@@ -24,6 +24,7 @@ import { createMapPlan, removeMapPlan } from "../domain/map-plans.js";
 import { setRallySetter } from "../domain/rally.js";
 import { createPlacementInspector } from "./placement-inspector.js";
 import { createFormationControls } from "./formation-controls.js";
+import { bindShellControls } from "./shell-controls.js";
 import { createDemoPlan } from "../domain/plan.js";
 
 export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { createWorkspace }) {
@@ -239,7 +240,7 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
       plan.title = $("plan-title").value.trim() || "Alliance formation";
     });
   $("undo").onclick = () => store.undo();
-  $("help").onclick = () => $("help-dialog").showModal();
+  bindShellControls($("planner"));
   $("load-demo").onclick = () => {
     if (store.readOnly) return;
     selection.clear();
@@ -251,8 +252,6 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
   $("team-players").hidden = false;
   $("team-subcities").hidden = false;
   $("team-maps").hidden = false;
-  for (const button of document.querySelectorAll("[data-close]"))
-    button.onclick = () => $(button.dataset.close).close();
   $("project-screen").hidden = false;
   render();
   workspace = createWorkspace({
