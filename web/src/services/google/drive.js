@@ -1,4 +1,5 @@
 import { readTeamDocument } from "../../domain/document-migrations.js";
+import { isTeamLogo } from "../../domain/team.js";
 const API = "https://www.googleapis.com/drive/v3";
 const FIELDS =
   "id,name,mimeType,version,parents,capabilities(canEdit,canAddChildren),webViewLink,resourceKey";
@@ -54,6 +55,26 @@ export class Drive {
       { resource },
     );
   }
+  async children(folder) {
+    let pageToken = "",
+      files = [];
+    do {
+      const query = new URLSearchParams({
+        q: `'${folder.id}' in parents and trashed = false and mimeType = 'application/json'`,
+        fields: `nextPageToken,files(${FIELDS})`,
+        pageSize: "100",
+        supportsAllDrives: "true",
+        includeItemsFromAllDrives: "true",
+      });
+      if (pageToken) query.set("pageToken", pageToken);
+      const result = await this.request(`/files?${query}`, {
+        resource: folder,
+      });
+      files.push(...result.files);
+      pageToken = result.nextPageToken;
+    } while (pageToken);
+    return files;
+  }
   async load(file) {
     // Drive can advance a newly uploaded file's revision while it settles.
     // Retry the whole read so content is always paired with a stable version.
@@ -77,6 +98,55 @@ export class Drive {
       "This team changed while opening. Open it again.",
       409,
     );
+  }
+  async createJSON(name, data, folder = null) {
+    const metadata = {
+      name,
+      mimeType: "application/json",
+    };
+    if (folder) metadata.parents = [folder.id];
+    const boundary = "evony_" + crypto.randomUUID();
+    const body = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(data)}\r\n--${boundary}--`;
+    return this.request(
+      `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true&fields=${FIELDS}`,
+      {
+        method: "POST",
+        body,
+        headers: { "Content-Type": `multipart/related; boundary=${boundary}` },
+        resource: folder,
+      },
+    );
+  }
+  createFolder(name) {
+    return this.request(`/files?supportsAllDrives=true&fields=${FIELDS}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name,
+        mimeType: "application/vnd.google-apps.folder",
+      }),
+    });
+  }
+  async initializeProject(folder, plan, { logo = "" } = {}) {
+    const files = await this.children(folder);
+    if (files.some((f) => f.name === "team.consilium.json"))
+      throw new Error("This folder already has a team. Open it instead.");
+    if (!folder.capabilities?.canAddChildren)
+      throw new DriveError(
+        "You need permission to add files to this folder.",
+        403,
+      );
+    const file = await this.createJSON(
+      "team.consilium.json",
+      {
+        format: "evony-consilium-team",
+        schema: 1,
+        plan: { ...plan, ...(isTeamLogo(logo) ? { projectLogo: logo } : {}) },
+      },
+      folder,
+    );
+    folder.teamFileId = file.id;
+    return folder;
   }
   async save(file, plan) {
     const current = await this.metadata(file);
