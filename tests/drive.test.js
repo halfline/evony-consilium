@@ -407,3 +407,28 @@ test("player files require central storage and use a distinct document format", 
   assert.equal(Object.hasOwn(uploads[0][1].profile, "x"), false);
 });
 
+test("player writes reject permission loss or stale revisions before uploading", async () => {
+  let metadata = {
+    id: "player-file",
+    version: "2",
+    capabilities: { canEdit: true },
+  };
+  const methods = [];
+  const drive = new Drive(
+    () => "token",
+    async (_, options) => {
+      methods.push(options.method);
+      return json(metadata);
+    },
+  );
+  await assert.rejects(
+    drive.savePlayer({ id: metadata.id, version: "1" }, {}),
+    (error) => error.status === 409,
+  );
+  metadata.capabilities.canEdit = false;
+  await assert.rejects(
+    drive.savePlayer(metadata, {}),
+    (error) => error.status === 403,
+  );
+  assert.deepEqual(methods, ["GET", "GET"]);
+});
