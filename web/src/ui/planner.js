@@ -236,6 +236,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
       plan.title = $("plan-title").value.trim() || "Alliance formation";
     });
   $("undo").onclick = () => store.undo();
+  $("help").onclick = () => $("help-dialog").showModal();
   document.querySelector('[data-screen="project"]').onclick = () => showScreen("project");
   const playersTab = document.querySelector('[data-screen="players"]');
   playersTab.hidden = false;
