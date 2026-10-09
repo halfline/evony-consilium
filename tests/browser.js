@@ -1,3 +1,4 @@
+import { mapEditing } from "./browser/map-editing.js";
 import { playerAppearance } from "./browser/player-appearance.js";
 import { mapSelection } from "./browser/maps.js";
 import { playerDetails } from "./browser/player-details.js";
@@ -62,6 +63,13 @@ try {
     formationScreen,
     projectLogo,
     driveFiles,
+  });
+  await mapEditing({
+    page,
+    playersScreen,
+    formationScreen,
+    driveFiles,
+    projectLogo,
   });
   await playerSharing({ browser });
   await subcities({ browser });
