@@ -6,6 +6,7 @@ import { teamDraftKey, resolveTeamDraft } from "../persistence/team-draft.js";
 import { createEmptyPlan } from "../domain/plan.js";
 import { parseDriveLink } from "../domain/drive-links.js";
 import { PlayerFiles } from "./player-files.js";
+import { PlayerProfiles } from "./player-profiles.js";
 
 const teamFingerprint = (plan) =>
   JSON.stringify(plan, (_key, value) =>
@@ -57,6 +58,9 @@ export class TeamWorkspace {
     getPlan,
     getPlayer = () => null,
     playersChanged = () => {},
+    commitPlan,
+    validatePlan = () => {},
+    isEditingPlayer = () => false,
     openPlan,
     setReadOnly,
     status,
@@ -106,6 +110,13 @@ export class TeamWorkspace {
       status,
       expired,
       canCheck: () => canCheck() && !!session.token(),
+    });
+    this.profiles = new PlayerProfiles({
+      workspace: this,
+      getPlan,
+      commitPlan,
+      validatePlan,
+      isEditing: isEditingPlayer,
     });
   }
   key() {
