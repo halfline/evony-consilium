@@ -9,6 +9,16 @@ export async function playerRemove({ page, driveFiles }) {
   assert.equal(await page.locator("#players .player-card").count(), 2);
   await page.locator("#players .player-card").filter({ hasText: "Temporary player" }).click();
   assert.equal(await page.locator("#player-remove").getAttribute("aria-label"), "Remove Temporary player");
+  await page.locator("#player-title").dispatchEvent("pointerdown", {
+    pointerType: "touch",
+    clientX: 20,
+    clientY: 20,
+  });
+  await page.waitForTimeout(600);
+  assert.equal(await page.locator(".player-name-actions").evaluate(
+    (element) => element.classList.contains("player-name-actions-open")), true);
+  assert.equal(await page.locator("#player-remove").evaluate(
+    (element) => getComputedStyle(element).opacity), "1");
   await page.locator("#player-remove").click();
   assert.equal(await page.locator("#players-screen").isVisible(), true);
   assert.equal(await page.locator("#players .player-card").count(), 1);
