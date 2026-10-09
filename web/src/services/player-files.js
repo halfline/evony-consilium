@@ -251,4 +251,31 @@ export class PlayerFiles {
       return profile;
     });
   }
+  async refreshCache(player, validate = () => {}) {
+    const source = player.playerSource;
+    if (!source || !this.state(player).connected)
+      throw new Error("Player file access is needed to refresh its cache.");
+    return this.run(source.fileId, async (current) => {
+      const loaded = await this.drive.loadPlayer({
+        id: source.fileId,
+        resourceKey: source.resourceKey,
+      });
+      current();
+      const profile = validateProfile(loaded.profile);
+      validate(profile);
+      const previous = this.#files.get(source.fileId);
+      this.#files.set(source.fileId, {
+        ...loaded,
+        profile,
+        draft: previous?.draft,
+      });
+      if (
+        source.version === loaded.file.version &&
+        profileFingerprint(playerProfile(player)) ===
+          profileFingerprint(profile)
+      )
+        return player;
+      return linkedPlayer(player, profile, loaded.file);
+    });
+  }
 }
