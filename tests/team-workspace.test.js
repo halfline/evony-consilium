@@ -197,6 +197,18 @@ test("a rejected document leaves the current team's access state and identity in
   assert.equal(f.workspace.sync.file.capabilities.canEdit, false);
 });
 
+test("unlocking a team rechecks Drive access", async () => {
+  const f = fixture({ canEdit: false });
+  await f.workspace.signIn();
+  await f.workspace.open({ id: "folder" });
+  f.workspace.picker.files = async () => [{ id: "file" }];
+  f.drive.metadata = async () => structuredClone(f.file);
+  await assert.rejects(f.workspace.unlockTeam(), /still read-only/);
+  f.file.capabilities.canEdit = true;
+  await f.workspace.unlockTeam();
+  assert.equal(f.workspace.sync.file.capabilities.canEdit, true);
+});
+
 
 test("joining a team link preserves its file ID and resource key", async () => {
   const f = fixture();
