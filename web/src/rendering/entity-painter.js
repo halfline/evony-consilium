@@ -28,4 +28,15 @@ export function drawEntity(view, entity, plan, zoom) {
     top: center.y - Math.max(height, 10),
     bottom: center.y + Math.max(height / 2, 10),
   });
+  if (plan.labels && zoom > 0.16) {
+    const label = (entity.id === plan.rallyId ? "★ " : "") + entity.name;
+    ctx.font = `500 ${Math.max(9, Math.min(12, 12 * zoom))}px sans-serif`;
+    ctx.textAlign = "center";
+    ctx.fillStyle = entity.id === plan.rallyId ? "#f1d28b" : "#e9f0db";
+    ctx.fillText(
+      label.length > 32 ? label.slice(0, 31) + "…" : label,
+      center.x,
+      center.y + 24 * zoom,
+    );
+  }
 }
