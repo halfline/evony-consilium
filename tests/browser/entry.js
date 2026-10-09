@@ -91,12 +91,14 @@ export async function entryWorkflow({ page, context }) {
   assert.equal(await page.locator("#players .player-card").count(), 0);
   assert.equal(await page.locator("#project-screen").isVisible(), true);
   assert.equal(await page.locator("#add-player-dialog").isVisible(), false);
-  for (const screen of ["players", "subcities", "maps"])
+  assert.equal(await page.locator('[data-screen="players"]').isVisible(), true);
+  for (const screen of ["subcities", "maps"])
     assert.equal(
       await page.locator(`[data-screen="${screen}"]`).isVisible(),
       false,
     );
-  for (const id of ["team-players", "team-subcities", "team-maps"])
+  assert.equal(await page.locator("#team-players").isVisible(), true);
+  for (const id of ["team-subcities", "team-maps"])
     assert.equal(await page.locator(`#${id}`).isVisible(), false);
   await page.locator("#edit-project-name").fill("Renamed Hive");
   await page.locator("#edit-project-name").dispatchEvent("change");

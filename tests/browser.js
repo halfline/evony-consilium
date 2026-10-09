@@ -1,4 +1,5 @@
 import { entryWorkflow } from "./browser/entry.js";
+import { playerRoster } from "./browser/player-roster.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -41,6 +42,7 @@ try {
       badResponses.push(res.url());
   });
   const { projectLogo } = await entryWorkflow({ page, context });
+  await playerRoster({ page, driveFiles });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
