@@ -5,6 +5,7 @@ import { DraftQueue } from "../persistence/draft-queue.js";
 import { teamDraftKey, resolveTeamDraft } from "../persistence/team-draft.js";
 import { createEmptyPlan } from "../domain/plan.js";
 import { parseDriveLink } from "../domain/drive-links.js";
+import { PlayerFiles } from "./player-files.js";
 
 const teamFingerprint = (plan) =>
   JSON.stringify(plan, (_key, value) =>
@@ -54,6 +55,8 @@ export class TeamWorkspace {
     picker,
     repository,
     getPlan,
+    getPlayer = () => null,
+    playersChanged = () => {},
     openPlan,
     setReadOnly,
     status,
@@ -67,12 +70,23 @@ export class TeamWorkspace {
       picker,
       repository,
       getPlan,
+      getPlayer,
       openPlan,
       setReadOnly,
       status,
     });
     this.account = null;
     this.project = null;
+    this.players = new PlayerFiles({
+      drive,
+      picker,
+      changed: playersChanged,
+      remember: (id) => repository.rememberPlayer?.(this.account?.sub, id),
+      readDraft: (id) =>
+        repository.read(`consilium-player:${this.account?.sub}:${id}`),
+      writeDraft: (id, draft) =>
+        repository.write(draft, `consilium-player:${this.account?.sub}:${id}`),
+    });
     this.drafts = new DraftQueue((data, key) => repository.write(data, key), {
       onError: () => status("Local backup unavailable.", true),
     });
@@ -122,6 +136,7 @@ export class TeamWorkspace {
     this.#generation++;
     this.session.clear();
     this.sync.reset();
+    this.players.reset();
     this.account = null;
     this.project = null;
   }
@@ -133,6 +148,7 @@ export class TeamWorkspace {
     current();
     if (this.account?.sub !== account.sub) {
       this.sync.reset();
+      this.players.reset();
       this.project = null;
     }
     this.account = account;
@@ -173,6 +189,7 @@ export class TeamWorkspace {
       cached,
       discardDraft: discardDraft || readOnly,
     });
+    this.players.reset();
     this.openPlan(draft.plan);
     this.setReadOnly(readOnly);
     this.project = project;
@@ -184,6 +201,10 @@ export class TeamWorkspace {
     current();
     this.sync.opened(draft.file, plan, file.version);
     this.remember();
+    const opened = new Set(this.repository.openedPlayers?.(account.sub) || []);
+    for (const player of draft.plan.keeps) {
+      if (opened.has(player.playerSource?.fileId)) this.players.probe(player);
+    }
     return draft;
   }
   async unlockTeam() {
