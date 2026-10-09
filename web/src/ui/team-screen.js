@@ -1,5 +1,6 @@
+import { createTeamDashboard } from "./team-dashboard.js";
 import { view } from "./dom.js";
-export function createTeamScreen({ root, getPlan, mutate, status, canEdit = () => true, unlock = async () => {} }) {
+export function createTeamScreen({ root, getPlan, mutate, status, navigate, canEdit = () => true, unlock = async () => {} }) {
   const $ = view(root);
   $("edit-project-name").onchange = () => {
     const title = $("edit-project-name").value.trim();
@@ -24,10 +25,16 @@ export function createTeamScreen({ root, getPlan, mutate, status, canEdit = () =
       render();
     }
   };
+  const dashboard = createTeamDashboard({
+    root,
+    getPlan,
+    navigate,
+  });
   function render() {
     const plan = getPlan();
     $("team-unlock").hidden = canEdit();
     $("edit-project-name").value = plan.title;
+    dashboard.render();
   }
   return { render };
 }
