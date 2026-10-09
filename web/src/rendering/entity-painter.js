@@ -25,6 +25,7 @@ export function drawEntity(view, entity, plan, zoom) {
   const height = (Math.abs(plan.grid.ay) + Math.abs(plan.grid.by)) * entity.h * zoom;
   const asset = view.assets.get(entity.skin);
   const image = asset && view.image(asset.src);
+  let spriteTop = center.y;
   const selected = view.selected === entity.id || view.selectedIds?.has(entity.id);
   const rally = entity.id === plan.rallyId;
   const obstacle = plan.obstacles?.some(({ id }) => id === entity.id);
@@ -45,7 +46,8 @@ export function drawEntity(view, entity, plan, zoom) {
   }
   if (image) {
     const spriteHeight = width * asset.height / asset.width;
-    ctx.drawImage(image, center.x - width / 2, center.y - spriteHeight, width, spriteHeight);
+    spriteTop = center.y - spriteHeight;
+    ctx.drawImage(image, center.x - width / 2, spriteTop, width, spriteHeight);
   } else if (!obstacle) {
     view.path(entity);
     ctx.fillStyle = "#d1ba7c";
@@ -87,5 +89,13 @@ export function drawEntity(view, entity, plan, zoom) {
       center.x,
       labelY + 0.5,
     );
+    if ("level" in entity) {
+      ctx.font = `600 ${Math.max(8, 10 * zoom)}px "DM Sans", sans-serif`;
+      ctx.fillStyle = "#efe3b5";
+      ctx.strokeStyle = "#18251d";
+      ctx.lineWidth = 3;
+      ctx.strokeText(`K${entity.level}`, center.x, spriteTop + 7);
+      ctx.fillText(`K${entity.level}`, center.x, spriteTop + 7);
+    }
   }
 }
