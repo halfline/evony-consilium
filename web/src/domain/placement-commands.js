@@ -41,3 +41,24 @@ export function movePlacements(plan, positions, terrain = null) {
     );
   return next;
 }
+
+export function removePlacements(plan, ids) {
+  const next = structuredClone(plan);
+  const removable = new Set(
+    objects(next)
+      .filter(
+        (entity) => ids.has(entity.id) && !entity.locked && entity.x !== null,
+      )
+      .map((entity) => entity.id),
+  );
+  for (const player of next.keeps) {
+    if (!removable.has(player.id)) continue;
+    player.x = player.y = null;
+    player.locked = false;
+  }
+  next.structures = next.structures.filter(
+    (entity) => !removable.has(entity.id),
+  );
+  next.obstacles = next.obstacles.filter((entity) => !removable.has(entity.id));
+  return next;
+}
