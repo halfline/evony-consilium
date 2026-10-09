@@ -5,7 +5,10 @@ export async function formationObstacle({ page, driveFiles }) {
   const row = page.locator("#structure-list .players-row").last();
   assert.match(await row.textContent(), /Blocked tile · Unplaced/);
   const box = await page.locator("#map").boundingBox();
-  await page.mouse.click(box.x + box.width / 2 + 20, box.y + box.height / 2 + 10);
+  for (const [dx, dy] of [[200, 100], [240, 80], [180, 120], [-200, -100]]) {
+    await page.mouse.click(box.x + box.width / 2 + dx, box.y + box.height / 2 + dy);
+    if (!(await row.textContent()).includes("Unplaced")) break;
+  }
   assert.doesNotMatch(await row.textContent(), /Unplaced/);
   await page.locator("#drive-save").click();
   let plan;

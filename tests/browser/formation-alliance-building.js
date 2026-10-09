@@ -7,8 +7,8 @@ export async function formationAllianceBuilding({ page, driveFiles }) {
   const row = page.locator("#structure-list .players-row").filter({ hasText: "Alliance Castle" });
   assert.match(await row.textContent(), /Unplaced/);
   const box = await page.locator("#map").boundingBox();
-  for (const [dx, dy] of [[-20, -10], [24, 10], [25, 12], [18, 15],
-    [0, 20], [10, 20], [-10, 20], [30, 0], [0, -20]]) {
+  for (const [dx, dy] of [[-200, -100], [-240, 80], [0, -180], [100, -180],
+    [-180, 120], [220, -100]]) {
     await page.mouse.click(box.x + box.width / 2 + dx, box.y + box.height / 2 + dy);
     if (!(await row.textContent()).includes("Unplaced")) break;
   }

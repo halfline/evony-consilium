@@ -12,7 +12,7 @@ export async function formationGroupClick({ page }) {
   assert.equal(await rows.count(), 2);
   await rows.last().click();
   let box = await page.locator("#map").boundingBox();
-  await page.mouse.click(box.x + box.width / 2 + 100, box.y + box.height / 2 + 50);
+  await page.mouse.click(box.x + box.width / 2 + 260, box.y + box.height / 2 + 100);
   assert.doesNotMatch(await rows.last().textContent(), /Unplaced/);
 
   for (const row of [rows.last(), rows.first()]) {
