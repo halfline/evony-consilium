@@ -13,6 +13,7 @@ import { playerMarchReset } from "./browser/player-march-reset.js";
 import { playerMarchType } from "./browser/player-march-type.js";
 import { playerMarchShares } from "./browser/player-march-shares.js";
 import { playerBaseLayers } from "./browser/player-base-layers.js";
+import { playerMarchTiers } from "./browser/player-march-tiers.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -69,6 +70,7 @@ try {
   await playerMarchType({ page, driveFiles });
   await playerMarchShares({ page, driveFiles });
   await playerBaseLayers({ page, driveFiles });
+  await playerMarchTiers({ page, driveFiles });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
