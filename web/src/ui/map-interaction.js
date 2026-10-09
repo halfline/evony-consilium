@@ -110,6 +110,12 @@ export function bindMapInteraction({
     resetPending();
   };
   canvas.onpointermove = (event) => {
+    if (canvas.style) {
+      const pt = point(event);
+      canvas.style.cursor = getPending()
+        ? "crosshair"
+        : renderer.hit?.(pt.x, pt.y) ? "grab" : "default";
+    }
     if (renderer.world) {
       const pt = point(event);
       const world = renderer.world(pt.x, pt.y);
