@@ -24,10 +24,12 @@ test("placed entities paint a sprite and expose a selectable hit region", () => 
 test("entity labels follow the map preference and mark the rally keep", () => {
   const labels = [];
   const plates = [];
+  const outlined = [];
   const view = {
     ctx: {
       drawImage() {},
       fillText: (label) => labels.push(label),
+      strokeText: (label) => outlined.push(label),
       measureText: (label) => ({ width: label.length * 6 }),
       fillRect: (...args) => plates.push(args),
       beginPath() {}, arc() {}, ellipse() {}, fill() {}, stroke() {},
@@ -38,18 +40,19 @@ test("entity labels follow the map preference and mark the rally keep", () => {
     image: (src) => src,
     hits: [],
   };
-  const entity = { id: "keep", name: "Central Keep", allianceTag: "ABC", skin: "castle", x: 10, y: 20, w: 2, h: 2 };
+  const entity = { id: "keep", name: "Central Keep", allianceTag: "ABC", level: 35, skin: "castle", x: 10, y: 20, w: 2, h: 2 };
   const plan = { labels: true, rallyId: "keep", grid: { ax: 48, ay: 24, bx: -48, by: 24 } };
   drawEntity(view, entity, plan, 1);
-  assert.deepEqual(labels, ["★ [ABC] Central Keep"]);
+  assert.deepEqual(labels, ["★ [ABC] Central Keep", "K35"]);
+  assert.deepEqual(outlined, ["K35"]);
   assert.equal(plates.length, 1);
   assert.equal(plates[0][2], "★ [ABC] Central Keep".length * 6 + 14);
   plan.labels = false;
   drawEntity(view, entity, plan, 1);
-  assert.deepEqual(labels, ["★ [ABC] Central Keep"]);
+  assert.deepEqual(labels, ["★ [ABC] Central Keep", "K35"]);
   plan.labels = true;
   drawEntity(view, entity, plan, 0.1);
-  assert.deepEqual(labels, ["★ [ABC] Central Keep"]);
+  assert.deepEqual(labels, ["★ [ABC] Central Keep", "K35"]);
 });
 
 test("low zoom paints selectable dots with selected, rally, and obstacle emphasis", () => {
