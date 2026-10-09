@@ -76,7 +76,7 @@ export function createPlanner(
     screen = screens.current();
     if (screens.isProject()) {
       placementView.reset();
-      team.render();
+      teamScreen.render();
       return;
     }
     if (screens.isSubcities()) {
@@ -117,16 +117,19 @@ export function createPlanner(
       }
     });
   });
-  const team = createTeamScreen({
-    root: $("project-screen"),
-    getPlan,
-    canEdit: () => !store.readOnly,
-    unlock: () => workspace.unlockTeam(),
-    mutate: (change) => store.mutate(change),
-    context: () => workspace?.key(),
-    navigate: showScreen,
-    status: toast,
-  });
+  const teamScreen = wireTeamScreen();
+  function wireTeamScreen() {
+    return createTeamScreen({
+      root: $("project-screen"),
+      getPlan,
+      canEdit: () => !store.readOnly,
+      unlock: () => workspace.unlockTeam(),
+      mutate: (change) => store.mutate(change),
+      context: () => workspace?.key(),
+      navigate: showScreen,
+      status: toast,
+    });
+  }
   function locateSubcity(city) {
     const map = getPlan().maps.find(
       (map) => map.type === "server" || map.layout?.map === "server",
@@ -292,7 +295,7 @@ export function createPlanner(
   function render() {
     $("plan-title").value = getPlan().title;
     $("undo").disabled = !store.canUndo;
-    team.render();
+    teamScreen.render();
     subcities.render();
     mapsScreen.render();
     mapViewControls.render();
@@ -375,7 +378,7 @@ export function createPlanner(
     canCheck: () => !entry?.busy && !$("planner").hidden && !document.hidden,
     status: toast,
     playersChanged: () => {
-      team.render();
+      teamScreen.render();
       players?.renderList();
       players?.renderProfile();
     },
