@@ -66,6 +66,7 @@ import { formationArrange } from "./browser/formation-arrange.js";
 import { formationBuildingSkin } from "./browser/formation-building-skin.js";
 import { formationHelp } from "./browser/formation-help.js";
 import { formationDemo } from "./browser/formation-demo.js";
+import { mapCoordinates } from "./browser/map-coordinates.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -175,6 +176,7 @@ try {
   await formationBuildingSkin({ page, driveFiles });
   await formationHelp({ page });
   await formationDemo({ page, driveFiles });
+  await mapCoordinates({ page });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
