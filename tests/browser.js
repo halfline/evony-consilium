@@ -1,3 +1,4 @@
+import { subcityOwnership } from "./browser/subcity-ownership.js";
 import { subcities } from "./browser/subcities.js";
 import { playerSharing } from "./browser/player-sharing.js";
 import { teamImprovements } from "./browser/team-improvements.js";
@@ -199,6 +200,7 @@ try {
   await teamImprovements({ browser });
   await playerSharing({ browser });
   await subcities({ browser });
+  await subcityOwnership({ browser });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
