@@ -4,7 +4,7 @@ import { validatePlayerSource } from "./player-document.js";
 import { validateSubcities } from "./subcities.js";
 import { number, string } from "./constraints.js";
 import { MAPS } from "./maps.js";
-import { captureLayout } from "./layout.js";
+import { captureLayout, applyLayout } from "./layout.js";
 import { defaultFormationName } from "./map-plans.js";
 import { migratePlan } from "./document-migrations.js";
 import { overlap, unproject } from "./geometry.js";
@@ -119,7 +119,7 @@ function validateBackgrounds(plan) {
   plan.showGrid = Boolean(plan.showGrid);
 }
 
-function validateMapCollection(plan) {
+function validateMapCollection(plan, catalog) {
   if (plan.maps === undefined) {
     const id = crypto.randomUUID();
     plan.maps = [{ id, name: defaultFormationName(plan.map), type: plan.map, layout: captureLayout(plan) }];
@@ -147,6 +147,11 @@ function validateMapCollection(plan) {
         throw new Error("Invalid map player reference.");
       positionIds.add(position.id);
     }
+    const { maps, activeMapId, ...shared } = plan;
+    const view = structuredClone(shared);
+    applyLayout(view, map.layout);
+    const checked = validatePlan(view, catalog, false);
+    map.layout = captureLayout(checked);
   }
   if (plan.activeMapId !== null && !ids.has(plan.activeMapId))
     throw new Error("Unknown active map.");
@@ -155,7 +160,7 @@ function validateMapCollection(plan) {
 }
 
 // Validate the shared team envelope while preserving fields owned by later editors.
-export function validatePlan(input, catalog = { assets: [] }) {
+export function validatePlan(input, catalog = { assets: [] }, validateMaps = true) {
   if (!input || typeof input !== "object" || Array.isArray(input))
     throw new Error("Invalid team document.");
   const plan = migratePlan(input);
@@ -197,6 +202,6 @@ export function validatePlan(input, catalog = { assets: [] }) {
   plan.subcities ||= [];
   validateSubcities(plan.subcities, catalog.subcityTypes || null, plan.keeps);
   validateMapPresets(plan);
-  validateMapCollection(plan);
+  if (validateMaps) validateMapCollection(plan, catalog);
   return plan;
 }
