@@ -43,3 +43,23 @@ test("player documents contain profiles without roster identity or map data", ()
   );
   assert.throws(() => playerDocument({ ...input, level: 0 }), /keep level/);
 });
+test("linking keeps placements and caches the entire profile with a baseline", () => {
+  const input = player();
+  const profile = {
+    ...playerProfile(input),
+    name: "Linked",
+    details: { rallyCapacity: 200 },
+  };
+  const linked = linkedPlayer(input, profile, file);
+  assert.equal(linked.id, input.id);
+  assert.equal(linked.x, input.x);
+  assert.equal(linked.locked, input.locked);
+  assert.deepEqual(linked.details, profile.details);
+  assert.deepEqual(linked.playerSource.baseline, validateProfile(profile));
+  assert.equal(linked.playerSource.fileId, file.id);
+  const plan = createDemoPlan(catalog);
+  plan.keeps[0] = linkedPlayer(plan.keeps[0], profile, file);
+  assert.doesNotThrow(() => validatePlan(plan, catalog));
+  plan.keeps[0].playerSource.fileId = "../bad";
+  assert.throws(() => validatePlan(plan, catalog), /player file link/);
+});
