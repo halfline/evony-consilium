@@ -1,3 +1,4 @@
+import { sharingAndRecovery } from "./browser/sharing.js";
 import { terrainAndMobile } from "./browser/terrain.js";
 import { teamDashboard } from "./browser/team-dashboard.js";
 import { mapEditing } from "./browser/map-editing.js";
@@ -75,6 +76,7 @@ try {
   });
   await teamDashboard({ page, driveFiles, projectLogo });
   await terrainAndMobile({ page, formationScreen });
+  await sharingAndRecovery({ page, driveFiles });
   await playerSharing({ browser });
   await subcities({ browser });
   await subcityOwnership({ browser });
