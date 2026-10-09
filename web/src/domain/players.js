@@ -1,6 +1,7 @@
 import { footprint, addEntity } from "./entities.js";
 import { number, string } from "./constraints.js";
 import { castleForLevel } from "./castles.js";
+import { validatePlayerDetails } from "./player-details-schema.js";
 export function newPlayer(assets, allianceTag = "") {
   const variants = [...assets.values()].filter(
     (asset) => asset.family === "culture-japan",
@@ -32,6 +33,7 @@ const PLAYER_PROFILE_FIELDS = [
   "avatarId",
 ];
 export function validatePlayerProfile(player, defaultTag = "") {
+  if (player.details !== undefined) validatePlayerDetails(player.details);
   string(player.name, 100, "name");
   number(player.level, 1, 100, "keep level");
   if (player.avatarId !== undefined) string(player.avatarId, 120, "avatar ID");
