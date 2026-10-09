@@ -21,6 +21,7 @@ export function createPlayerDetails({ root, getPlayer }) {
       button.setAttribute("aria-selected", String(active));
       button.tabIndex = active ? 0 : -1;
     }
+    $("player-profile-actions").hidden = tab === "subcities";
     for (const panel of root.querySelectorAll("[data-player-panel]"))
       panel.hidden = panel.dataset.playerPanel !== tab;
   }
