@@ -25,6 +25,29 @@ test("placed entities paint a sprite and expose a selectable hit region", () => 
   assert.ok(Math.abs(view.hits[0].top - (images[0][2] - 10)) < 1e-6);
 });
 
+test("map anchor metadata positions large and pixel-scale sprites", () => {
+  const images = [];
+  const asset = { src: "landmark.webp", width: 200, height: 100, mapAnchor: {
+    footprintFill: 0.8, footprintWidth: 100, pivotX: 40, groundPivotY: 90,
+  } };
+  const view = {
+    ctx: { drawImage: (...args) => images.push(args) },
+    screen: (x, y) => ({ x, y }),
+    assets: new Map([["landmark", asset]]), image: (src) => src, hits: [],
+  };
+  const entity = { id: "landmark", skin: "landmark", x: 10, y: 20, w: 2, h: 2 };
+  const plan = { grid: { ax: 48, ay: 24, bx: -48, by: 24 }, labels: false };
+  drawEntity(view, entity, plan, 1);
+  assert.equal(images[0][0], "landmark.webp");
+  for (const [index, expected] of [[1, -49.44], [2, -116.24], [3, 307.2], [4, 153.6]])
+    assert.ok(Math.abs(images[0][index] - expected) < 1e-6);
+  asset.mapAnchor = { pixelScale: 2, pivotX: 100, pivotY: 50 };
+  drawEntity(view, entity, plan, 1);
+  assert.equal(images[1][0], "landmark.webp");
+  for (const [index, expected] of [[1, -7.75], [2, 11.625], [3, 37.5], [4, 18.75]])
+    assert.ok(Math.abs(images[1][index] - expected) < 1e-6);
+});
+
 test("entity labels follow the map preference and mark the rally keep", () => {
   const labels = [];
   const plates = [];
