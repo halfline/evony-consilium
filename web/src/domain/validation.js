@@ -6,6 +6,8 @@ import { number, string } from "./constraints.js";
 import { MAPS } from "./maps.js";
 import { captureLayout } from "./layout.js";
 import { defaultFormationName } from "./map-plans.js";
+import { migratePlan } from "./document-migrations.js";
+import { unproject } from "./geometry.js";
 
 function validateMapPresets(plan) {
   if (!Array.isArray(plan.mapPresets) || plan.mapPresets.length > 30)
@@ -62,9 +64,7 @@ function validateMapCollection(plan) {
 export function validatePlan(input, catalog = { assets: [] }) {
   if (!input || typeof input !== "object" || Array.isArray(input))
     throw new Error("Invalid team document.");
-  if (input.version !== 1)
-    throw new Error("Unsupported team document version.");
-  const plan = structuredClone(input);
+  const plan = migratePlan(input);
   if (
     typeof plan.title !== "string" ||
     !plan.title.trim() ||
@@ -84,6 +84,17 @@ export function validatePlan(input, catalog = { assets: [] }) {
     (typeof plan.allianceTag !== "string" || plan.allianceTag.length > 16)
   )
     throw new Error("Invalid alliance tag.");
+  number(plan.extent, 10, 10000, "map extent");
+  number(plan.spacing, 0, 10, "spacing");
+  if (typeof plan.rallyManual !== "boolean")
+    throw new Error("Invalid rally setter preference.");
+  if (!["rings", "diamond"].includes(plan.formation))
+    throw new Error("Invalid formation.");
+  for (const key of ["x", "y"])
+    number(plan.center?.[key], 0, plan.extent - 1, "center");
+  for (const key of ["ax", "ay", "bx", "by"])
+    number(plan.grid?.[key], -200, 200, "grid", false);
+  unproject(0, 0, plan.grid);
   if (!Array.isArray(plan.keeps)) throw new Error("Invalid player list.");
   if (plan.keeps.length > 500) throw new Error("Too many keeps.");
   const ids = new Set();
