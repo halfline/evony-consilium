@@ -669,3 +669,61 @@
     padding: 14px 8px;
   }
 }
+
+#maps-screen {
+  display: grid;
+  place-items: center;
+  flex: 1;
+  width: 100%;
+}
+#maps-screen .players-workspace { width: 100%; grid-template-columns: minmax(0, 1fr); }
+#maps-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 24px 18px;
+  padding: 3px;
+}
+.map-list-row { position: relative; min-width: 0; }
+.map-row {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 8px;
+  border-color: transparent;
+  background: transparent;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.map-portrait {
+  display: grid;
+  place-items: center;
+  width: 128px;
+  height: 128px;
+  padding: 6px;
+  overflow: hidden;
+  border-radius: 28%;
+  border: 1px solid #cbb47760;
+  background: linear-gradient(145deg, #344739, #17261d);
+  box-shadow: 0 8px 20px #0003;
+}
+.map-portrait img { width: 100%; height: 100%; object-fit: contain; padding: 8px; }
+.blank-map-portrait {
+  background:
+    repeating-linear-gradient(45deg, transparent 0 17px, #cbb47722 18px 19px),
+    repeating-linear-gradient(-45deg, #203126 0 17px, #cbb47722 18px 19px);
+}
+.map-row:hover .map-portrait,
+.map-row.selected .map-portrait { border-color: var(--gold); }
+#maps-list .add-map-icon {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  align-self: center;
+  justify-self: start;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--gold);
+  border-radius: 10px;
+}
