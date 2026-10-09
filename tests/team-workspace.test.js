@@ -241,3 +241,19 @@ test("joining a team link preserves its file ID and resource key", async () => {
     resourceKey: "secret",
   });
 });
+
+test("team opening reconnects only player files this account previously opened", async () => {
+  const f = fixture();
+  f.shared.keeps = ["allowed", "other"].map((id) => ({
+    id,
+    playerSource: { fileId: id },
+  }));
+  f.workspace.repository.openedPlayers = () => ["allowed"];
+  const probes = [];
+  f.workspace.players.probe = async (player) => probes.push(player.id);
+  await f.workspace.signIn();
+  await f.workspace.open({ id: "folder" });
+  assert.deepEqual(probes, ["allowed"]);
+  f.workspace.clear();
+  assert.equal(f.workspace.players.state({}).connected, false);
+});
