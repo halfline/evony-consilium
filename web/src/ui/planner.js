@@ -250,9 +250,6 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
     renderer.fit();
     $("help-dialog").close();
   };
-  $("team-players").hidden = false;
-  $("team-subcities").hidden = false;
-  $("team-maps").hidden = false;
   $("project-screen").hidden = false;
   render();
   workspace = createWorkspace({
