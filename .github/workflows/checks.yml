@@ -1,0 +1,35 @@
+name: Verify application
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m venv .venv
+      - run: .venv/bin/python -m pip install -e .
+      - uses: actions/cache@v4
+        with:
+          path: .asset-cache
+          key: assets-${{ runner.os }}-${{ hashFiles('src/consilium_assets/snapshot.py', 'src/consilium_assets/legacy.py', 'src/consilium_assets/fetch.py') }}
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm test
+      - run: .venv/bin/python -m unittest discover -s tests/assets
+      - run: npm run build
+      - run: npm run test:assets
+        env:
+          ASSET_ROOT: dist
+      - run: npx playwright install --with-deps chromium
+      - run: CHROME_PATH="$(node --input-type=module -e 'import { chromium } from "playwright"; process.stdout.write(chromium.executablePath())')" npm run test:browser
+        env:
+          SERVE_DIR: dist
