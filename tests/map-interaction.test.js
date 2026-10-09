@@ -213,6 +213,28 @@ test("an occupied destination keeps the placement and explains the rejection", (
   assert.equal(captures.size, 0);
 });
 
+test("dragging a locked position explains the lock without moving it", () => {
+  const plan = createEmptyPlan();
+  plan.keeps.push({ id: "keep", x: 10, y: 10, w: 2, h: 2, locked: true });
+  const captures = new Set();
+  const canvas = {
+    getBoundingClientRect: () => ({ left: 0, top: 0, right: 100, bottom: 100 }),
+    setPointerCapture: (id) => captures.add(id),
+    hasPointerCapture: (id) => captures.has(id),
+    releasePointerCapture: (id) => captures.delete(id),
+  };
+  let message = "";
+  bindMapInteraction({ canvas, renderer: { hit: () => "keep" },
+    getPlan: () => plan, getPending: () => null,
+    toast: (text) => { message = text; } });
+  canvas.onpointerdown({ button: 0, pointerId: 3, clientX: 10, clientY: 10 });
+  canvas.onpointermove({ pointerId: 3, clientX: 20, clientY: 10 });
+  canvas.onpointerup({ pointerId: 3, clientX: 20, clientY: 10 });
+  assert.match(message, /Unlock this position/);
+  assert.deepEqual([plan.keeps[0].x, plan.keeps[0].y], [10, 10]);
+  assert.equal(captures.size, 0);
+});
+
 test("Escape clears pending placement and selection without editing plan", () => {
   const plan = createEmptyPlan();
   const canvas = {};
