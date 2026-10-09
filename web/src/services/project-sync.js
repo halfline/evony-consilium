@@ -137,4 +137,35 @@ export class ProjectSync {
       if (this.checking === checking) this.checking = null;
     }
   }
+  async save() {
+    if (!this.file || this.state().disabled) return;
+    const key = this.key();
+    let source = this.file;
+    const baseline = this.savedSnapshot;
+    this.saving = true;
+    this.notify();
+    try {
+      if (this.remoteChanged && !this.dirty) {
+        await this.reload();
+        return;
+      }
+      await this.flush();
+      const snapshot = structuredClone(this.getPlan());
+      const file = await this.drive.save(source, snapshot);
+      file.resourceKey ||= source.resourceKey;
+      await this.flush();
+      this.file = file;
+      this.remoteChanged = false;
+      this.savedSnapshot = this.fingerprint(snapshot);
+      this.dirty = this.fingerprint(this.getPlan()) !== this.savedSnapshot;
+      await this.writeDraft(this.draft(this.getPlan()), key);
+      this.saved();
+    } catch (error) {
+      if (error.status === 409) this.remoteChanged = true;
+      throw error;
+    } finally {
+      this.saving = false;
+      this.notify();
+    }
+  }
 }
