@@ -3,6 +3,7 @@ import { playerRoster } from "./browser/player-roster.js";
 import { playerProfileEarly } from "./browser/player-profile-early.js";
 import { playerAvatarChange } from "./browser/player-avatar-change.js";
 import { playerRemove } from "./browser/player-remove.js";
+import { playerBuffs } from "./browser/player-buffs.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -49,6 +50,7 @@ try {
   await playerProfileEarly({ page, driveFiles });
   await playerAvatarChange({ page, driveFiles });
   await playerRemove({ page, driveFiles });
+  await playerBuffs({ page, driveFiles });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
