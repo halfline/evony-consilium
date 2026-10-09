@@ -197,9 +197,11 @@ export function bindMapInteraction({
       } catch (error) { toast(error.message, true); }
       return;
     }
-    if (event.key !== "Delete" || !canEdit() || !getSelection()) return;
+    if (event.key !== "Delete" || !canEdit() || (!getSelection() && !group.size)) return;
     event.preventDefault();
-    commit(removePlacements(getPlan(), new Set([getSelection()])));
+    commit(removePlacements(getPlan(), group.size ? group : new Set([getSelection()])));
+    group.clear();
     select(null);
+    groupChanged();
   };
 }
