@@ -20,8 +20,12 @@ export function bindMapViewControls({ root, renderer, getPlan, selected, mutate 
   return {
     render({ zoom }) {
       $("zoom-level").textContent = Math.round(zoom * 100) + "%";
-      $("show-grid").checked = getPlan().showGrid;
-      $("show-labels").checked = getPlan().labels;
+      const plan = getPlan();
+      $("show-grid").checked = plan.showGrid;
+      $("show-labels").checked = plan.labels;
+      const map = plan.mapPresets.find((preset) => preset.id === plan.map);
+      $("map-kicker").textContent = map?.subtitle || "";
+      $("map-name").textContent = map?.name || "";
     },
   };
 }

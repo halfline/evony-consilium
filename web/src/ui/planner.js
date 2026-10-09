@@ -222,8 +222,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     team.render();
     subcities.render();
     mapsScreen.render();
-    const activeMap = getPlan().maps.find(({ id }) => id === getPlan().activeMapId);
-    $("map-name").textContent = activeMap?.name || "";
+    mapViewControls.render({ zoom: renderer.camera.zoom });
     renderer.draw();
     formationList.render();
     placementInspector.render();
