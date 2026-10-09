@@ -1,3 +1,4 @@
+import { createLogoPicker } from "./logo-picker.js";
 import { createTeamList } from "./team-list.js";
 import { createAccountMenu } from "./account-menu.js";
 import { createTeamTabs } from "./team-tabs.js";
@@ -25,7 +26,20 @@ export class TeamEntry {
       initialTeam,
     });
     this.$ = view(root, header);
+    this.pendingLogo = "";
     this.busy = false;
+    this.logoPicker = createLogoPicker({
+      root: this.$("project-logo"),
+      uploadLabel: "Upload team logo",
+      getValue: () => this.pendingLogo,
+      change: (value) => {
+        this.pendingLogo = value;
+        this.logoPicker.render();
+      },
+      context: () => this.workspace.account?.sub,
+      status,
+      run: (task) => this.run(task, "Loading logo…"),
+    });
     this.tabs = createTeamTabs({
       root: this.$("projects-screen"),
       changed: () => {
@@ -104,13 +118,17 @@ export class TeamEntry {
   async start() {
     this.show("login");
     this.$("project-tab-open").hidden = true;
-    this.$("project-tab-create").hidden = true;
+    this.$("project-tab-create").hidden = false;
     this.$("project-browse").hidden = true;
     this.$("drive-save").hidden = true;
     this.$("project-reload").hidden = true;
     this.$("google-login").onclick = () => this.signIn();
     this.$("google-grant-access").onclick = () =>
       this.signIn({ requestConsent: true });
+    this.$("project-create").onsubmit = (e) => {
+      e.preventDefault();
+      this.run(() => this.create(), "Creating team…");
+    };
     this.$("project-back").onclick = () =>
       this.run(async () => {
         await this.workspace.flush();
@@ -161,5 +179,14 @@ export class TeamEntry {
           ? "The shared team has changed. Your edits are kept locally. Load latest replaces them with the shared version."
           : "Restored unsaved changes.",
       );
+  }
+  clearLogo() {
+    this.pendingLogo = "";
+    this.logoPicker.reset();
+  }
+  async create() {
+    await this.workspace.create(this.$("project-name").value, this.pendingLogo);
+    this.show("planner");
+    this.clearLogo();
   }
 }
