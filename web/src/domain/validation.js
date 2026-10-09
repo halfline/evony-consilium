@@ -25,6 +25,28 @@ function validateMapPresets(plan) {
     throw new Error("Unknown map.");
 }
 
+function validateCustomAssets(plan) {
+  if (!Array.isArray(plan.customAssets) || plan.customAssets.length > 150)
+    throw new Error("Invalid custom assets.");
+  for (const asset of plan.customAssets) {
+    string(asset.id, 120, "asset ID");
+    string(asset.name, 100, "asset name");
+    string(asset.src, 6000000, "image");
+    if (!/^data:image\/(png|jpeg|webp);base64,/.test(asset.src))
+      throw new Error("Custom assets must be PNG, JPEG, or WebP images.");
+    number(asset.width, 1, 10000, "image width");
+    number(asset.height, 1, 10000, "image height");
+    number(asset.tier, 1, 100, "tier");
+    string(asset.family, 120, "asset family");
+    if (
+      !["keep", "alliance", "warehouse", "resource", "objective"].includes(
+        asset.kind,
+      )
+    )
+      throw new Error("Invalid asset kind.");
+  }
+}
+
 function validateMapCollection(plan) {
   if (plan.maps === undefined) {
     const id = crypto.randomUUID();
@@ -95,6 +117,7 @@ export function validatePlan(input, catalog = { assets: [] }) {
   for (const key of ["ax", "ay", "bx", "by"])
     number(plan.grid?.[key], -200, 200, "grid", false);
   unproject(0, 0, plan.grid);
+  validateCustomAssets(plan);
   if (!Array.isArray(plan.keeps)) throw new Error("Invalid player list.");
   if (plan.keeps.length > 500) throw new Error("Too many keeps.");
   const ids = new Set();
