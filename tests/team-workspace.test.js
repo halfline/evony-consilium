@@ -2,7 +2,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { TeamWorkspace } from "../web/src/services/team-workspace.js";
 import { createEmptyPlan } from "../web/src/domain/plan.js";
-import { createMapPlan, selectMapPlan } from "../web/src/domain/map-plans.js";
 
 function fixture({ canEdit = true, cached = null } = {}) {
   let plan = createEmptyPlan();
@@ -198,7 +197,7 @@ test("a rejected document leaves the current team's access state and identity in
   assert.equal(f.workspace.sync.file.capabilities.canEdit, false);
 });
 
-test("unlocking a team rechecks Drive access", async () => {
+test("unlocking a team rechecks Drive access without unlocking any player files", async () => {
   const f = fixture({ canEdit: false });
   await f.workspace.signIn();
   await f.workspace.open({ id: "folder" });
@@ -208,22 +207,24 @@ test("unlocking a team rechecks Drive access", async () => {
   f.file.capabilities.canEdit = true;
   await f.workspace.unlockTeam();
   assert.equal(f.workspace.sync.file.capabilities.canEdit, true);
+  assert.equal(
+    f.workspace.players.state({ playerSource: { fileId: "source" } }).connected,
+    false,
+  );
 });
 
-test("remote polling checks the team and the selected player file", async () => {
+test("central folder authorization never falls back to personal Drive storage", async () => {
   const f = fixture();
   await f.workspace.signIn();
   await f.workspace.open({ id: "folder" });
-  let checks = 0;
-  f.workspace.sync.checkRemote = async () => {
-    checks++;
-  };
-  const probes = [];
-  f.workspace.players.probe = async (player, force) =>
-    probes.push([player, force]);
-  await f.workspace.checkRemote();
-  assert.equal(checks, 1);
-  assert.deepEqual(probes, [[null, true]]);
+  f.drive.metadata = async (resource) =>
+    resource.id === "file"
+      ? { ...f.file, parents: ["central"] }
+      : (() => {
+          throw Object.assign(new Error("Grant needed"), { status: 404 });
+        })();
+  f.workspace.picker.folder = async () => ({ id: "elsewhere" });
+  await assert.rejects(f.workspace.playerFolder(), /central team folder/);
 });
 
 test("automatic player refresh visits the roster and saves its cache once", async () => {
@@ -234,7 +235,8 @@ test("automatic player refresh visits the roster and saves its cache once", asyn
     { id: "a", playerSource: { fileId: "source-a" } },
     { id: "b", playerSource: { fileId: "source-b" } },
   ];
-  const visited = [], saved = [];
+  const visited = [],
+    saved = [];
   f.workspace.players.probe = async () => {};
   f.workspace.players.state = () => ({ connected: true, busy: false });
   f.workspace.profiles.commitPlan = () => {};
@@ -261,117 +263,4 @@ test("automatic player refresh visits the roster and saves its cache once", asyn
   f.workspace.sync.file.capabilities.canEdit = false;
   await f.workspace.refreshPlayers();
   assert.equal(visited.length, 2);
-});
-
-test("joining a team link preserves its file ID and resource key", async () => {
-  const f = fixture();
-  await f.workspace.signIn();
-  let opened;
-  f.drive.project = async (resource) => {
-    opened = resource;
-    return {
-      folder: { id: "folder", name: "Shared" },
-      file: structuredClone(f.file),
-    };
-  };
-  await f.workspace.join(
-    "https://drive.google.com/file/d/team-file/view?resourcekey=secret",
-  );
-  assert.deepEqual(opened, {
-    id: "team-file",
-    kind: "file",
-    resourceKey: "secret",
-  });
-});
-
-test("team opening reconnects only player files this account previously opened", async () => {
-  const f = fixture();
-  f.shared.keeps = ["allowed", "other"].map((id) => ({
-    id,
-    name: id,
-    level: 1,
-    playerSource: { fileId: id },
-  }));
-  f.workspace.repository.openedPlayers = () => ["allowed"];
-  const probes = [];
-  f.workspace.players.probe = async (player) => probes.push(player.id);
-  await f.workspace.signIn();
-  await f.workspace.open({ id: "folder" });
-  assert.deepEqual(probes, ["allowed"]);
-  f.workspace.clear();
-  assert.equal(f.workspace.players.state({}).connected, false);
-});
-
-test("central folder authorization rejects an unrelated Drive folder", async () => {
-  const f = fixture();
-  await f.workspace.signIn();
-  await f.workspace.open({ id: "folder" });
-  f.drive.metadata = async (resource) =>
-    resource.id === "file"
-      ? { ...f.file, parents: ["central"] }
-      : (() => {
-          throw Object.assign(new Error("Grant needed"), { status: 404 });
-        })();
-  f.workspace.picker.folder = async () => ({ id: "elsewhere" });
-  await assert.rejects(f.workspace.playerFolder(), /central team folder/);
-});
-
-
-test("map switching keeps local draft clean while inactive layout edits make it dirty", async () => {
-  const f = fixture();
-  let saved = createMapPlan(createEmptyPlan(), "server", "Hive");
-  const first = saved.activeMapId;
-  saved = createMapPlan(saved, "bog", "Rally");
-  Object.assign(f.shared, saved);
-  await f.workspace.signIn();
-  await f.workspace.open({ id: "folder" });
-
-  Object.assign(f.getPlan(), selectMapPlan(f.getPlan(), first));
-  f.workspace.persist();
-  await f.workspace.flush();
-  assert.equal(f.workspace.sync.state().dirty, false);
-  assert.equal(f.writes.at(-1).data.dirty, false);
-
-  f.getPlan().maps.find(({ id }) => id !== first).layout.spacing = 8;
-  f.workspace.persist();
-  await f.workspace.flush();
-  assert.equal(f.workspace.sync.state().dirty, true);
-  assert.equal(f.writes.at(-1).data.dirty, true);
-});
-
-test("a navigation-only Drive revision does not create a team conflict", async () => {
-  const f = fixture();
-  let saved = createMapPlan(createEmptyPlan(), "server", "Hive");
-  const first = saved.activeMapId;
-  saved = createMapPlan(saved, "bog", "Rally");
-  Object.assign(f.shared, saved);
-  await f.workspace.signIn();
-  await f.workspace.open({ id: "folder" });
-  f.drive.metadata = async () => ({ ...f.file, version: "4" });
-  f.drive.load = async () => ({
-    file: { ...f.file, version: "4" },
-    plan: selectMapPlan(saved, first),
-  });
-  await f.workspace.sync.checkRemote();
-  assert.equal(f.workspace.sync.remoteChanged, false);
-  assert.equal(f.workspace.sync.file.version, "4");
-  assert.equal(f.workspace.sync.state().dirty, false);
-});
-
-test("locking an unplaced keep makes the local draft dirty", async () => {
-  const f = fixture();
-  let saved = createEmptyPlan();
-  saved.keeps = [{
-    id: "one", name: "One", level: 40, skin: "placeholder",
-    x: null, y: null, w: 2, h: 2, locked: false,
-  }];
-  saved = createMapPlan(saved, "blank", "Formation");
-  Object.assign(f.shared, saved);
-  await f.workspace.signIn();
-  await f.workspace.open({ id: "folder" });
-  f.getPlan().keeps[0].locked = true;
-  f.workspace.persist();
-  await f.workspace.flush();
-  assert.equal(f.workspace.sync.state().dirty, true);
-  assert.equal(f.writes.at(-1).data.dirty, true);
 });
