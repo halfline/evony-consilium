@@ -1,8 +1,18 @@
+import { createTeamDashboard } from "./team-dashboard.js";
+import { createLogoPicker } from "./logo-picker.js";
 import { bindTileActions } from "./tile-actions.js";
 import { normalizeDiscordUrl } from "../domain/team.js";
-import { createTeamDashboard } from "./team-dashboard.js";
 import { view } from "./dom.js";
-export function createTeamScreen({ root, getPlan, mutate, status, navigate, canEdit = () => true, unlock = async () => {} }) {
+export function createTeamScreen({
+  root,
+  getPlan,
+  mutate,
+  status,
+  navigate,
+  context,
+  canEdit = () => true,
+  unlock = async () => {},
+}) {
   const $ = view(root);
   $("edit-project-name").onchange = () => {
     const title = $("edit-project-name").value.trim();
@@ -58,6 +68,17 @@ export function createTeamScreen({ root, getPlan, mutate, status, navigate, canE
     });
     $("team-discord-url").focus();
   };
+  const logoPicker = createLogoPicker({
+    root: $("edit-project-logo"),
+    uploadLabel: "Change team logo",
+    getValue: () => getPlan().projectLogo,
+    change: (logo) =>
+      mutate((plan) => {
+        plan.projectLogo = logo;
+      }),
+    status,
+    context,
+  });
   function render() {
     const plan = getPlan();
     $("team-unlock").hidden = canEdit();
@@ -72,6 +93,7 @@ export function createTeamScreen({ root, getPlan, mutate, status, navigate, canE
     $("team-discord-open").hidden = !discordUrl;
     if (discordUrl) $("team-discord-open").href = discordUrl;
     else $("team-discord-open").removeAttribute("href");
+    logoPicker.render();
   }
   return { render };
 }
