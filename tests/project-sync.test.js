@@ -50,6 +50,58 @@ test("Save is disabled when clean and again after undo returns to the saved plan
   assert.equal(sync.state().disabled, true);
   assert.equal(sync.draft({ title: "Team" }).dirty, false);
 });
+test("remote-only changes use Reload without uploading, including view-only projects", async () => {
+  const { sync, drive } = fixture();
+  drive.metadata = async (file) => ({
+    ...file,
+    version: "2",
+    capabilities: { canEdit: false },
+  });
+  drive.save = async () => {
+    assert.fail("Reload must not upload");
+  };
+  let reloads = 0;
+  sync.reload = async () => {
+    reloads++;
+    sync.remoteChanged = false;
+  };
+  await sync.checkRemote();
+  assert.equal(sync.state().label, "Reload");
+  assert.equal(sync.state().disabled, false);
+  await sync.save();
+  assert.equal(reloads, 1);
+  assert.equal(sync.state().label, "Save");
+  assert.equal(sync.state().disabled, true);
+});
+test("edits arriving during a save remain dirty against the new shared version", async () => {
+  const { sync, drive, edit, writes } = fixture();
+  edit({ title: "First edit" });
+  drive.save = async (file) => {
+    edit({ title: "Second edit" });
+    return { ...file, version: "2" };
+  };
+  await sync.save();
+  assert.equal(sync.state().disabled, false);
+  assert.deepEqual(writes[0], {
+    key: "alice/team",
+    draft: { plan: { title: "Second edit" }, baseVersion: "2", dirty: true },
+  });
+});
+test("a version conflict retains edits, offers conflict recovery and re-enables Save", async () => {
+  const { sync, drive, edit } = fixture();
+  edit({ title: "My edits" });
+  const conflict = Object.assign(new Error("Changed remotely"), {
+    status: 409,
+  });
+  drive.save = async () => {
+    throw conflict;
+  };
+  await assert.rejects(sync.save(), conflict);
+  assert.equal(sync.state().conflict, true);
+  assert.equal(sync.state().label, "Save");
+  assert.equal(sync.state().disabled, false);
+  assert.equal(sync.saving, false);
+});
 test("a remote check finishing after project navigation cannot update the new project", async () => {
   const { sync, drive } = fixture();
   let release;
@@ -67,6 +119,23 @@ test("a remote check finishing after project navigation cannot update the new pr
   assert.equal(sync.file.id, "other");
   assert.equal(sync.file.capabilities.canEdit, true);
   assert.equal(sync.remoteChanged, false);
+});
+
+test("a later Drive revision of our saved content is not a teammate edit", async () => {
+  const { sync, drive, edit, writes } = fixture();
+  edit({ title: "My saved project" });
+  await sync.save();
+  drive.metadata = async (file) => ({ ...file, version: "3" });
+  drive.load = async (file) => ({
+    file: { ...file, version: "3" },
+    plan: { title: "My saved project" },
+  });
+  await sync.checkRemote();
+  assert.equal(sync.file.version, "3");
+  assert.equal(sync.remoteChanged, false);
+  assert.equal(sync.state().label, "Save");
+  assert.equal(sync.state().disabled, true);
+  assert.equal(writes.at(-1).draft.baseVersion, "3");
 });
 
 test("identical remote content advances the base while preserving local edits", async () => {
