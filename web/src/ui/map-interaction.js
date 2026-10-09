@@ -132,46 +132,32 @@ export function bindMapInteraction({
     };
     canvas.setPointerCapture(ev.pointerId);
   };
-  canvas.onpointermove = (event) => {
-    if (canvas.style) {
-      const pt = point(event);
-      canvas.style.cursor = getPending()
-        ? "crosshair"
-        : renderer.hit(pt.x, pt.y)
-          ? "grab"
-          : "default";
-    }
-    if (renderer.world) {
-      const pt = point(event);
-      const world = renderer.world(pt.x, pt.y);
-      coordinates({ x: Math.floor(world.x), y: Math.floor(world.y) });
-    }
+  canvas.onpointermove = (ev) => {
+    const pt = point(ev);
+    const w = renderer.world(pt.x, pt.y);
+    coordinates({ x: Math.floor(w.x), y: Math.floor(w.y) });
+    canvas.style.cursor = getPending()
+      ? "crosshair"
+      : renderer.hit(pt.x, pt.y)
+        ? "grab"
+        : "default";
     if (getPending() && canEdit()) {
-      const entity = entities().find((item) => item.id === getPending());
-      if (entity) {
-        const pt = point(event),
-          world = renderer.world(pt.x, pt.y);
-        const x = Math.floor(world.x),
-          y = Math.floor(world.y);
+      const e = entities().find((e) => e.id === getPending());
+      if (e) {
+        const x = Math.floor(w.x),
+          y = Math.floor(w.y);
         renderer.preview = {
-          ...entity,
+          ...e,
           x,
           y,
-          valid: canPlace(
-            entity,
-            x,
-            y,
-            getPlan(),
-            [],
-            terrainFor(getPlan().map),
-          ),
+          valid: canPlace(e, x, y, getPlan(), [], terrainFor(getPlan().map)),
         };
         renderer.draw();
       }
       return;
     }
-    if (drag?.band) {
-      const pt = point(event);
+    if (!drag) return;
+    if (drag.band) {
       const box = {
         x: Math.min(pt.x, drag.pt.x),
         y: Math.min(pt.y, drag.pt.y),
@@ -180,53 +166,45 @@ export function bindMapInteraction({
       };
       renderer.selectionBox = box;
       group.clear();
-      for (const entity of entities()) {
-        if (entity.x === null || entity.locked) continue;
-        const center = renderer.screen(
-          entity.x + entity.w / 2,
-          entity.y + entity.h / 2,
-        );
+      for (const e of entities()) {
+        if (e.x === null || e.locked) continue;
+        const center = renderer.screen(e.x + e.w / 2, e.y + e.h / 2);
         if (
           center.x >= box.x &&
           center.x <= box.x + box.w &&
           center.y >= box.y &&
           center.y <= box.y + box.h
         )
-          group.add(entity.id);
+          group.add(e.id);
       }
-      groupChanged();
       renderer.draw();
       return;
     }
-    if (!drag) return;
-    const pt = point(event);
-    drag.moved ||= Math.hypot(pt.x - drag.pt.x, pt.y - drag.pt.y) > 4;
-    if (drag?.id) {
+    const dx = pt.x - drag.pt.x,
+      dy = pt.y - drag.pt.y;
+    if (Math.hypot(dx, dy) > 4) drag.moved = true;
+    if (drag.id) {
       const start = renderer.world(drag.pt.x, drag.pt.y);
-      const end = renderer.world(pt.x, pt.y);
-      const dx = Math.round(end.x - start.x),
-        dy = Math.round(end.y - start.y);
-      const preview = previewPlacementMove(
+      const offsetX = Math.round(w.x - start.x),
+        offsetY = Math.round(w.y - start.y);
+      const { positions, valid } = previewPlacementMove(
         getPlan(),
         drag.members,
-        dx,
-        dy,
+        offsetX,
+        offsetY,
         terrainFor(getPlan().map),
       );
-      renderer.previews = preview.positions.map((item) => ({
-        ...item,
-        valid: preview.valid,
-      }));
-      renderer.preview = renderer.previews.find((item) => item.id === drag.id);
+      renderer.previews = positions.map((entity) => ({ ...entity, valid }));
+      renderer.preview = renderer.previews.find((e) => e.id === drag.id);
       canvas.style.cursor = "grabbing";
       renderer.draw();
-      return;
+    } else if (!drag.blocked) {
+      renderer.camera.x = drag.camera.x - dx / drag.camera.zoom;
+      renderer.camera.y = drag.camera.y - dy / drag.camera.zoom;
+      canvas.style.cursor = "grabbing";
+      renderer.draw();
     }
-    if (drag.blocked) return;
-    renderer.camera.x = drag.camera.x - (pt.x - drag.pt.x) / drag.camera.zoom;
-    renderer.camera.y = drag.camera.y - (pt.y - drag.pt.y) / drag.camera.zoom;
-    canvas.style.cursor = "grabbing";
-    renderer.draw();
+    drag.last = pt;
   };
   canvas.onpointerup = (event) => {
     if (!drag) return;
