@@ -1,6 +1,7 @@
 import { createEmptyPlan } from "../domain/plan.js";
 import { validatePlan } from "../domain/validation.js";
 import { updateKeepAppearances } from "../domain/castles.js";
+import { selectMapPlan } from "../domain/map-plans.js";
 
 function readonly(value) {
   if (value && typeof value === "object" && !Object.isFrozen(value)) {
@@ -89,5 +90,10 @@ export class TeamStore {
     this.refreshAssets();
     this.emit("undo");
     return true;
+  }
+  openMap(id) {
+    this.#plan = readonly(selectMapPlan(this.#plan, id));
+    this.refreshAssets();
+    this.emit("navigate");
   }
 }
