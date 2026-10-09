@@ -17,6 +17,7 @@ import { createFormationList } from "./formation-list.js";
 import { PlacementSelection } from "../application/placement-selection.js";
 import { createPlacementView } from "./placement-view.js";
 import { createPlannerScreens } from "./planner-screens.js";
+import { createNavigation } from "./navigation.js";
 import { createPlayerSubcities } from "./player-subcities.js";
 import { removePlayer } from "../domain/players.js";
 import { createMapPlan, removeMapPlan } from "../domain/map-plans.js";
@@ -29,7 +30,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
   const store = new TeamStore(catalog);
   const toast = createNotifier($("toast"));
   const getPlan = () => store.plan;
-  let workspace, entry, players, playerSubcities;
+  let workspace, entry, players, playerSubcities, navigation, opening = false;
   const selection = new PlacementSelection(getPlan);
   let mapInteraction, placementInspector, placementView;
   let screen = "project";
@@ -50,6 +51,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     screens.show(next);
   }
   const screens = createPlannerScreens($("planner"), (next) => {
+    navigation?.changed();
     if (next !== "formation") {
       mapInteraction?.cancel();
       selection.ids.clear();
@@ -259,7 +261,11 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
       store.readOnly = value;
       render();
     },
-    openPlan: (plan) => store.replace(plan, { force: true }),
+    openPlan: (plan) => {
+      opening = true;
+      store.replace(plan, { force: true });
+      showScreen("project");
+    },
     changed: createSaveControls({
       button: $("drive-save"),
       reload: $("project-reload"),
@@ -307,6 +313,29 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     status: toast,
   });
   $("player-form").querySelector('[data-player-tab="subcities"]').hidden = false;
+  navigation = createNavigation({
+    getRoute: () => ({
+      team: workspace.sync.file?.id,
+      resourceKey: workspace.sync.file?.resourceKey || null,
+      screen: screens.current(),
+      player: screens.isPlayer() ? selection.id : null,
+      map: screens.current() === "formation" ? getPlan().activeMapId : null,
+    }),
+    ready: () => !opening && !!workspace.sync.file && !$("planner").hidden,
+    applyRoute: (route) => {
+      if (route.team !== workspace.sync.file?.id) return;
+      if (route.map && getPlan().maps?.some((map) => map.id === route.map))
+        store.openMap(route.map);
+      if (route.screen === "player") {
+        if (!getPlan().keeps.some((player) => player.id === route.player)) {
+          showScreen("players");
+          return;
+        }
+        selection.id = route.player;
+      }
+      showScreen(route.screen);
+    },
+  });
   entry = new TeamEntry({
     header: $("planner").querySelector(".topbar"),
     root: $("entry"),
@@ -315,9 +344,17 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     workspace,
     status: toast,
     opened: () => {
-      showScreen("project");
+      opening = false;
+      navigation.opened();
       render();
     },
+    initialTeam: navigation.pending.team
+      ? {
+          id: navigation.pending.team,
+          resourceKey: navigation.pending.resourceKey || "",
+          kind: "file",
+        }
+      : null,
   });
   return { start: () => entry.start() };
 }
