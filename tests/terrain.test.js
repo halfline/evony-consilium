@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { TerrainCatalog } from "../web/src/domain/terrain.js";
+import { TerrainCatalog, terrainTileAt } from "../web/src/domain/terrain.js";
 import { loadTerrain } from "../web/src/services/terrain-loader.js";
 
 test("terrain catalogs remain independent across resource loads", () => {
@@ -59,4 +59,17 @@ test("terrain loader fetches each manifest buffer and rejects missing data", asy
   } finally {
     globalThis.fetch = original;
   }
+});
+
+test("landmark clearings override ground and vegetation only within the footprint", () => {
+  const terrain = {
+    width: 3,
+    landmarks: [{ x: 1, y: 0, w: 1, h: 1, groundTile: 9 }],
+  };
+  const surface = { name: "surface", tiles: Uint8Array.of(1, 2, 3) };
+  const vegetation = { name: "vegetation", tiles: Uint8Array.of(4, 5, 6) };
+  assert.equal(terrainTileAt(terrain, surface, 1, 0), 9);
+  assert.equal(terrainTileAt(terrain, vegetation, 1, 0), 0);
+  assert.equal(terrainTileAt(terrain, surface, 2, 0), 3);
+  assert.equal(terrainTileAt(terrain, vegetation, 2, 0), 6);
 });
