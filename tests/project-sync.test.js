@@ -175,6 +175,45 @@ test("Save retries a revision-only conflict after checking shared content", asyn
   assert.equal(sync.remoteChanged, false);
 });
 
+test("a save finishing after a team switch cannot replace the new team or its draft", async () => {
+  const { sync, drive, edit, writes } = fixture();
+  edit({ title: "Old team edit" });
+  let release;
+  drive.save = () =>
+    new Promise((resolve) => {
+      release = resolve;
+    });
+  const saving = sync.save();
+  await Promise.resolve();
+  sync.opened(
+    { id: "other", version: "9", capabilities: { canEdit: true } },
+    { title: "Other team" },
+  );
+  const state = { ...sync.state() };
+  release({ id: "formation", version: "2", capabilities: { canEdit: true } });
+  await saving;
+  assert.equal(sync.file.id, "other");
+  assert.equal(sync.file.version, "9");
+  assert.deepEqual(sync.state(), state);
+  assert.deepEqual(writes, []);
+});
+test("signing out during an upload does not resurrect the old team", async () => {
+  const { sync, drive, edit, writes } = fixture();
+  edit({ title: "Old edit" });
+  let release;
+  drive.save = () =>
+    new Promise((resolve) => {
+      release = resolve;
+    });
+  const saving = sync.save();
+  await Promise.resolve();
+  sync.reset();
+  release({ id: "formation", version: "2", capabilities: { canEdit: true } });
+  await saving;
+  assert.equal(sync.file, null);
+  assert.equal(sync.saving, false);
+  assert.deepEqual(writes, []);
+});
 test("a stale remote check does not prevent checks for the newly opened team", async () => {
   const { sync, drive } = fixture();
   let release;
@@ -199,6 +238,20 @@ test("a stale remote check does not prevent checks for the newly opened team", a
   assert.equal(sync.file.id, "other");
   assert.equal(sync.checking, null);
 });
+test("reload opening a new snapshot clears Saving even though the operation context changes", async () => {
+  const { sync, drive } = fixture();
+  drive.metadata = async (file) => ({ ...file, version: "2" });
+  await sync.checkRemote();
+  sync.reload = async () =>
+    sync.opened(
+      { id: "formation", version: "2", capabilities: { canEdit: true } },
+      { title: "Team" },
+    );
+  await sync.save();
+  assert.equal(sync.saving, false);
+  assert.equal(sync.state().label, "Save");
+});
+
 test("an immediate remote check preserves a recovered draft's known conflict", async () => {
   const { sync, drive, edit } = fixture();
   edit({ title: "Recovered local edit" });
