@@ -209,7 +209,7 @@ test("unlocking a team rechecks Drive access", async () => {
   assert.equal(f.workspace.sync.file.capabilities.canEdit, true);
 });
 
-test("remote polling checks only the shared team document", async () => {
+test("remote polling checks the team and the selected player file", async () => {
   const f = fixture();
   await f.workspace.signIn();
   await f.workspace.open({ id: "folder" });
@@ -217,8 +217,49 @@ test("remote polling checks only the shared team document", async () => {
   f.workspace.sync.checkRemote = async () => {
     checks++;
   };
+  const probes = [];
+  f.workspace.players.probe = async (player, force) =>
+    probes.push([player, force]);
   await f.workspace.checkRemote();
   assert.equal(checks, 1);
+  assert.deepEqual(probes, [[null, true]]);
+});
+
+test("automatic player refresh visits the roster and saves its cache once", async () => {
+  const f = fixture();
+  await f.workspace.signIn();
+  await f.workspace.open({ id: "folder" });
+  f.getPlan().keeps = [
+    { id: "a", playerSource: { fileId: "source-a" } },
+    { id: "b", playerSource: { fileId: "source-b" } },
+  ];
+  const visited = [], saved = [];
+  f.workspace.players.probe = async () => {};
+  f.workspace.players.state = () => ({ connected: true, busy: false });
+  f.workspace.profiles.commitPlan = () => {};
+  f.workspace.profiles.collectCache = async (player) => {
+    visited.push(player.id);
+    return { ...player, name: "Updated" };
+  };
+  f.workspace.profiles.commitCaches = (_before, updates) => {
+    assert.equal(updates.length, 2);
+    f.workspace.sync.dirty = true;
+    return true;
+  };
+  f.workspace.save = async () => {
+    saved.push(visited.at(-1));
+    f.workspace.sync.dirty = false;
+  };
+  await f.workspace.refreshPlayers();
+  assert.deepEqual(visited, ["a", "b"]);
+  assert.deepEqual(saved, ["b"]);
+  f.workspace.sync.dirty = true;
+  await f.workspace.refreshPlayers();
+  assert.equal(visited.length, 2);
+  f.workspace.sync.dirty = false;
+  f.workspace.sync.file.capabilities.canEdit = false;
+  await f.workspace.refreshPlayers();
+  assert.equal(visited.length, 2);
 });
 
 test("joining a team link preserves its file ID and resource key", async () => {
