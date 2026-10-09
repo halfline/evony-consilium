@@ -416,6 +416,7 @@
                 <button type="button" role="tab" data-player-tab="buffs" aria-selected="false" hidden>Buffs</button>
                 <button type="button" role="tab" data-player-tab="march-size" aria-selected="false" hidden>March size</button>
                 <button type="button" role="tab" data-player-tab="rally-capacity" aria-selected="false" hidden>Rally capacity</button>
+                <button type="button" role="tab" data-player-tab="troops" aria-selected="false" hidden>Attack marches</button>
               </div>
               <div data-player-panel="overview" role="tabpanel">
                 <div class="player-appearance">
@@ -461,6 +462,10 @@
                 <div class="player-capacities">
                   <label>Rally capacity<input id="player-rally-capacity" type="number" min="0" step="1" placeholder="—" /></label>
                 </div>
+              </div>
+              <div data-player-panel="troops" role="tabpanel" hidden>
+                <div id="player-march-list" class="march-grid"></div>
+                <div id="player-march-editor" hidden></div>
               </div>
               <div id="player-profile-actions" class="inspector-actions">
                 <button class="primary apply-entity" type="submit">
