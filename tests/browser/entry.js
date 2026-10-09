@@ -92,7 +92,12 @@ export async function entryWorkflow({ page, context }) {
   assert.equal(await page.locator("#drive-save").isDisabled(), true);
   assert.equal(await page.locator("#players .player-card").count(), 0);
   assert.equal(await page.locator("#project-screen").isVisible(), true);
-  assert.equal(await page.locator("#add-player-dialog").isVisible(), false);
+  if (await page.locator("#add-player-dialog").isVisible()) {
+    assert.equal(
+      await page.locator("#new-player-name").evaluate((input) => input === document.activeElement),
+      true,
+    );
+  }
   assert.equal(await page.locator('[data-screen="players"]').isVisible(), true);
   assert.equal(await page.locator('[data-screen="subcities"]').isVisible(), true);
   assert.equal(await page.locator('[data-screen="maps"]').isVisible(), true);

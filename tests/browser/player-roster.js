@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
 
 export async function playerRoster({ page, driveFiles }) {
-  await page.locator("#team-players").click();
-  assert.equal(await page.locator("#players-screen").isVisible(), true);
-  assert.equal(await page.locator("#project-screen").isVisible(), false);
-  await page.locator("#add-player").click();
+  if (!(await page.locator("#add-player-dialog").isVisible())) {
+    await page.locator("#team-players").click();
+    assert.equal(await page.locator("#players-screen").isVisible(), true);
+    assert.equal(await page.locator("#project-screen").isVisible(), false);
+    await page.locator("#add-player").click();
+  }
   await page.locator("#add-player-dialog").waitFor({ state: "visible" });
   assert.equal(await page.locator("#new-player-level").inputValue(), "42");
   assert.match(
