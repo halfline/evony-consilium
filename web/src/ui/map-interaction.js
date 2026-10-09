@@ -7,7 +7,7 @@ export function bindMapInteraction({
   mutate, commit, toast, select = () => {}, openSubcity = () => {},
   openPlayer = () => {},
   getSelection = () => null,
-  entities = () => [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles],
+  entities = () => getPlan ? [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles] : [],
   selected = () => entities().find((item) => item.id === getSelection()),
   undo = () => {},
   group = new Set(),
@@ -93,43 +93,26 @@ export function bindMapInteraction({
       canvas.setPointerCapture(event.pointerId);
       return;
     }
-    if (!getPending()) {
-      const id = renderer.hit(pt.x, pt.y);
-      if (!group.has(id)) group.clear();
-      select(id);
-      if (id) {
-        if (!canEdit()) {
-          drag = { pt, camera: { ...renderer.camera }, pointerId: event.pointerId, pan: true };
-          canvas.setPointerCapture(event.pointerId);
-          return;
-        }
-        const entity = entities()
-          .find((item) => item.id === id);
-        if (canEdit() && entity?.locked) {
-          drag = { pt, pointerId: event.pointerId, blocked: true, moved: false };
-          canvas.setPointerCapture(event.pointerId);
-          return;
-        }
-        if (canEdit() && entity && !entity.locked) {
-          const members = group.has(id)
-            ? entities()
-              .filter((item) => group.has(item.id) && !item.locked && item.x !== null)
-            : [entity];
-          drag = {
-            pt,
-            id: entity.id,
-            members: members.map((member) => ({ ...member })),
-            pointerId: event.pointerId,
-            moved: false,
-          };
-          canvas.setPointerCapture(event.pointerId);
-        }
-        return;
-      }
-      drag = { pt, camera: { ...renderer.camera }, pointerId: event.pointerId, pan: true };
-      canvas.setPointerCapture(event.pointerId);
-      return;
-    }
+    const id = renderer.hit(pt.x, pt.y);
+    if (!group.has(id)) group.clear();
+    select(id);
+    const entity = entities().find((item) => item.id === id);
+    const members = entities().filter((item) =>
+      !item.locked && item.x !== null &&
+      (group.has(id) ? group.has(item.id) : item.id === id));
+    drag = {
+      pt,
+      last: pt,
+      pointerId: event.pointerId,
+      id: canEdit() && entity && !entity.locked ? id : null,
+      blocked: canEdit() && Boolean(entity?.locked),
+      pan: !entity || !canEdit(),
+      origin: entity ? { x: entity.x, y: entity.y } : null,
+      members: members.map((item) => ({ ...item })),
+      camera: { ...renderer.camera },
+      moved: false,
+    };
+    canvas.setPointerCapture(event.pointerId);
   };
   canvas.onpointermove = (event) => {
     if (canvas.style) {
