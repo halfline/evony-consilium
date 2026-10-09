@@ -1,3 +1,4 @@
+import { playerAppearance } from "./browser/player-appearance.js";
 import { mapSelection } from "./browser/maps.js";
 import { playerDetails } from "./browser/player-details.js";
 import { teamImprovements } from "./browser/team-improvements.js";
@@ -55,6 +56,13 @@ try {
   await playerCreation({ page, playersScreen });
   await playerDetails({ page, playersScreen, driveFiles });
   await mapSelection({ page, playersScreen, driveFiles });
+  await playerAppearance({
+    page,
+    playersScreen,
+    formationScreen,
+    projectLogo,
+    driveFiles,
+  });
   await playerSharing({ browser });
   await subcities({ browser });
   await subcityOwnership({ browser });
