@@ -13,7 +13,103 @@
   max-width: 100%;
   padding: clamp(40px, 8vh, 96px) 24px;
 }
+.project-settings {
+  max-width: 520px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+.project-settings .project-logo-field {
+  margin: 0;
+}
+.project-settings .project-logo-controls {
+  flex-direction: column;
+  gap: 12px;
+}
+.project-settings [data-logo="upload"] {
+  width: 176px;
+  height: 176px;
+  padding: 8px;
+  border-radius: 28%;
+  border: 1px solid #cbb47770;
+  background: linear-gradient(145deg, #344238, #1b2922);
+  box-shadow:
+    0 16px 36px #0003,
+    inset 0 1px 0 #fff1;
+  transition:
+    border-color 160ms,
+    box-shadow 160ms;
+}
+.project-settings [data-logo="upload"]:hover {
+  border-color: var(--gold);
+  box-shadow:
+    0 18px 40px #0004,
+    0 0 0 3px #cbb47715;
+}
+.project-settings [data-logo="preview"] {
+  border-radius: 25%;
+}
+.project-settings [data-logo="placeholder"] {
+  color: var(--gold);
+  font-size: 44px;
+}
+.project-settings [data-logo="remove"] {
+  font-size: 12px;
+  padding: 2px 8px;
+}
+#edit-project-name {
+  width: 100%;
+  text-align: center;
+  font-family: inherit;
+  font-size: clamp(22px, 3vw, 30px);
+  font-weight: 500;
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 12px 16px;
+}
+#edit-project-name:hover {
+  border-color: var(--line);
+}
+#edit-project-name:focus {
+  background: #1b2922;
+  border-color: var(--gold);
+}
 
+.project-settings .project-logo-controls {
+  position: relative;
+}
+.project-settings [data-logo="remove"] {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 19px;
+  line-height: 1;
+  border: 1px solid #cbb47770;
+  border-radius: 50%;
+  background: #24332a;
+  box-shadow: 0 3px 10px #0004;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms;
+}
+.project-settings
+  .project-logo-controls.logo-actions-open
+  [data-logo="remove"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+@media (hover: hover) {
+  .project-settings .project-logo-controls:hover [data-logo="remove"] {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 .header-actions .icon-action {
