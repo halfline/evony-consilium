@@ -506,6 +506,10 @@
   opacity: 1;
   pointer-events: auto;
 }
+.player-name-actions-open .player-remove {
+  opacity: 1;
+  pointer-events: auto;
+}
 @media (hover: hover) {
   .player-tile:hover .player-remove {
     opacity: 1;

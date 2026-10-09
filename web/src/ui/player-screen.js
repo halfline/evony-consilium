@@ -4,6 +4,7 @@ import { validatePlan } from "../domain/validation.js";
 import { changeAppearance } from "../domain/appearance-commands.js";
 import { renderAvatarButton } from "./avatar-browser.js";
 import { renderCastleButton } from "./castle-button.js";
+import { bindTileActions } from "./tile-actions.js";
 import { view } from "./dom.js";
 import { createPlayerDetails } from "./player-details.js";
 
@@ -25,6 +26,11 @@ export function createPlayerScreen({
 }) {
   const $ = view(root);
   const details = createPlayerDetails({ root, getPlayer });
+  bindTileActions(root.querySelector(".player-name-actions"), {
+    tileSelector: ".player-name-actions",
+    triggerSelector: "#player-title",
+    className: "player-name-actions-open",
+  });
   async function saveProfile(id, changes, detailChanges = null) {
     if (!canEdit()) throw new Error("Unlock this player before editing.");
     let next = editPlayerProfile(getPlan(), id, changes);
@@ -90,6 +96,9 @@ export function createPlayerScreen({
     $("player-unlock").hidden = true;
     $("player-remove").hidden = false;
     $("player-remove").setAttribute("aria-label", `Remove ${player.name}`);
+    root
+      .querySelector(".player-name-actions")
+      .classList.remove("player-name-actions-open");
     details.render(player);
     for (const [field, id] of Object.entries({
       name: "player-name",
