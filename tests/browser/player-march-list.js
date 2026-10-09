@@ -3,6 +3,10 @@ import assert from "node:assert/strict";
 export async function playerMarchList({ page, driveFiles }) {
   await page.locator('[data-player-tab="troops"]').click();
   assert.equal(await page.locator('[data-player-panel="troops"]').isVisible(), true);
+  const portrait = page.locator("#player-march-list .march-card").filter({ hasText: "Ground" }).locator("img");
+  assert.match(await portrait.getAttribute("src"), /troop-icons\/ground\.webp$/);
+  await portrait.evaluate((image) => image.decode());
+  assert.equal(await portrait.evaluate((image) => image.naturalWidth > 0), true);
   await page.locator("#player-add-march").click();
   await page.locator("#player-form [type=submit]").click();
   const playerFile = [...driveFiles.values()].find(
