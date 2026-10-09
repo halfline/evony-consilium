@@ -62,3 +62,27 @@ test("profile edits cannot write placements and retain other player data", async
   );
   assert.equal(plan.keeps[0].name, player.name);
 });
+test("removing a player cleans all map references and keeps other profiles intact", async () => {
+  const { removePlayer } = await import("../web/src/domain/players.js");
+  const { createMapPlan, syncMapLayouts } = await import(
+    "../web/src/domain/map-plans.js"
+  );
+  let plan = validatePlan(createDemoPlan(catalog), catalog);
+  const player = plan.keeps[0];
+  plan = createMapPlan(plan, "bog", "Rally");
+  plan.rallyId = player.id;
+  plan.keeps[0].x = 10;
+  plan.keeps[0].y = 10;
+  syncMapLayouts(plan);
+  const removed = removePlayer(plan, player.id);
+  assert.equal(removed.keeps.length, plan.keeps.length - 1);
+  assert.ok(
+    removed.maps.every(
+      (map) =>
+        !map.layout.positions.some((position) => position.id === player.id),
+    ),
+  );
+  assert.ok(removed.maps.every((map) => map.layout.rallyId !== player.id));
+  assert.deepEqual(removed.keeps[0], plan.keeps[1]);
+  assert.doesNotThrow(() => validatePlan(removed, catalog));
+});
