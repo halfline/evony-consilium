@@ -17,8 +17,12 @@ test("placed entities paint a sprite and expose a selectable hit region", () => 
     { grid: { ax: 48, ay: 24, bx: -48, by: 24 } }, 1);
   assert.equal(images.length, 1);
   assert.equal(images[0][0], "castle.webp");
+  assert.ok(Math.abs(images[0][3] - 167.04) < 1e-6);
+  assert.ok(Math.abs(images[0][4] - 133.632) < 1e-6);
+  assert.ok(Math.abs(images[0][2] - (-79.032)) < 1e-6);
   assert.equal(view.hits[0].id, "keep");
   assert.ok(view.hits[0].left < 11 && view.hits[0].right > 11);
+  assert.ok(Math.abs(view.hits[0].top - (images[0][2] - 10)) < 1e-6);
 });
 
 test("entity labels follow the map preference and mark the rally keep", () => {
