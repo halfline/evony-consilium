@@ -123,7 +123,15 @@ p {
 a {
   color: var(--gold);
 }
-
+.topbar {
+  height: 82px;
+  padding: 0 26px;
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  border-bottom: 1px solid var(--line);
+  background: #17221e;
+}
 .brand {
   display: flex;
   align-items: center;
@@ -153,12 +161,52 @@ a {
   flex-shrink: 0;
   border-radius: 6px;
 }
+.plan-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-left: 1px solid var(--line);
+  padding-left: 25px;
+  flex: 1;
+  min-width: 130px;
+}
+.plan-heading input {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+.header-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 
 .eyebrow {
   font-size: 9px;
   color: var(--gold);
   letter-spacing: 2.2px;
   font-weight: 600;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--line);
+  padding: 0 18px;
+  gap: 4px;
+}
+.tabs > button {
+  border: none;
+  border-radius: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 12px 10px;
+}
+.tabs > button.active {
+  color: var(--gold);
+  border-bottom: 2px solid var(--gold);
 }
 
 .loading {
@@ -231,20 +279,66 @@ code {
   border-radius: 5px;
 }
 @media (max-width: 1150px) {
-
+  .topbar {
+    gap: 15px;
+    padding: 0 18px;
+  }
   .brand {
     font-size: 14px;
   }
   .brand small {
     font-size: 7px;
   }
+  .plan-heading {
+    padding-left: 15px;
+  }
+  .header-actions button {
+    padding: 8px;
+    font-size: 11px;
+  }
 
 }
 @media (max-width: 800px) {
+  .topbar {
+    height: auto;
+    min-height: 95px;
+    padding: 12px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .topbar .brand {
+    flex: 1 0 100%;
+  }
+  .plan-heading {
+    flex: 1 1 240px;
+    min-width: 0;
+  }
+  .header-actions {
+    margin-left: auto;
+    flex-shrink: 0;
+    justify-content: flex-end;
+  }
 
   .brand-icon {
     width: 48px;
     height: 48px;
   }
+  .plan-heading span {
+    font-size: 8px;
+  }
+}
 
+.plan-name {
+  min-width: 0;
+  flex: 1;
+}
+.plan-name input {
+  width: 100%;
+}
+.project-back {
+  flex-shrink: 0;
+  border: 0;
+  background: transparent;
+  font-size: 24px;
+  padding: 4px 8px;
 }

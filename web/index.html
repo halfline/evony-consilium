@@ -11,6 +11,7 @@
     <title>Evony Consilium · Alliance war room</title>
     <link rel="stylesheet" href="style.css" />
     <link rel="stylesheet" href="styles/entry.css" />
+    <link rel="stylesheet" href="styles/planner-screens.css" />
     <link rel="icon" type="image/svg+xml" href="assets/branding/favicon.svg" />
   </head>
   <body>
@@ -178,6 +179,74 @@
         · <a href="terms.html" target="_blank" rel="noopener">Terms of use</a>
       </footer>
     </section>
+    <div id="planner" hidden>
+      <header class="topbar">
+        <a class="brand" href="./"
+          ><img
+            class="brand-icon"
+            src="assets/branding/consilium.png"
+            alt=""
+            width="64"
+            height="64"
+          /><span
+            >EVONY <b>CONSILIUM</b><small>THE ALLIANCE WAR ROOM</small></span
+          ></a
+        >
+        <div class="plan-heading">
+          <button
+            id="project-back"
+            class="project-back"
+            aria-label="Back to teams"
+            title="Back to teams"
+          >
+            ←
+          </button>
+          <div class="plan-name">
+            <input id="plan-title" aria-label="Plan name" maxlength="120" />
+          </div>
+        </div>
+        <div class="header-actions">
+          <span id="team-save-status" class="save-status" role="status"></span>
+          <button
+            id="undo"
+            class="icon-action"
+            aria-label="Undo"
+            title="Undo (Ctrl+Z)"
+          >
+            <span aria-hidden="true">↶</span>
+          </button>
+          <button
+            id="drive-save"
+            class="primary"
+            aria-label="Save"
+            title="Save"
+          >
+            Save</button
+          ><button
+            id="project-reload"
+            hidden
+            title="Replace your local edits with the latest shared version"
+          >
+            Load latest
+          </button>
+        </div>
+      </header>
+      <nav class="workflow-nav tabs" aria-label="Team screens">
+        <button data-screen="project" aria-pressed="false">Team</button>
+
+
+
+
+
+      </nav>
+      <section
+        id="project-screen"
+        class="players-screen"
+        aria-label="Team"
+        hidden
+      >
+      </section>
+    </div>
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
   </body>
 </html>

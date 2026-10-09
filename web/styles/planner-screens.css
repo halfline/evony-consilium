@@ -1,0 +1,43 @@
+.workflow-nav {
+  background: var(--panel);
+  padding: 0 24px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.workflow-nav > button {
+  font-size: 15px;
+  padding: 14px 20px;
+}
+
+#project-screen {
+  max-width: 100%;
+  padding: clamp(40px, 8vh, 96px) 24px;
+}
+
+}
+
+.header-actions .icon-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+}
+#undo span {
+  font-size: 24px;
+  line-height: 1;
+}
+
+#planner {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.save-status {
+  align-self: center;
+  font-size: 0.75rem;
+  color: var(--muted);
+  max-width: 160px;
+}
