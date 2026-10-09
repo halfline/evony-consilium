@@ -3,6 +3,7 @@ import { OperationCancelled } from "../services/cancellation.js";
 
 export function createPlayerFileControls({
   root,
+  dialog,
   getPlayer,
   getFiles,
   unlock,
@@ -10,6 +11,27 @@ export function createPlayerFileControls({
   refresh,
 }) {
   const $ = view(root);
+  let pending;
+  function resolve(conflicts) {
+    if (!dialog) throw new Error("A player conflict dialog is required.");
+    dialog.querySelector("#player-sync-conflicts").textContent = conflicts.join(", ");
+    dialog.showModal();
+    return new Promise((accept) => { pending = accept; });
+  }
+  function close(value = null) {
+    const accept = pending;
+    pending = null;
+    dialog.close();
+    accept?.(value);
+  }
+  if (dialog) {
+    for (const button of dialog.querySelectorAll("[data-resolution]"))
+      button.onclick = () => close(button.dataset.resolution === "cancel" ? null : button.dataset.resolution);
+    dialog.oncancel = (event) => {
+      event.preventDefault();
+      close();
+    };
+  }
   async function unlockPlayer() {
     try {
       await unlock();
@@ -33,5 +55,5 @@ export function createPlayerFileControls({
     $("player-unlock").hidden = !!state.canEdit;
     $("player-unlock").disabled = !!state.busy;
   }
-  return { render, unlock: unlockPlayer };
+  return { render, resolve, unlock: unlockPlayer };
 }
