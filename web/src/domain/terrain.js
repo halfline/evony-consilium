@@ -21,3 +21,16 @@ export class TerrainCatalog {
     return this.#maps.get(id);
   }
 }
+
+export function terrainTileAt(terrain, layer, x, y) {
+  const clearing = terrain.landmarks.find(
+    (landmark) =>
+      landmark.groundTile &&
+      x >= landmark.x &&
+      x < landmark.x + landmark.w &&
+      y >= landmark.y &&
+      y < landmark.y + landmark.h,
+  );
+  if (clearing) return layer.name === "surface" ? clearing.groundTile : 0;
+  return layer.tiles[y * terrain.width + x];
+}
