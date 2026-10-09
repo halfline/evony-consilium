@@ -566,7 +566,6 @@ canvas:focus-visible {
   padding-left: 12px;
   margin: 20px 0;
 }
-
 .building-tools {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -596,7 +595,6 @@ canvas:focus-visible {
 .panel details button {
   margin-top: 12px;
 }
-
 .catalog-dialog {
   width: min(930px, 95vw);
   max-width: 95vw;
@@ -982,6 +980,7 @@ code {
 .read-only #player-form input[type="file"] {
   display: none !important;
 }
+
 /* Personal-file editing leaves team and map controls read-only. */
 .read-only.player-file-editable
   :is(
@@ -1029,4 +1028,43 @@ code {
 }
 #player-screen .player-heading {
   padding-right: 2.75rem;
+}
+
+/* Fields reflect their own access, including individually locked players. */
+#planner :is(input[readonly], textarea[readonly]),
+#planner.read-only
+  :is(#project-screen, #subcity-form, #entity-form, #panel-formation)
+  select:disabled,
+#planner.player-profile-locked
+  :is(#player-form, #player-march-settings)
+  select:disabled,
+#planner.player-profile-locked #player-form th select {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--text);
+  opacity: 1;
+}
+#planner input[type="number"][readonly] {
+  appearance: textfield;
+}
+#planner input[type="number"][readonly]::-webkit-inner-spin-button,
+#planner input[type="number"][readonly]::-webkit-outer-spin-button {
+  appearance: none;
+}
+#planner.read-only
+  :is(#project-screen, #subcity-form, #entity-form, #panel-formation)
+  select:disabled,
+#planner.player-profile-locked
+  :is(#player-form, #player-march-settings)
+  select:disabled,
+#planner.player-profile-locked #player-form th select {
+  appearance: none;
+}
+#planner.player-profile-locked #player-form th select:focus {
+  outline: none;
+}
+#planner.player-profile-locked #player-form th select:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
 }
