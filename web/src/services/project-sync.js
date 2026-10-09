@@ -139,6 +139,8 @@ export class ProjectSync {
   }
   async save() {
     if (!this.file || this.state().disabled) return;
+    const generation = this.generation;
+    const current = () => this.generation === generation;
     const key = this.key();
     let source = this.file;
     const baseline = this.savedSnapshot;
@@ -150,33 +152,41 @@ export class ProjectSync {
         return;
       }
       await this.flush();
+      if (!current()) return;
       const snapshot = structuredClone(this.getPlan());
       let file;
       try {
         file = await this.drive.save(source, snapshot);
       } catch (error) {
-          if (error.status !== 409) throw error;
+        if (!current()) return;
+        if (error.status !== 409) throw error;
         const loaded = await this.drive.load(source);
-          if (this.fingerprint(loaded.plan) !== baseline) throw error;
+        if (!current()) return;
+        if (this.fingerprint(loaded.plan) !== baseline) throw error;
         loaded.file.resourceKey ||= source.resourceKey;
         source = loaded.file;
         this.file = source;
         file = await this.drive.save(source, snapshot);
       }
+      if (!current()) return;
       file.resourceKey ||= source.resourceKey;
       await this.flush();
+      if (!current()) return;
       this.file = file;
       this.remoteChanged = false;
       this.savedSnapshot = this.fingerprint(snapshot);
       this.dirty = this.fingerprint(this.getPlan()) !== this.savedSnapshot;
       await this.writeDraft(this.draft(this.getPlan()), key);
-      this.saved();
+      if (current()) this.saved();
     } catch (error) {
+      if (!current()) return;
       if (error.status === 409) this.remoteChanged = true;
       throw error;
     } finally {
-      this.saving = false;
-      this.notify();
+      if (current()) {
+        this.saving = false;
+        this.notify();
+      }
     }
   }
 }
