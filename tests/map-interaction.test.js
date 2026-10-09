@@ -359,6 +359,27 @@ test("read-only maps ignore editing keyboard shortcuts", () => {
   assert.equal(plan.keeps[0].x, 10);
 });
 
+test("read-only viewers can pan when starting on a keep", () => {
+  const plan = createEmptyPlan();
+  plan.keeps.push({ id: "keep", x: 10, y: 10, w: 2, h: 2 });
+  const captures = new Set();
+  const canvas = {
+    getBoundingClientRect: () => ({ left: 0, top: 0 }),
+    setPointerCapture: (id) => captures.add(id),
+    hasPointerCapture: (id) => captures.has(id),
+    releasePointerCapture: (id) => captures.delete(id),
+  };
+  const renderer = { hit: () => "keep", camera: { x: 10, y: 20, zoom: 2 }, draw() {} };
+  bindMapInteraction({ canvas, renderer, getPlan: () => plan,
+    getPending: () => null, canEdit: () => false });
+  canvas.onpointerdown({ button: 0, pointerId: 1, clientX: 10, clientY: 20 });
+  canvas.onpointermove({ pointerId: 1, clientX: 30, clientY: 40 });
+  assert.deepEqual([renderer.camera.x, renderer.camera.y], [0, 10]);
+  canvas.onpointerup({ pointerId: 1 });
+  assert.equal(captures.size, 0);
+  assert.deepEqual([plan.keeps[0].x, plan.keeps[0].y], [10, 10]);
+});
+
 test("arrow keys nudge selected keep by one tile", () => {
   let plan = createEmptyPlan();
   plan.keeps.push({ id: "keep", x: 10, y: 10, w: 2, h: 2, locked: false });
