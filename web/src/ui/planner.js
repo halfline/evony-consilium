@@ -11,6 +11,7 @@ import { createPlayerWorkflow } from "./player-workflow.js";
 import { createSubcitiesScreen } from "./subcities-screen.js";
 import { createMapsScreen } from "./maps-screen.js";
 import { MapRenderer } from "../rendering/map-renderer.js";
+import { bindMapViewControls } from "./map-view-controls.js";
 import { createPlayerSubcities } from "./player-subcities.js";
 import { removePlayer } from "../domain/players.js";
 import { createMapPlan, removeMapPlan } from "../domain/map-plans.js";
@@ -100,7 +101,11 @@ export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
     remove: (id) => store.commit(removeMapPlan(getPlan(), id)),
     status: toast,
   });
-  const renderer = new MapRenderer($("map"), getPlan);
+  let mapViewControls;
+  const renderer = new MapRenderer($("map"), getPlan, {
+    onDraw: (state) => mapViewControls?.render(state),
+  });
+  mapViewControls = bindMapViewControls({ root: $("formation-screen"), renderer });
   function render() {
     $("plan-title").value = getPlan().title;
     $("undo").disabled = !store.canUndo;
