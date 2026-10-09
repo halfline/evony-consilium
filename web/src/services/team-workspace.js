@@ -2,6 +2,8 @@ import { loadTeamFiles } from "./team-files.js";
 import { ProjectSync } from "./project-sync.js";
 import { DraftQueue } from "../persistence/draft-queue.js";
 import { teamDraftKey, resolveTeamDraft } from "../persistence/team-draft.js";
+import { createEmptyPlan } from "../domain/plan.js";
+import { parseDriveLink } from "../domain/drive-links.js";
 
 const teamFingerprint = (plan) =>
   JSON.stringify(plan, (_key, value) =>
@@ -163,5 +165,22 @@ export class TeamWorkspace {
     this.sync.opened(draft.file, plan, file.version);
     this.remember();
     return draft;
+  }
+  async create(name, logo) {
+    this.authorize();
+    if (!name.trim()) throw new Error("Enter a team name.");
+    await this.flush();
+    const plan = createEmptyPlan();
+    plan.title = name.trim();
+    plan.projectLogo = logo;
+    const folder = await this.drive.createFolder(plan.title);
+    await this.drive.initializeProject(folder, plan);
+    return this.open(folder);
+  }
+  async join(link) {
+    this.authorize();
+    if (link) return this.open(parseDriveLink(link));
+    const [selected] = await this.picker.files(null);
+    return this.open({ ...selected, kind: "file" });
   }
 }
