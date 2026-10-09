@@ -982,3 +982,32 @@ code {
 .read-only #player-form input[type="file"] {
   display: none !important;
 }
+/* Personal-file editing leaves team and map controls read-only. */
+.read-only.player-file-editable
+  :is(
+    #player-remove-march,
+    #player-add-tier,
+    #player-reset-strategy,
+    .march-add,
+    #player-form button[type="submit"],
+    #player-march-settings button
+  ):not([hidden]) {
+  display: inline-flex !important;
+}
+.read-only.player-file-editable :is(#player-avatar, #player-castle) {
+  pointer-events: auto;
+}
+.player-profile-locked
+  :is(
+    #player-remove-march,
+    #player-add-tier,
+    #player-reset-strategy,
+    .march-add,
+    #player-form button[type="submit"],
+    #player-march-settings button
+  ) {
+  display: none !important;
+}
+.player-profile-locked :is(#player-castle, #player-avatar) {
+  pointer-events: none;
+}
