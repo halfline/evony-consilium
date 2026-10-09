@@ -78,4 +78,27 @@ export class Drive {
       409,
     );
   }
+  async save(file, plan) {
+    const current = await this.metadata(file);
+    if (!current.capabilities?.canEdit)
+      throw new DriveError("You have view-only access to this team.", 403);
+    if (current.version !== file.version)
+      throw new DriveError(
+        "A teammate changed this team. Your edits are kept locally. Load latest to use the shared version.",
+        409,
+      );
+    return this.request(
+      `https://www.googleapis.com/upload/drive/v3/files/${file.id}?uploadType=media&supportsAllDrives=true&fields=${FIELDS}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({
+          format: "evony-consilium-team",
+          schema: 1,
+          plan,
+        }),
+        headers: { "Content-Type": "application/json" },
+        resource: file,
+      },
+    );
+  }
 }
