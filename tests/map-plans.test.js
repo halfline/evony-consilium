@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createEmptyPlan } from "../web/src/domain/plan.js";
 import { MAPS, MAP_ICONS } from "../web/src/domain/maps.js";
 import { createLayout } from "../web/src/domain/layout.js";
-import { syncMapLayouts, defaultFormationName, createMapPlan, selectMapPlan } from "../web/src/domain/map-plans.js";
+import { syncMapLayouts, defaultFormationName, createMapPlan, selectMapPlan, removeMapPlan } from "../web/src/domain/map-plans.js";
 
 test("new teams expose verified named map choices and a blank canvas", () => {
   const plan = createEmptyPlan();
@@ -13,6 +13,25 @@ test("new teams expose verified named map choices and a blank canvas", () => {
   assert.equal(plan.mapPresets.find(({ id }) => id === "blank").verified, false);
   assert.equal(plan.mapPresets.find(({ id }) => id === "server").verified, true);
   assert.ok(MAP_ICONS.server.endsWith("server.webp"));
+});
+
+test("removing an active map selects a remaining map or clears placement", () => {
+  const plan = createEmptyPlan();
+  plan.keeps = [{ id: "one", x: 20, y: 30, w: 2, h: 2, locked: true }];
+  let next = createMapPlan(plan, "server", "Hive");
+  const first = next.activeMapId;
+  next.keeps[0].x = 20;
+  next.keeps[0].y = 30;
+  next.keeps[0].locked = true;
+  next = createMapPlan(next, "boc", "Battle");
+  next = removeMapPlan(next, next.activeMapId);
+  assert.equal(next.activeMapId, first);
+  assert.equal(next.keeps[0].x, 20);
+  next = removeMapPlan(next, first);
+  assert.deepEqual(next.maps, []);
+  assert.equal(next.activeMapId, null);
+  assert.equal(next.keeps[0].x, null);
+  assert.equal(next.keeps[0].locked, false);
 });
 
 test("switching maps restores positions while sharing player profiles", () => {
