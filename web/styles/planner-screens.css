@@ -760,15 +760,6 @@
 @media (hover: hover) {
   .map-list-row:hover .map-forget { opacity: 1; pointer-events: auto; }
 }
-#formation-screen {
-  display: flex;
-  flex: 1;
-  width: 100%;
-  min-height: 0;
-}
-#formation-screen .formation-sidebar { width: 260px; flex: none; padding: 24px; border-right: 1px solid var(--line); }
-#formation-screen .formation-sidebar .players { display: grid; gap: 8px; }
-#formation-screen .formation-sidebar .players-row { width: 100%; text-align: left; }
 .formation-player-row { position: relative; }
 .formation-player-row .players-row { padding-right: 40px; }
 .rally-star {
@@ -873,4 +864,13 @@
 }
 #subcity-form .subcity-fields {
   grid-template-columns: repeat(2, max-content);
+}
+
+#formation-screen {
+  height: calc(100dvh - 130px);
+}
+@media (max-width: 900px) {
+  #formation-screen {
+    height: auto;
+  }
 }
