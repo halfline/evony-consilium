@@ -64,37 +64,57 @@ export function drawTerrain(view, terrain, minX, minY, maxX, maxY, grid) {
   }
 }
 
-export function drawMoatOverlay(view, entity, plan, zoom) {
-  const terrain = view.terrainFor(plan.map);
-  if (!terrain?.foregroundRegions?.length || !entity.groundTile ||
-      !terrain.landmarks.some(({ id }) => id === entity.id)) return;
-  const ctx = view.ctx;
-  ctx.save();
-  view.path(entity);
-  ctx.clip();
-  ctx.translate(view.width / 2 - view.camera.x * zoom,
-    view.height / 2 - view.camera.y * zoom);
-  ctx.scale(zoom, zoom);
-  const scale = Math.abs(plan.grid.ax - plan.grid.bx) / 256;
+export function drawMoatOverlay(view, e, p, z) {
+  const terrain = view.terrainFor(p.map);
+  if (
+    !terrain?.foregroundRegions?.length ||
+    !e.groundTile ||
+    !terrain.landmarks.some((landmark) => landmark.id === e.id)
+  )
+    return;
+  const c = view.ctx;
+  // Restore the moat over dirt clearings before any building sprites are drawn.
+  c.save();
+  view.path(e);
+  c.clip();
+  c.translate(
+    view.width / 2 - view.camera.x * z,
+    view.height / 2 - view.camera.y * z,
+  );
+  c.scale(z, z);
+  const scale = Math.abs(p.grid.ax - p.grid.bx) / 256;
   for (const region of terrain.foregroundRegions) {
     const cut = region.exclude;
-    for (const layer of terrain.layers.filter(({ name }) => name === "surface"))
+    for (const layer of terrain.layers.filter(
+      (layer) => layer.name === "surface",
+    ))
       for (let y = region.y; y < region.y + region.h; y++)
         for (let x = region.x; x < region.x + region.w; x++) {
-          if (cut && x >= cut.x && x < cut.x + cut.w &&
-              y >= cut.y && y < cut.y + cut.h) continue;
-          if (x + 1 < entity.x || x > entity.x + entity.w ||
-              y + 1 < entity.y || y > entity.y + entity.h) continue;
+          if (
+            cut &&
+            x >= cut.x &&
+            x < cut.x + cut.w &&
+            y >= cut.y &&
+            y < cut.y + cut.h
+          )
+            continue;
+          if (x + 1 < e.x || x > e.x + e.w || y + 1 < e.y || y > e.y + e.h)
+            continue;
           const tile = terrain.tiles[layer.tiles[y * terrain.width + x]];
           if (!tile || tile.invisible) continue;
           const image = view.image(tile.src);
           if (!image) continue;
-          const anchor = project(x + 0.5, y + 0.5, plan.grid);
-          const width = tile.width * scale, height = tile.height * scale;
-          ctx.drawImage(image, anchor.x - width / 2,
-            anchor.y + (plan.grid.ay + plan.grid.by) / 2 - height,
-            width, height);
+          const anchor = project(x + 0.5, y + 0.5, p.grid);
+          const w = tile.width * scale,
+            h = tile.height * scale;
+          c.drawImage(
+            image,
+            anchor.x - w / 2,
+            anchor.y + (p.grid.ay + p.grid.by) / 2 - h,
+            w,
+            h,
+          );
         }
   }
-  ctx.restore();
+  c.restore();
 }
