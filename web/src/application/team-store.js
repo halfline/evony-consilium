@@ -1,7 +1,7 @@
 import { createEmptyPlan } from "../domain/plan.js";
 import { validatePlan } from "../domain/validation.js";
 import { updateKeepAppearances } from "../domain/castles.js";
-import { selectMapPlan, syncMapLayouts } from "../domain/map-plans.js";
+import { selectMapPlan, syncMapLayouts, projectFingerprint } from "../domain/map-plans.js";
 import { ensureRallySetter, ensureMapRallySetters } from "../domain/rally.js";
 
 function readonly(value) {
@@ -11,17 +11,6 @@ function readonly(value) {
   }
   return value;
 }
-const fingerprint = (value) =>
-  JSON.stringify(value, (_key, item) =>
-    item && typeof item === "object" && !Array.isArray(item)
-      ? Object.fromEntries(
-          Object.keys(item)
-            .sort()
-            .map((key) => [key, item[key]]),
-        )
-      : item,
-  );
-
 // The team document is immutable; opening a document is a validation boundary.
 export class TeamStore {
   #plan = readonly(createEmptyPlan());
@@ -70,7 +59,7 @@ export class TeamStore {
   commit(input) {
     if (this.readOnly) return false;
     const next = this.prepare(input);
-    if (fingerprint(next) === fingerprint(this.#plan)) return false;
+    if (projectFingerprint(next) === projectFingerprint(this.#plan)) return false;
     this.#history.push(this.#plan);
     if (this.#history.length > this.historyLimit) this.#history.shift();
     this.#plan = next;
