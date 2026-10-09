@@ -148,6 +148,53 @@ export class Drive {
     folder.teamFileId = file.id;
     return folder;
   }
+  async project(folder, selected = []) {
+    if (folder.teamFileId || folder.kind === "file") {
+      const file = await this.metadata({
+        id: folder.teamFileId || folder.id,
+        resourceKey:
+          (folder.teamFileId
+            ? folder.teamFileResourceKey
+            : folder.resourceKey) || "",
+      });
+      file.resourceKey ||=
+        (folder.teamFileId ? folder.teamFileResourceKey : folder.resourceKey) ||
+        "";
+      return {
+        folder:
+          folder.kind === "file"
+            ? { id: file.parents?.[0] || file.id, name: file.name }
+            : { ...folder },
+        file,
+      };
+    }
+    const files = selected.length ? [] : await this.children(folder);
+    let folderFiles;
+    for (const resource of selected) {
+      const file = await this.metadata(resource);
+      file.resourceKey ||= resource.resourceKey;
+      if (file.parents?.length) {
+        if (!file.parents.includes(folder.id))
+          throw new Error(
+            "Select only files directly inside this team folder.",
+          );
+      } else {
+        // Verify membership independently instead of assuming an omitted field
+        // proves either membership or a mismatch. The query carries the folder key.
+        folderFiles ??= await this.children(folder);
+        if (!folderFiles.some((child) => child.id === file.id))
+          throw new Error(
+            "Could not verify this file belongs to the linked team folder. Open the team's file link directly.",
+          );
+      }
+      files.push(file);
+    }
+    const choices = selected.length
+      ? files
+      : files.filter((f) => f.name === "team.consilium.json");
+    if (choices.length !== 1) throw new ProjectAccessError();
+    return { folder: { ...folder }, file: choices[0] };
+  }
   async save(file, plan) {
     const current = await this.metadata(file);
     if (!current.capabilities?.canEdit)
