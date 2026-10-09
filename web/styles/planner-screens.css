@@ -31,6 +31,70 @@
 .avatar-card img {
   object-fit: contain;
 }
+#add-player-dialog {
+  width: min(480px, calc(100vw - 32px));
+}
+#new-player-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+#new-player-error {
+  color: var(--red);
+  margin: 0;
+}
+#new-player-error:empty {
+  display: none;
+}
+#new-player-form .castle-choice {
+  margin-bottom: 0;
+}
+.player-appearance {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+.player-appearance .castle-choice {
+  margin: 0;
+}
+.castle-choice {
+  display: block;
+  flex-shrink: 0;
+  width: 160px;
+  height: 160px;
+  padding: 8px;
+  background: transparent;
+  border-color: transparent;
+}
+.castle-choice img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.avatar-choice {
+  width: 96px;
+  height: 96px;
+  flex-shrink: 0;
+  padding: 4px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.avatar-choice img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
 
 @media (max-width: 900px) {
   .players-workspace {
