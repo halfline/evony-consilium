@@ -178,3 +178,15 @@ test("Escape clears pending placement and selection without editing plan", () =>
   assert.equal(renderer.preview, null);
   assert.deepEqual(plan.keeps, []);
 });
+
+test("Control-Z delegates to map undo and prevents browser undo", () => {
+  const canvas = {};
+  let undos = 0, prevented = false;
+  bindMapInteraction({ canvas, undo: () => { undos++; } });
+  canvas.onkeydown({
+    key: "z", ctrlKey: true,
+    preventDefault: () => { prevented = true; },
+  });
+  assert.equal(undos, 1);
+  assert.equal(prevented, true);
+});
