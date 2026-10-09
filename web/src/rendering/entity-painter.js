@@ -1,7 +1,11 @@
-export function drawEntity(view, entity, plan, zoom) {
+export function drawEntity(view, entity, plan, zoom, fixed = false) {
   const ctx = view.ctx;
   const center = view.screen(entity.x + entity.w / 2, entity.y + entity.h / 2);
-  if (zoom < 0.16) {
+  const major = fixed &&
+    (entity.skin === "map-kingdom" || entity.skin.endsWith("shrin"));
+  const spriteZoom = major ? Math.max(zoom, 0.18) : zoom;
+  if (zoom < 0.16 && !major) {
+    if (fixed) return;
     const selected = view.selected === entity.id || view.selectedIds?.has(entity.id);
     const rally = entity.id === plan.rallyId;
     ctx.beginPath();
@@ -38,7 +42,7 @@ export function drawEntity(view, entity, plan, zoom) {
     ctx.strokeStyle = "#e6b19788";
     ctx.lineWidth = 1;
     ctx.stroke();
-  } else if (selected || rally || entity.locked) {
+  } else if (!fixed && (selected || rally || entity.locked)) {
     view.path(entity);
     ctx.fillStyle = selected ? "#e7d59728" : "#22372620";
     ctx.fill();
@@ -48,18 +52,18 @@ export function drawEntity(view, entity, plan, zoom) {
   }
   if (image) {
     spriteWidth = (Math.abs(plan.grid.ax) + Math.abs(plan.grid.bx)) *
-      Math.max(entity.w, entity.h) * 0.87 * zoom;
+      Math.max(entity.w, entity.h) * 0.87 * spriteZoom;
     spriteHeight = spriteWidth * asset.height / asset.width;
     spriteTop = center.y - spriteHeight +
-      Math.abs(plan.grid.ay + plan.grid.by) * entity.h * 0.35 * zoom;
+      Math.abs(plan.grid.ay + plan.grid.by) * entity.h * 0.35 * spriteZoom;
     let spriteLeft = center.x - spriteWidth / 2;
     if (asset.mapAnchor) {
       const anchor = asset.mapAnchor;
       const gridWidth = Math.abs(plan.grid.ax) + Math.abs(plan.grid.bx);
       const scale = anchor.footprintFill
         ? gridWidth * Math.max(entity.w, entity.h) *
-          anchor.footprintFill * zoom / (anchor.footprintWidth || asset.width)
-        : (gridWidth / 256 * zoom) / anchor.pixelScale;
+          anchor.footprintFill * spriteZoom / (anchor.footprintWidth || asset.width)
+        : (gridWidth / 256 * spriteZoom) / anchor.pixelScale;
       spriteWidth = asset.width * scale;
       spriteHeight = asset.height * scale;
       if (anchor.footprintFill) {
@@ -79,7 +83,7 @@ export function drawEntity(view, entity, plan, zoom) {
     ctx.strokeStyle = "#233529";
     ctx.stroke();
   }
-  if (rally) {
+  if (rally && !fixed) {
     ctx.strokeStyle = "#e6cf86";
     ctx.lineWidth = 1.3;
     ctx.beginPath();
@@ -88,14 +92,14 @@ export function drawEntity(view, entity, plan, zoom) {
       0, 0, Math.PI * 2);
     ctx.stroke();
   }
-  view.hits.push({
+  if (!fixed) view.hits.push({
     id: entity.id,
     left: center.x - Math.max(spriteWidth / 2, 10),
     right: center.x + Math.max(spriteWidth / 2, 10),
     top: spriteTop - 10,
     bottom: center.y + Math.max(25, 35 * zoom),
   });
-  if (plan.labels && zoom > 0.16) {
+  if (plan.labels && (zoom > 0.16 || major)) {
     const label = (rally ? "★ " : "") +
       (entity.allianceTag ? `[${entity.allianceTag}] ` : "") + entity.name;
     ctx.font = `500 ${Math.max(9, Math.min(12, 12 * zoom))}px "DM Sans", sans-serif`;
@@ -103,7 +107,7 @@ export function drawEntity(view, entity, plan, zoom) {
     ctx.textBaseline = "middle";
     const text = label.length > 32 ? label.slice(0, 31) + "…" : label;
     const textWidth = ctx.measureText(text).width;
-    const labelY = center.y + 24 * zoom;
+    const labelY = center.y + 24 * spriteZoom;
     ctx.fillStyle = "#132218dd";
     ctx.fillRect(center.x - textWidth / 2 - 7, labelY - 8,
       textWidth + 14, 17);
