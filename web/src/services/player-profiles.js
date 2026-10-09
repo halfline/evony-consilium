@@ -111,4 +111,19 @@ export class PlayerProfiles {
       this.validatePlan(next);
     });
   }
+  commitCaches(before, updates) {
+    if (!this.canEditTeam() || this.isEditing() || this.getPlan() !== before)
+      throw new OperationCancelled();
+    const changed = updates.filter(
+      (player) => player !== before.keeps.find((item) => item.id === player.id),
+    );
+    if (!changed.length) return false;
+    const next = structuredClone(before);
+    for (const player of changed)
+      next.keeps[next.keeps.findIndex((item) => item.id === player.id)] =
+        player;
+    this.validatePlan(next);
+    this.commitPlan(next);
+    return true;
+  }
 }
