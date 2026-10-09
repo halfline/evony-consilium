@@ -52,24 +52,42 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
     if (!["project", "players", "player", "subcities", "maps", "formation"].includes(next)) return;
     screens.show(next);
   }
-  const screens = createPlannerScreens($("planner"), (next) => {
+  const screens = createPlannerScreens($("planner"), () => {
     navigation?.changed();
-    if (next !== "formation") {
-      mapInteraction?.cancel();
-      selection.ids.clear();
+    mapInteraction?.cancel();
+    screen = screens.current();
+    if (screens.isProject()) {
       placementView.reset();
-      formationList.render();
-      placementInspector?.render();
+      team.render();
+      return;
     }
-    screen = next;
-    if (screen === "players") players.renderList();
-    if (screen === "player") players.renderProfile();
-    if (screen === "player") playerSubcities?.render();
-    if (screen === "subcities") subcities.render();
-    if (screen === "maps") mapsScreen.enter();
-    if (screen === "formation") requestAnimationFrame(() => {
+    if (screens.isSubcities()) {
+      placementView.reset();
+      subcities.render();
+      return;
+    }
+    if (screens.isMaps()) {
+      mapsScreen.enter();
+      return;
+    }
+    placementView.reset();
+    if (!store.readOnly && screens.isPlayers() && !screens.isPlayer() && !getPlan().keeps.length)
+      players.openAdd();
+    if (screens.isPlayers() && selection.selected && !("level" in selection.selected))
+      selection.id = null;
+    const entity = selection.selected;
+    if (!screens.isPlayers() && entity?.x === null) placementView.place(entity);
+    players?.renderProfile();
+    playerSubcities?.render();
+    placementInspector?.render();
+    requestAnimationFrame(() => {
       renderer.resize();
-      renderer.fit();
+      if (!screens.isPlayers()) {
+        if (entity?.x != null) {
+          renderer.camera.zoom = 1;
+          renderer.center(entity.x + entity.w / 2, entity.y + entity.h / 2);
+        } else renderer.fit();
+      }
     });
   });
   const team = createTeamScreen({
