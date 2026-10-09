@@ -1,9 +1,25 @@
 """Catalog rules derived from client configuration, independent of Unity rendering."""
 
+import hashlib
 import re
 from pathlib import Path
+
 from consilium_assets.config_protobuf import rows, value
 from consilium_assets.culture_growth import CULTURE_GROWTH
+from consilium_assets.snapshot import (
+    ANDROID_BASE,
+    CONFIG_ARCHIVE,
+    RESOURCE_MANIFEST,
+    SNAPSHOT,
+)
+
+_TRACKED_CONFIG = (
+    "CastleDressUpConfig.bytes",
+    "GuildCastleSkinConfig.bytes",
+    "CastleDressUpgradeConfig.bytes",
+    "WorldBuildingConfig.bytes",
+    "en-US.bytes",
+)
 
 
 def apply_castle_upgrade_groups(catalog, config):
@@ -146,3 +162,16 @@ def mark_legacy_assets(entries, audit, *, server_only):
             ]
         if asset.get("family") == "keep-arcanum-athenaeum":
             asset["aliases"] = ["Arcanium Athenaeum"]
+
+
+def current_sources(config):
+    return {
+        "resourceVersion": SNAPSHOT,
+        "configUrl": ANDROID_BASE + CONFIG_ARCHIVE,
+        "manifestUrl": ANDROID_BASE + RESOURCE_MANIFEST,
+        "configSha256": {
+            path.name: hashlib.sha256(path.read_bytes()).hexdigest()
+            for path in config.glob("*.bytes")
+            if path.name in _TRACKED_CONFIG
+        },
+    }
