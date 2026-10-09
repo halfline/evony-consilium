@@ -10,4 +10,8 @@ export async function mapPlayerOpen({ page }) {
   await page.mouse.dblclick(box.x + box.width / 2, box.y + box.height / 2);
   await page.locator("#player-screen").waitFor({ state: "visible" });
   assert.equal(await page.locator("#player-name").inputValue(), name);
+  await page.locator('[data-screen="players"]').click();
+  const selected = page.locator("#players .player-card.selected");
+  assert.equal(await selected.count(), 1);
+  assert.match(await selected.textContent(), new RegExp(name));
 }
