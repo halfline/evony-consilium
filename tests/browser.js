@@ -47,6 +47,7 @@ import { formationUndo } from "./browser/formation-undo.js";
 import { formationNudge } from "./browser/formation-nudge.js";
 import { formationGroupClick } from "./browser/formation-group-click.js";
 import { formationRubberBand } from "./browser/formation-rubber-band.js";
+import { formationGroupDrag } from "./browser/formation-group-drag.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -137,10 +138,11 @@ try {
   await formationNudge({ page, driveFiles });
   await formationGroupClick({ page });
   await formationRubberBand({ page });
+  await formationGroupDrag({ page, driveFiles });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
-    "Browser checks passed: team entry, linked players, subcities, maps, terrain, drag, keyboard controls, and rubber-band selection.",
+    "Browser checks passed: team entry, linked players, subcities, maps, terrain, keyboard controls, and group drag.",
   );
 } catch (error) {
   console.error(
