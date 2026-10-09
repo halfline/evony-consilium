@@ -277,7 +277,8 @@ export function bindMapInteraction({
       } catch (error) { toast(error.message, true); }
       return;
     }
-    if (event.key !== "Delete" || !canEdit() || (!getSelection() && !group.size)) return;
+    if (!["Delete", "Backspace"].includes(event.key) || !canEdit() ||
+        (!getSelection() && !group.size)) return;
     event.preventDefault();
     commit(removePlacements(getPlan(), group.size ? group : new Set([getSelection()])));
     group.clear();
