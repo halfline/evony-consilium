@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { TeamStore } from "../web/src/application/team-store.js";
 import { createEmptyPlan } from "../web/src/domain/plan.js";
 import { createMapPlan } from "../web/src/domain/map-plans.js";
+import { setRallySetter } from "../web/src/domain/rally.js";
 import { catalog } from "./fixtures/catalog.js";
 
 test("team store validates and freezes opened documents", () => {
@@ -105,6 +106,26 @@ test("team transactions assign the strongest player as default rally setter", ()
   assert.equal(store.plan.rallyId, "high");
   store.mutate((draft) => { draft.keeps[0].level = 50; });
   assert.equal(store.plan.rallyId, "low");
+});
+
+test("switching maps restores that map's manual rally preference", () => {
+  const store = new TeamStore(catalog);
+  store.mutate((plan) => { plan.keeps.push(
+    { id: "a", name: "Alpha", accountId: "", allianceTag: "", level: 30,
+      skin: "map-evony3-castle_lv1", w: 2, h: 2, x: null, y: null, locked: false },
+    { id: "b", name: "Beta", accountId: "", allianceTag: "", level: 45,
+      skin: "map-evony3-castle_lv1", w: 2, h: 2, x: null, y: null, locked: false },
+  ); });
+  store.commit(createMapPlan(store.plan, "server", "First"));
+  const first = store.plan.activeMapId;
+  store.commit(setRallySetter(store.plan, "a"));
+  store.commit(createMapPlan(store.plan, "blank", "Second"));
+  const second = store.plan.activeMapId;
+  assert.notEqual(second, first);
+  assert.equal(store.plan.rallyId, "b");
+  store.openMap(first);
+  assert.equal(store.plan.rallyId, "a");
+  assert.equal(store.plan.rallyManual, true);
 });
 
 test("opening a map emits navigation without adding an Undo step", () => {
