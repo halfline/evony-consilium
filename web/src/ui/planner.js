@@ -163,30 +163,33 @@ export function createPlanner(
     context: () => workspace?.key(),
     status: toast,
   });
-  const mapsScreen = createMapsScreen({
-    root: $("maps-screen"),
-    dialog: $("add-map-dialog"),
-    getPlan,
-    canEdit: () => !store.readOnly,
-    add: (type, name) => {
-      selection.id = null;
-      store.commit(createMapPlan(getPlan(), type, name, terrainFor(type)));
-      mapsScreen.render();
-      showScreen("formation");
-    },
-    open: (id) => {
-      if (id !== getPlan().activeMapId) selection.id = null;
-      store.openMap(id);
-      placementView.reset();
-      showScreen("formation");
-    },
-    remove: (id) => {
-      selection.id = null;
-      store.commit(removeMapPlan(getPlan(), id));
-      mapsScreen.enter();
-    },
-    status: toast,
-  });
+  const mapsScreen = wireMapsScreen();
+  function wireMapsScreen() {
+    return createMapsScreen({
+      root: $("maps-screen"),
+      dialog: $("add-map-dialog"),
+      getPlan,
+      canEdit: () => !store.readOnly,
+      add: (type, name) => {
+        selection.id = null;
+        store.commit(createMapPlan(getPlan(), type, name, terrainFor(type)));
+        mapsScreen.render();
+        showScreen("formation");
+      },
+      open: (id) => {
+        if (id !== getPlan().activeMapId) selection.id = null;
+        store.openMap(id);
+        placementView.reset();
+        showScreen("formation");
+      },
+      remove: (id) => {
+        selection.id = null;
+        store.commit(removeMapPlan(getPlan(), id));
+        mapsScreen.enter();
+      },
+      status: toast,
+    });
+  }
   let mapViewControls;
   const renderer = new MapRenderer($("map"), store.assets, getPlan, {
     subcityTypes: catalog.subcityTypes || [],
