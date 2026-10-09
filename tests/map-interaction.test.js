@@ -343,6 +343,22 @@ test("plus and minus keys zoom the focused map canvas", () => {
   assert.equal(prevented, 3);
 });
 
+test("read-only maps ignore editing keyboard shortcuts", () => {
+  let plan = createEmptyPlan();
+  plan.keeps.push({ id: "keep", x: 10, y: 10, w: 2, h: 2 });
+  const canvas = {};
+  const actions = [];
+  bindMapInteraction({ canvas, canEdit: () => false,
+    renderer: { zoom: () => actions.push("zoom") },
+    getPlan: () => plan, getSelection: () => "keep",
+    commit: (next) => { plan = next; actions.push("commit"); },
+    undo: () => actions.push("undo") });
+  for (const key of ["Delete", "+", "z"])
+    canvas.onkeydown({ key, ctrlKey: key === "z", preventDefault() {} });
+  assert.deepEqual(actions, []);
+  assert.equal(plan.keeps[0].x, 10);
+});
+
 test("arrow keys nudge selected keep by one tile", () => {
   let plan = createEmptyPlan();
   plan.keeps.push({ id: "keep", x: 10, y: 10, w: 2, h: 2, locked: false });
