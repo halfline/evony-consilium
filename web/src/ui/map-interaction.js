@@ -46,6 +46,29 @@ export function bindMapInteraction({
     if (event.button !== 0) return;
     canvas.focus?.();
     const pt = point(event);
+    const cityId = renderer.hitSubcity?.(pt.x, pt.y);
+    if (cityId && !getPending() && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+      openSubcity(cityId);
+      return;
+    }
+    if (getPending() && canEdit()) {
+      const world = renderer.world(pt.x, pt.y);
+      const x = Math.floor(world.x), y = Math.floor(world.y);
+      const entity = entities()
+        .find((item) => item.id === getPending());
+      if (!entity || !canPlace(entity, x, y, getPlan(), [], terrainFor(getPlan().map))) {
+        toast("Choose a free tile within the map.", true);
+        return;
+      }
+      mutate((plan) => {
+        const target = [...plan.keeps, ...plan.structures, ...plan.obstacles]
+          .find((item) => item.id === entity.id);
+        target.x = x;
+        target.y = y;
+      });
+      resetPending();
+      return;
+    }
     if ((event.ctrlKey || event.metaKey) && !getPending()) {
       const id = renderer.hit(pt.x, pt.y);
       const entity = entities()
@@ -65,11 +88,6 @@ export function bindMapInteraction({
       select(null);
       band = { pt, pointerId: event.pointerId };
       canvas.setPointerCapture(event.pointerId);
-      return;
-    }
-    const cityId = renderer.hitSubcity?.(pt.x, pt.y);
-    if (cityId && !getPending() && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
-      openSubcity(cityId);
       return;
     }
     if (!getPending()) {
@@ -103,22 +121,6 @@ export function bindMapInteraction({
       canvas.setPointerCapture(event.pointerId);
       return;
     }
-    if (!canEdit()) return;
-    const world = renderer.world(pt.x, pt.y);
-    const x = Math.floor(world.x), y = Math.floor(world.y);
-    const entity = entities()
-      .find((item) => item.id === getPending());
-    if (!entity || !canPlace(entity, x, y, getPlan(), [], terrainFor(getPlan().map))) {
-      toast("Choose a free tile within the map.", true);
-      return;
-    }
-    mutate((plan) => {
-      const target = [...plan.keeps, ...plan.structures, ...plan.obstacles]
-        .find((item) => item.id === entity.id);
-      target.x = x;
-      target.y = y;
-    });
-    resetPending();
   };
   canvas.onpointermove = (event) => {
     if (canvas.style) {
