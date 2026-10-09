@@ -273,9 +273,21 @@ export function bindMapInteraction({
       event.preventDefault();
       const entity = selected();
       if (!entity || entity.locked || entity.x === null) return;
+      const x = entity.x + arrow[0], y = entity.y + arrow[1];
+      if (mutate) {
+        if (canPlace(entity, x, y, getPlan(), [], terrainFor(getPlan().map)))
+          mutate((plan) => {
+            const target = [...plan.keeps, ...plan.structures, ...plan.obstacles]
+              .find((item) => item.id === entity.id);
+            target.x = x;
+            target.y = y;
+          });
+        else toast("That tile is occupied or outside the map.", true);
+        return;
+      }
       try {
         commit(movePlacements(getPlan(), [{ id: entity.id,
-          x: entity.x + arrow[0], y: entity.y + arrow[1] }],
+          x, y }],
         terrainFor(getPlan().map)));
       } catch (error) { toast(error.message, true); }
       return;
