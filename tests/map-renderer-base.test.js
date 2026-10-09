@@ -36,3 +36,32 @@ test("map grid fits the canvas and zoom preserves the pointer world location", (
     globalThis.devicePixelRatio = previousDpr;
   }
 });
+
+test("Server maps expose painted subcity marker hit regions", () => {
+  const previousObserver = globalThis.ResizeObserver;
+  const previousDpr = globalThis.devicePixelRatio;
+  globalThis.ResizeObserver = class { observe() {} };
+  globalThis.devicePixelRatio = 1;
+  try {
+    const ctx = new Proxy({}, { get: (_target, key) => key === "measureText"
+      ? () => ({ width: 10 }) : () => {} });
+    const canvas = {
+      parentElement: {}, getContext: () => ctx,
+      getBoundingClientRect: () => ({ width: 800, height: 600 }),
+    };
+    const plan = createEmptyPlan();
+    plan.map = "server";
+    plan.subcities = [{ id: "city", name: "Harbor", culture: "Europe", color: "gold", x: 600, y: 600 }];
+    const renderer = new MapRenderer(canvas, () => plan);
+    renderer.resize();
+    renderer.fit();
+    const point = renderer.screen(600, 600);
+    assert.equal(renderer.hitSubcity(point.x, point.y), "city");
+    plan.map = "boc";
+    renderer.draw();
+    assert.equal(renderer.hitSubcity(point.x, point.y), null);
+  } finally {
+    globalThis.ResizeObserver = previousObserver;
+    globalThis.devicePixelRatio = previousDpr;
+  }
+});
