@@ -41,3 +41,20 @@ export function selectMapPlan(plan, id) {
   applyLayout(next, map.layout);
   return next;
 }
+export function removeMapPlan(plan, id) {
+  const next = syncMapLayouts(copy(plan));
+  next.maps = next.maps.filter((map) => map.id !== id);
+  if (next.activeMapId === id) {
+    next.activeMapId = null;
+    next.keeps.forEach((player) => {
+      player.x = player.y = null;
+      player.locked = false;
+    });
+    next.structures = [];
+    next.obstacles = [];
+    next.rallyId = null;
+    next.backgrounds = {};
+    if (next.maps.length) return selectMapPlan(next, next.maps[0].id);
+  }
+  return next;
+}
