@@ -25,16 +25,28 @@ export function drawEntity(view, entity, plan, zoom) {
   const height = (Math.abs(plan.grid.ay) + Math.abs(plan.grid.by)) * entity.h * zoom;
   const asset = view.assets.get(entity.skin);
   const image = asset && view.image(asset.src);
-  if (view.selected === entity.id || view.selectedIds?.has(entity.id)) {
+  const selected = view.selected === entity.id || view.selectedIds?.has(entity.id);
+  const rally = entity.id === plan.rallyId;
+  const obstacle = plan.obstacles?.some(({ id }) => id === entity.id);
+  if (obstacle) {
     view.path(entity);
-    ctx.strokeStyle = "#fff0b4";
-    ctx.lineWidth = 2;
+    ctx.fillStyle = "#513e37aa";
+    ctx.fill();
+    ctx.strokeStyle = "#e6b19788";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  } else if (selected || rally || entity.locked) {
+    view.path(entity);
+    ctx.fillStyle = selected ? "#e7d59728" : "#22372620";
+    ctx.fill();
+    ctx.strokeStyle = selected ? "#fff0b4" : rally ? "#e1c678" : "#b1d0ba";
+    ctx.lineWidth = selected ? 2 : 1.2;
     ctx.stroke();
   }
   if (image) {
     const spriteHeight = width * asset.height / asset.width;
     ctx.drawImage(image, center.x - width / 2, center.y - spriteHeight, width, spriteHeight);
-  } else {
+  } else if (!obstacle) {
     view.path(entity);
     ctx.fillStyle = "#d1ba7c";
     ctx.fill();
