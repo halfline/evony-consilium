@@ -151,7 +151,18 @@ export class ProjectSync {
       }
       await this.flush();
       const snapshot = structuredClone(this.getPlan());
-      const file = await this.drive.save(source, snapshot);
+      let file;
+      try {
+        file = await this.drive.save(source, snapshot);
+      } catch (error) {
+          if (error.status !== 409) throw error;
+        const loaded = await this.drive.load(source);
+          if (this.fingerprint(loaded.plan) !== baseline) throw error;
+        loaded.file.resourceKey ||= source.resourceKey;
+        source = loaded.file;
+        this.file = source;
+        file = await this.drive.save(source, snapshot);
+      }
       file.resourceKey ||= source.resourceKey;
       await this.flush();
       this.file = file;
