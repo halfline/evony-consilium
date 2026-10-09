@@ -1,6 +1,5 @@
 import { view } from "./dom.js";
 import { OperationCancelled } from "../services/cancellation.js";
-
 export function createPlayerFileControls({
   root,
   dialog,
@@ -10,13 +9,15 @@ export function createPlayerFileControls({
   status,
   refresh,
 }) {
-  const $ = view(root);
+  const $ = view(root, dialog);
   let pending;
   function resolve(conflicts) {
-    if (!dialog) throw new Error("A player conflict dialog is required.");
-    dialog.querySelector("#player-sync-conflicts").textContent = conflicts.join(", ");
+    dialog.querySelector("#player-sync-conflicts").textContent =
+      conflicts.join(", ");
     dialog.showModal();
-    return new Promise((accept) => { pending = accept; });
+    return new Promise((accept) => {
+      pending = accept;
+    });
   }
   function close(value = null) {
     const accept = pending;
@@ -24,16 +25,28 @@ export function createPlayerFileControls({
     dialog.close();
     accept?.(value);
   }
-  if (dialog) {
-    for (const button of dialog.querySelectorAll("[data-resolution]"))
-      button.onclick = () => close(button.dataset.resolution === "cancel" ? null : button.dataset.resolution);
-    dialog.oncancel = (event) => {
-      event.preventDefault();
-      close();
-    };
-  }
-  async function unlockPlayer() {
+  for (const button of dialog.querySelectorAll("[data-resolution]"))
+    button.onclick = () =>
+      close(
+        button.dataset.resolution === "cancel"
+          ? null
+          : button.dataset.resolution,
+      );
+  dialog.oncancel = (event) => {
+    event.preventDefault();
+    close();
+  };
+  async function run(task) {
     try {
+      await task();
+    } catch (error) {
+      if (!(error instanceof OperationCancelled)) status(error.message, true);
+    } finally {
+      refresh();
+    }
+  }
+  const unlockPlayer = () =>
+    run(async () => {
       await unlock();
       const access = getFiles().state(getPlayer());
       if (!access.canEdit)
@@ -41,12 +54,7 @@ export function createPlayerFileControls({
           "This player is still read-only. Ask an admin to grant write access to its file in Drive, then unlock again.",
         );
       status("Player editing unlocked for your account.");
-    } catch (error) {
-      if (!(error instanceof OperationCancelled)) status(error.message, true);
-    } finally {
-      refresh();
-    }
-  }
+    });
   $("player-unlock").onclick = unlockPlayer;
   function render() {
     const player = getPlayer();
