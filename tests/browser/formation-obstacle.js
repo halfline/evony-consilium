@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 export async function formationObstacle({ page, driveFiles }) {
   await page.locator("#add-obstacle").click();
   const row = page.locator("#structure-list .players-row").last();
-  assert.match(await row.textContent(), /Blocked tile · Unplaced/);
+  assert.equal(await row.locator(".name").textContent(), "Blocked tile");
+  assert.match(await row.locator(".detail").textContent(), /Unplaced/);
   const box = await page.locator("#map").boundingBox();
   for (const [dx, dy] of [[200, 100], [240, 80], [180, 120], [-200, -100]]) {
     await page.mouse.click(box.x + box.width / 2 + dx, box.y + box.height / 2 + dy);

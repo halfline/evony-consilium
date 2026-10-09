@@ -4,7 +4,9 @@ export async function mapPlayerOpen({ page }) {
   await page.locator('[data-screen="maps"]').click();
   await page.locator("#maps-list .map-row").filter({ hasText: "Player formation" }).click();
   const row = page.locator("#formation-players .players-row").first();
-  const name = (await row.textContent()).split(" · ")[0];
+  const name = await row.locator(".name").textContent();
+  assert.equal(await row.locator("img").getAttribute("alt"), "");
+  assert.match(await row.locator(".level").textContent(), /^K\d+$/);
   await row.click();
   const box = await page.locator("#map").boundingBox();
   await page.mouse.dblclick(box.x + box.width / 2, box.y + box.height / 2);
