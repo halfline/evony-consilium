@@ -371,3 +371,20 @@ test("dragging a group off canvas unplaces all members", () => {
   assert.equal(group.size, 0);
   assert.equal(captures.size, 0);
 });
+
+test("pending obstacle is placed with the same validity check as a keep", () => {
+  const plan = createEmptyPlan();
+  plan.obstacles.push({ id: "blocked", name: "Blocked tile", w: 1, h: 1,
+    x: null, y: null, locked: false });
+  const canvas = { getBoundingClientRect: () => ({ left: 0, top: 0 }) };
+  const renderer = { world: (x, y) => ({ x, y }) };
+  let pending = "blocked";
+  bindMapInteraction({
+    canvas, renderer, getPlan: () => plan, getPending: () => pending,
+    resetPending: () => { pending = null; },
+    mutate: (change) => change(plan),
+  });
+  canvas.onpointerdown({ button: 0, clientX: 10, clientY: 20 });
+  assert.deepEqual([plan.obstacles[0].x, plan.obstacles[0].y], [10, 20]);
+  assert.equal(pending, null);
+});
