@@ -1,0 +1,250 @@
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap");
+:root {
+  color-scheme: dark;
+  --bg: #15201c;
+  --panel: #1b2722;
+  --line: #344139;
+  --text: #e7e7da;
+  --muted: #9ca99c;
+  --gold: #cfb57a;
+  --gold-dim: #746544;
+  --red: #e2a18c;
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-size: 13px;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+button,
+input,
+select {
+  font: inherit;
+}
+button,
+a,
+input,
+select {
+  touch-action: manipulation;
+}
+button {
+  cursor: pointer;
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 5px;
+  background: #27362e;
+  padding: 9px 12px;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+button:hover {
+  background: #35443b;
+  border-color: #6a7768;
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.primary {
+  background: var(--gold);
+  color: #263024;
+  border-color: var(--gold);
+  font-weight: 700;
+}
+.primary:hover {
+  background: #e0c48b;
+  border-color: #e0c48b;
+}
+
+input,
+select {
+  background: #15201b;
+  border: 1px solid #3b4a40;
+  color: var(--text);
+  border-radius: 4px;
+  padding: 9px 10px;
+  min-width: 0;
+  width: 100%;
+}
+input:focus,
+select:focus {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+input[type="checkbox"] {
+  accent-color: var(--gold);
+  width: 14px;
+  height: 14px;
+}
+input[type="range"] {
+  accent-color: var(--gold);
+  padding: 0;
+}
+input[type="color"] {
+  padding: 3px;
+  height: 38px;
+}
+label {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.2px;
+}
+label input,
+label select {
+  margin-top: 6px;
+  font-size: 13px;
+}
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+h1,
+h2 {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-weight: 600;
+}
+h1 {
+  font-size: 27px;
+}
+h2 {
+  font-size: 22px;
+}
+p {
+  line-height: 1.65;
+}
+a {
+  color: var(--gold);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  text-decoration: none;
+  color: var(--text);
+  letter-spacing: 2.3px;
+  font-size: 17px;
+  flex-shrink: 0;
+}
+.brand b {
+  color: var(--gold);
+  font-weight: 500;
+}
+.brand small {
+  display: block;
+  font-size: 8px;
+  color: var(--muted);
+  letter-spacing: 3px;
+  margin-top: 7px;
+}
+.brand-icon {
+  display: block;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: 6px;
+}
+
+.eyebrow {
+  font-size: 9px;
+  color: var(--gold);
+  letter-spacing: 2.2px;
+  font-weight: 600;
+}
+
+.loading {
+  position: absolute;
+  inset: 0;
+  background: #27392b;
+  display: grid;
+  place-items: center;
+  font-family: Georgia, serif;
+  font-size: 24px;
+  color: var(--gold);
+}
+.loading[hidden] {
+  display: none;
+}
+.muted {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin: 12px 0;
+}
+.note {
+  font-size: 11px;
+  color: var(--muted);
+  border-left: 2px solid #706445;
+  padding-left: 12px;
+  margin: 20px 0;
+}
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #142119;
+  color: #f1e6c6;
+  border: 1px solid #b49b69;
+  border-radius: 6px;
+  padding: 13px 20px;
+  box-shadow: 0 8px 30px #0005;
+  z-index: 20;
+  max-width: 90vw;
+  font-size: 12px;
+}
+.toast.error {
+  border-color: #c58b70;
+  color: #ffd1b8;
+}
+.empty {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--muted);
+  padding: 16px 0;
+}
+kbd,
+code {
+  background: #304033;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+[hidden] {
+  display: none !important;
+}
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: #52624e;
+  border-radius: 5px;
+}
+@media (max-width: 1150px) {
+
+  .brand {
+    font-size: 14px;
+  }
+  .brand small {
+    font-size: 7px;
+  }
+
+}
+@media (max-width: 800px) {
+
+  .brand-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+}

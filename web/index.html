@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#17221e" />
+    <meta
+      name="description"
+      content="Evony Consilium: an Evony alliance formation and hive planner. Arrange your keeps, choose real castle sprites, and share a plan."
+    />
+    <title>Evony Consilium · Alliance war room</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="styles/entry.css" />
+    <link rel="icon" type="image/svg+xml" href="assets/branding/favicon.svg" />
+  </head>
+  <body>
+    <section id="entry" class="entry">
+      <header class="entry-header">
+        <a class="brand" href="./"
+          ><img
+            class="brand-icon"
+            src="assets/branding/consilium.png"
+            alt=""
+            width="64"
+            height="64"
+          /><span
+            >EVONY <b>CONSILIUM</b><small>THE ALLIANCE WAR ROOM</small></span
+          ></a
+        >
+      </header>
+      <div class="entry-card">
+        <section id="login-screen">
+          <span class="eyebrow">YOUR TEAM’S WAR ROOM</span>
+          <h1>Plan together.</h1>
+          <p>Sign in to open or create a team.</p>
+          <button id="google-login" class="google-sign-in" disabled>
+            <img src="assets/branding/google-g.svg" alt="" aria-hidden="true" />
+            <span>Sign in with Google</span>
+          </button>
+          <p id="login-detail">
+            Teams live in Google Drive. Your team’s Drive permissions control
+            who can open and save them.
+          </p>
+        </section>
+        <div id="entry-progress" class="entry-progress" role="status" hidden>
+          <span class="progress-spinner" aria-hidden="true"></span>
+          <span id="entry-progress-text"></span>
+        </div>
+        <p id="entry-error" class="entry-error" role="alert"></p>
+        <button id="google-grant-access" type="button" class="primary" hidden>
+          Grant access
+        </button>
+      </div>
+      <footer class="entry-footer">
+        <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a>
+        · <a href="terms.html" target="_blank" rel="noopener">Terms of use</a>
+      </footer>
+    </section>
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  </body>
+</html>
