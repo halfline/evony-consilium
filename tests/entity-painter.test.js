@@ -103,6 +103,19 @@ test("an image still loading paints a selectable castle marker", () => {
   assert.equal(view.hits[0].id, "keep");
 });
 
+test("an entity without catalog art keeps only a minimal selectable hit", () => {
+  let painted = 0;
+  const view = {
+    ctx: { drawImage: () => painted++, fillText: () => painted++,
+      fill: () => painted++, stroke: () => painted++ },
+    screen: (x, y) => ({ x, y }), assets: new Map(), hits: [],
+  };
+  const plan = { grid: { ax: 48, ay: 24, bx: -48, by: 24 }, labels: false };
+  drawEntity(view, { id: "unknown", skin: "missing", x: 10, y: 20, w: 2, h: 2 }, plan, 1);
+  assert.equal(painted, 0);
+  assert.equal(view.hits[0].right - view.hits[0].left, 20);
+});
+
 test("entity labels follow the map preference and mark the rally keep", () => {
   const labels = [];
   const plates = [];
@@ -212,11 +225,14 @@ test("formation renderer paints placed keeps and exposes their hit region", () =
     let painted = 0;
     const ctx = {
       setTransform() {}, fillRect() {}, beginPath() {}, moveTo() {}, lineTo() {},
-      closePath() {}, fill() { painted++; }, stroke() {}, fillText() {},
+      closePath() {}, fill() { painted++; }, stroke() {}, fillText() { painted++; },
       createRadialGradient: () => ({ addColorStop() {} }),
     };
     const canvas = { getContext: () => ctx, parentElement: {} };
-    const renderer = new MapRenderer(canvas, () => plan);
+    const renderer = new MapRenderer(canvas, () => plan, {
+      assets: new Map([["missing", { src: "missing.webp", width: 100, height: 80 }]]),
+    });
+    renderer.images.get = () => null;
     renderer.width = 200;
     renderer.height = 100;
     renderer.center(601, 601);
