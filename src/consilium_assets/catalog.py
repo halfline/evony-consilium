@@ -118,3 +118,31 @@ def apply_culture_growth(entries, config):
     for key, levels in growth.items():
         if key in entries:
             entries[key].update(minKeepLevel=min(levels), maxKeepLevel=max(levels))
+
+
+def mark_legacy_assets(entries, audit, *, server_only):
+    """Mark sprite-only decorations and attach current building aliases."""
+    ids = {item["asset"] for item in audit}
+    for asset in entries.values():
+        if (
+            not server_only
+            and asset["kind"] in ("keep", "alliance")
+            and asset["id"] not in ids
+            and not asset.get("culture")
+            and asset["id"] != "map-world_castle_guild"
+        ):
+            asset["legacyOnly"] = True
+        elif asset["id"] == "map-world_castle_guild":
+            asset.pop("legacyOnly", None)
+            asset["name"] = "Alliance Castle"
+            asset["footprint"] = 2
+            asset["footprintSource"] = "GuildCastleObject.edgeGridCount"
+        if asset["kind"] == "alliance" and asset["id"] in ids:
+            asset["footprintSource"] = "GuildCastleSkinConfig.size"
+            asset["aliases"] = [
+                "Chalons Alliance Glory Castle",
+                "Alliance Glory Castle",
+                "Battle of Chalons",
+            ]
+        if asset.get("family") == "keep-arcanum-athenaeum":
+            asset["aliases"] = ["Arcanium Athenaeum"]
