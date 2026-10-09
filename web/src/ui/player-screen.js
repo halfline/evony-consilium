@@ -1,7 +1,9 @@
 import { editPlayerProfile } from "../domain/players.js";
 import { editPlayerDetails } from "../domain/player-details.js";
 import { validatePlan } from "../domain/validation.js";
+import { changeAppearance } from "../domain/appearance-commands.js";
 import { renderAvatarButton } from "./avatar-browser.js";
+import { renderCastleButton } from "./castle-button.js";
 import { view } from "./dom.js";
 import { createPlayerDetails } from "./player-details.js";
 
@@ -10,9 +12,12 @@ export function createPlayerScreen({
   root,
   getPlan,
   getPlayer,
+  terrainFor,
+  assets,
   getAvatars,
   catalog,
   browseAvatar,
+  browseCastle,
   commit,
   remove,
   canEdit,
@@ -55,6 +60,23 @@ export function createPlayerScreen({
       }
     });
   };
+  $("player-castle").onclick = () => {
+    const player = getPlayer();
+    if (!player || !canEdit()) return;
+    const id = player.id;
+    browseCastle("keep", async (asset) => {
+      try {
+        const next = changeAppearance(
+          getPlan(), id, asset, terrainFor(getPlan().map),
+        );
+        validatePlan(next, catalog);
+        await commit(next.keeps.find((item) => item.id === id));
+        render();
+      } catch (error) {
+        status(error.message, true);
+      }
+    });
+  };
   $("player-remove").onclick = () => {
     const player = getPlayer();
     if (player) remove(player.id);
@@ -75,6 +97,8 @@ export function createPlayerScreen({
       allianceTag: "player-tag",
       level: "player-level",
     })) $(id).value = player[field] ?? "";
+    const castle = assets.get(player.skin);
+    if (castle) renderCastleButton($("player-castle"), castle);
     renderAvatarButton($("player-avatar"), getAvatars(), player.avatarId);
   }
   return { render };

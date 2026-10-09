@@ -12,6 +12,7 @@ export function createPlayerWorkflow({
   getAvatars,
   assets,
   catalog,
+  terrainFor,
   browseCastle,
   getWorkspace,
   remove,
@@ -68,9 +69,12 @@ export function createPlayerWorkflow({
     root: roots.profile,
     getPlan: editingPlan,
     getPlayer: () => editingPlan().keeps.find((player) => player.id === selectedId),
+    terrainFor,
+    assets,
     getAvatars,
     catalog,
     browseAvatar: avatars.open,
+    browseCastle,
     canEdit: () => !!getWorkspace()?.players.state(cachedPlayer()).canEdit,
     commit: async (player) => {
       await getWorkspace().profiles.save(player, fileControls.resolve);

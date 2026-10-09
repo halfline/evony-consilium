@@ -305,6 +305,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     search: $("players-search"),
     getPlan,
     getAvatars: () => avatarCatalog,
+    terrainFor: (id) => terrain?.get(id),
     assets: store.assets,
     catalog,
     browseCastle: catalogBrowser.open,
