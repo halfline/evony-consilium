@@ -8,10 +8,10 @@ async function readJSON(url, message) {
 
 // Each browser workspace loads the map resources it will render.
 export async function loadResources() {
-  const [catalog, avatarCatalog, terrain] = await Promise.all([
+  const [catalog, avatarCatalog, terrainCatalog] = await Promise.all([
     readJSON("assets/catalog.json", "The graphics catalog could not be loaded."),
     readJSON("assets/avatar-catalog.json", "The avatar catalog could not be loaded."),
     loadTerrain(),
   ]);
-  return { catalog, avatarCatalog, terrain };
+  return { catalog, avatarCatalog, terrainCatalog };
 }

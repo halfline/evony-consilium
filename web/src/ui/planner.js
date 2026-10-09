@@ -26,7 +26,7 @@ import { createPlacementInspector } from "./placement-inspector.js";
 import { createFormationControls } from "./formation-controls.js";
 import { createDemoPlan } from "../domain/plan.js";
 
-export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorkspace }) {
+export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { createWorkspace }) {
   const store = new TeamStore(catalog);
   const toast = createNotifier($("toast"));
   const getPlan = () => store.plan;
@@ -131,7 +131,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
   const renderer = new MapRenderer($("map"), getPlan, {
     assets: store.assets,
     subcityTypes: catalog.subcityTypes || [],
-    terrainFor: (id) => terrain?.get(id),
+    terrainFor: (id) => terrainCatalog?.get(id),
     selection,
     onDraw: (state) => mapViewControls?.render(state),
   });
@@ -164,7 +164,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
   placementInspector = createPlacementInspector({
     root: $("inspector"),
     getPlan, catalog, assets: store.assets, browse: catalogBrowser.open,
-    terrainFor: (id) => terrain?.get(id),
+    terrainFor: (id) => terrainCatalog?.get(id),
     canEdit: () => !store.readOnly,
     commit: (plan) => store.commit(plan),
     status: toast,
@@ -175,7 +175,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
   const formationControls = createFormationControls({
     root: $("formation-screen"), toolbar: document.querySelector(".map-toolbar"), assets: store.assets, getPlan,
     browse: catalogBrowser.open,
-    terrainFor: (id) => terrain?.get(id),
+    terrainFor: (id) => terrainCatalog?.get(id),
     fit: () => renderer.fit(),
     resetPlacement: () => placementView.reset(),
     status: toast,
@@ -188,7 +188,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
   });
   mapInteraction = bindMapInteraction({
     canvas: $("map"), renderer, getPlan,
-    terrainFor: (id) => terrain?.get(id),
+    terrainFor: (id) => terrainCatalog?.get(id),
     getPending: () => selection.pending,
     resetPending: () => placementView.reset(),
     canEdit: () => !store.readOnly,
@@ -289,7 +289,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     search: $("players-search"),
     getPlan,
     getAvatars: () => avatarCatalog,
-    terrainFor: (id) => terrain?.get(id),
+    terrainFor: (id) => terrainCatalog?.get(id),
     assets: store.assets,
     catalog,
     browseCastle: catalogBrowser.open,
