@@ -413,6 +413,7 @@
                 >
                   Overview
                 </button>
+                <button type="button" role="tab" data-player-tab="buffs" aria-selected="false" hidden>Buffs</button>
               </div>
               <div data-player-panel="overview" role="tabpanel">
                 <div class="player-appearance">
@@ -447,6 +448,9 @@
                       required
                   /></label>
                 </div>
+              </div>
+              <div data-player-panel="buffs" role="tabpanel" hidden>
+                <div id="player-buffs" class="player-table-scroll"></div>
               </div>
               <div id="player-profile-actions" class="inspector-actions">
                 <button class="primary apply-entity" type="submit">
