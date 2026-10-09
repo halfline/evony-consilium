@@ -1,7 +1,7 @@
 import { createEmptyPlan } from "../domain/plan.js";
 import { validatePlan } from "../domain/validation.js";
 import { updateKeepAppearances } from "../domain/castles.js";
-import { selectMapPlan } from "../domain/map-plans.js";
+import { selectMapPlan, syncMapLayouts } from "../domain/map-plans.js";
 
 function readonly(value) {
   if (value && typeof value === "object" && !Object.isFrozen(value)) {
@@ -49,6 +49,7 @@ export class TeamStore {
       [...this.catalog.assets, ...(next.customAssets || [])].map((asset) => [asset.id, asset]),
     );
     updateKeepAppearances(next.keeps, assets);
+    syncMapLayouts(next);
     return readonly(next);
   }
   refreshAssets() {

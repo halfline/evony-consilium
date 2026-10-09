@@ -12,6 +12,8 @@ import { createSubcitiesScreen } from "./subcities-screen.js";
 import { createMapsScreen } from "./maps-screen.js";
 import { MapRenderer } from "../rendering/map-renderer.js";
 import { bindMapViewControls } from "./map-view-controls.js";
+import { bindMapInteraction } from "./map-interaction.js";
+import { createFormationList } from "./formation-list.js";
 import { createPlayerSubcities } from "./player-subcities.js";
 import { removePlayer } from "../domain/players.js";
 import { createMapPlan, removeMapPlan } from "../domain/map-plans.js";
@@ -21,6 +23,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
   const toast = createNotifier($("toast"));
   const getPlan = () => store.plan;
   let workspace, entry, players, playerSubcities;
+  let pendingKeep = null;
   let screen = "project";
   const access = createReadOnlyView(
     $("planner"),
@@ -36,6 +39,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
   });
   function showScreen(next) {
     if (!["project", "players", "player", "subcities", "maps", "formation"].includes(next)) return;
+    if (next !== "formation") pendingKeep = null;
     screen = next;
     for (const name of ["project", "players", "subcities", "maps"]) {
       const active = name === screen || (name === "players" && screen === "player") || (name === "maps" && screen === "formation");
@@ -123,6 +127,26 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     onDraw: (state) => mapViewControls?.render(state),
   });
   mapViewControls = bindMapViewControls({ root: $("formation-screen"), renderer });
+  const formationList = createFormationList({
+    root: $("formation-screen"), getPlan,
+    canEdit: () => !store.readOnly,
+    place: (keep) => {
+      pendingKeep = keep.id;
+      $("map-guide").textContent = `Click a free map tile to place ${keep.name}.`;
+    },
+    center: (keep) => renderer.center(keep.x + keep.w / 2, keep.y + keep.h / 2),
+  });
+  bindMapInteraction({
+    canvas: $("map"), renderer, getPlan,
+    terrainFor: (id) => terrain?.get(id),
+    getPending: () => pendingKeep,
+    resetPending: () => {
+      pendingKeep = null;
+      $("map-guide").textContent = "Choose an unplaced player, then click a free map tile.";
+    },
+    canEdit: () => !store.readOnly,
+    mutate: (change) => store.mutate(change), toast,
+  });
   function render() {
     $("plan-title").value = getPlan().title;
     $("undo").disabled = !store.canUndo;
@@ -132,6 +156,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     const activeMap = getPlan().maps.find(({ id }) => id === getPlan().activeMapId);
     $("map-name").textContent = activeMap?.name || "";
     renderer.draw();
+    formationList.render();
     players?.renderList();
     if (screen === "player") players?.renderProfile();
     if (screen === "player") playerSubcities?.render();

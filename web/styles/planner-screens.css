@@ -757,12 +757,15 @@
   .map-list-row:hover .map-forget { opacity: 1; pointer-events: auto; }
 }
 #formation-screen {
-  display: block;
+  display: flex;
   flex: 1;
   width: 100%;
   min-height: 0;
 }
-#formation-screen .map-section { width: 100%; min-height: min(75vh, 900px); }
+#formation-screen .formation-sidebar { width: 260px; flex: none; padding: 24px; border-right: 1px solid var(--line); }
+#formation-screen .formation-sidebar .players { display: grid; gap: 8px; }
+#formation-screen .formation-sidebar .players-row { width: 100%; text-align: left; }
+#formation-screen .map-section { flex: 1; min-width: 0; min-height: min(75vh, 900px); }
 #formation-screen .map-surface { position: relative; width: 100%; min-height: min(75vh, 900px); }
 #formation-screen #map { display: block; width: 100%; height: min(75vh, 900px); }
 #formation-screen .map-caption {
