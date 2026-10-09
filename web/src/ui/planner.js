@@ -133,7 +133,9 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
     subcityTypes: catalog.subcityTypes || [],
     terrainFor: (id) => terrainCatalog?.get(id),
     selection,
-    onDraw: (state) => mapViewControls?.render(state),
+    onDraw: ({ zoom }) => {
+      $("zoom-level").textContent = Math.round(zoom * 100) + "%";
+    },
   });
   mapViewControls = bindMapViewControls({
     root: $("formation-screen"), toolbar: document.querySelector(".map-toolbar"), renderer, getPlan,
@@ -211,7 +213,7 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
     team.render();
     subcities.render();
     mapsScreen.render();
-    mapViewControls.render({ zoom: renderer.camera.zoom });
+    mapViewControls.render();
     const activeMap = getPlan().maps.find(({ id }) => id === getPlan().activeMapId);
     $("formation-name").textContent = activeMap?.name || "";
     renderer.draw();

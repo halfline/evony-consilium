@@ -17,8 +17,7 @@ export function bindMapViewControls({ root, toolbar, renderer, getPlan, selected
   $("show-labels").onchange = () =>
     mutate((plan) => { plan.labels = $("show-labels").checked; });
   return {
-    render({ zoom }) {
-      $("zoom-level").textContent = Math.round(zoom * 100) + "%";
+    render() {
       const plan = getPlan();
       $("show-grid").checked = plan.showGrid;
       $("show-labels").checked = plan.labels;
