@@ -260,14 +260,13 @@ export function bindMapInteraction({
   };
   canvas.onpointercancel = () => {
     group.clear();
-    groupChanged();
     cancel();
     renderer.draw();
   };
-  canvas.onwheel = (event) => {
-    event.preventDefault();
-    const pt = point(event);
-    renderer.zoom(Math.exp(-event.deltaY * 0.001), pt.x, pt.y);
+  canvas.onwheel = (ev) => {
+    ev.preventDefault();
+    const p = point(ev);
+    renderer.zoom(Math.exp(-ev.deltaY * 0.001), p.x, p.y);
   };
   const keydown = (ev) => {
     if (!canEdit()) return;
