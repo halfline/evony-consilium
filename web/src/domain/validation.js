@@ -56,13 +56,18 @@ function validateEntities(plan, catalog) {
   for (const collection of ENTITY_COLLECTIONS) {
     if (!Array.isArray(plan[collection]) && collection === "keeps")
       throw new Error("Invalid player list.");
-    if (!Array.isArray(plan[collection]) || plan[collection].length > MAX_ENTITIES)
+    if (
+      !Array.isArray(plan[collection]) ||
+      plan[collection].length > MAX_ENTITIES
+    )
       throw new Error("Too many " + collection + ".");
     for (const entity of plan[collection]) {
       string(entity.id, 120, "ID");
       if (!entity.id || ids.has(entity.id))
         throw new Error(
-          collection === "keeps" ? "Duplicate player ID." : "Duplicate entity ID.",
+          collection === "keeps"
+            ? "Duplicate player ID."
+            : "Duplicate entity ID.",
         );
       ids.add(entity.id);
       string(entity.name, 100, "name");
@@ -87,7 +92,10 @@ function validateEntities(plan, catalog) {
 }
 
 function validatePlacement(plan) {
-  if (plan.rallyId !== null && !plan.keeps.some((keep) => keep.id === plan.rallyId))
+  if (
+    plan.rallyId !== null &&
+    !plan.keeps.some((keep) => keep.id === plan.rallyId)
+  )
     throw new Error("Unknown rally setter.");
   const placed = [...plan.keeps, ...plan.structures, ...plan.obstacles].filter(
     (entity) => entity.x !== null,
@@ -122,7 +130,14 @@ function validateBackgrounds(plan) {
 function validateMapCollection(plan, catalog) {
   if (plan.maps === undefined) {
     const id = crypto.randomUUID();
-    plan.maps = [{ id, name: defaultFormationName(plan.map), type: plan.map, layout: captureLayout(plan) }];
+    plan.maps = [
+      {
+        id,
+        name: defaultFormationName(plan.map),
+        type: plan.map,
+        layout: captureLayout(plan),
+      },
+    ];
     plan.activeMapId = id;
   }
   if (!Array.isArray(plan.maps) || plan.maps.length > 50)
@@ -136,8 +151,11 @@ function validateMapCollection(plan, catalog) {
     if (!map.id || !map.name.trim() || ids.has(map.id))
       throw new Error("Invalid map entry.");
     ids.add(map.id);
-    if (!plan.mapPresets.some(({ id }) => id === map.type) ||
-      map.type !== map.layout?.map || !Array.isArray(map.layout.positions))
+    if (
+      !plan.mapPresets.some(({ id }) => id === map.type) ||
+      map.type !== map.layout?.map ||
+      !Array.isArray(map.layout.positions)
+    )
       throw new Error("Invalid map layout.");
     const positionIds = new Set();
     for (const position of map.layout.positions) {
@@ -193,7 +211,11 @@ function validateDocument(plan) {
 }
 
 // Validate the shared team envelope while preserving fields owned by later editors.
-export function validatePlan(input, catalog = { assets: [] }, validateMaps = true) {
+export function validatePlan(
+  input,
+  catalog = { assets: [] },
+  validateMaps = true,
+) {
   if (!input || typeof input !== "object" || Array.isArray(input))
     throw new Error("Invalid team document.");
   const plan = migratePlan(input);
