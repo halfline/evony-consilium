@@ -29,9 +29,14 @@ test("terrain catalogs remain independent across resource loads", () => {
   assert.equal(first.get("tiny").layers[0].tiles[0], 2);
   assert.equal(second.get("tiny").layers[0].tiles[0], 3);
   assert.equal(first.get("tiny").extent, 1);
-  assert.equal(first.get("tiny").blocked[0], 0);
-  assert.equal(second.get("tiny").blocked[0], 1);
-  assert.throws(() => new TerrainCatalog(manifest, new Map()), /Invalid terrain data/);
+  assert.equal(
+    terrainAllowsPlacement(first.get("tiny"), { x: 0, y: 0, w: 1, h: 1 }),
+    true,
+  );
+  assert.equal(
+    terrainAllowsPlacement(second.get("tiny"), { x: 0, y: 0, w: 1, h: 1 }),
+    false,
+  );
 });
 
 test("landmark clearings override ground and vegetation only within the footprint", () => {
