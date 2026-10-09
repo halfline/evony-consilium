@@ -430,7 +430,7 @@ export function createPlanner(
     root: $("player-screen"),
     dialog: $("assign-subcity-dialog"),
     getPlan,
-    getPlayerId: () => players.selected()?.id,
+    getPlayerId: () => selection.id,
     types: () => catalog.subcityTypes || [],
     canEdit: () => !store.readOnly,
     commit: (plan) => store.commit(plan),
