@@ -68,6 +68,7 @@ import { formationHelp } from "./browser/formation-help.js";
 import { formationDemo } from "./browser/formation-demo.js";
 import { mapCoordinates } from "./browser/map-coordinates.js";
 import { mapResetView } from "./browser/map-reset-view.js";
+import { mapFit } from "./browser/map-fit.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -179,6 +180,7 @@ try {
   await formationDemo({ page, driveFiles });
   await mapCoordinates({ page });
   await mapResetView({ page, driveFiles });
+  await mapFit({ page });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
