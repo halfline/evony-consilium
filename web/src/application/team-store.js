@@ -61,4 +61,13 @@ export class TeamStore {
     change(next);
     return this.commit(next);
   }
+  get canUndo() {
+    return !this.readOnly && this.#history.length > 0;
+  }
+  undo() {
+    if (!this.canUndo) return false;
+    this.#plan = this.#history.pop();
+    this.emit("undo");
+    return true;
+  }
 }
