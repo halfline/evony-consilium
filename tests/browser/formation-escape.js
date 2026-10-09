@@ -1,0 +1,12 @@
+import assert from "node:assert/strict";
+
+export async function formationEscape({ page }) {
+  const row = page.locator("#formation-players button").first();
+  await row.click();
+  assert.match(await page.locator("#map-guide").textContent(), /Click a free map tile/);
+  await page.locator("#map").press("Escape");
+  assert.match(await page.locator("#map-guide").textContent(), /Choose an unplaced player/);
+  const box = await page.locator("#map").boundingBox();
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  assert.match(await row.textContent(), /Unplaced/);
+}
