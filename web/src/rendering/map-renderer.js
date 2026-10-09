@@ -182,6 +182,11 @@ export class MapRenderer {
       }
       c.stroke();
     }
+    c.strokeStyle = "#e1d2a255";
+    c.lineWidth = 1;
+    const extent = terrain?.extent ?? p.extent;
+    this.path({ x: 0, y: 0, w: extent, h: extent });
+    c.stroke();
     this.hits = [];
     const landmarks = terrain?.landmarks || [];
     const entities = [...landmarks, ...p.obstacles, ...p.structures, ...p.keeps]
