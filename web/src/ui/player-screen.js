@@ -5,6 +5,7 @@ import { renderAvatarButton } from "./avatar-browser.js";
 import { view } from "./dom.js";
 import { createPlayerBuffs } from "./player-buffs.js";
 import { createPlayerMarchSizes } from "./player-march-sizes.js";
+import { createPlayerMarches } from "./player-marches.js";
 import { numeric } from "./player-fields.js";
 
 // The first profile screen edits the linked player's identity fields.
@@ -23,6 +24,7 @@ export function createPlayerScreen({
   const $ = view(root);
   const buffs = createPlayerBuffs({ root });
   const marchSizes = createPlayerMarchSizes({ root });
+  const marches = createPlayerMarches({ root, getSizes: () => getPlayer()?.details?.marchSizes || {} });
   function showTab(tab) {
     for (const button of root.querySelectorAll("[data-player-tab]")) {
       const active = button.dataset.playerTab === tab;
@@ -37,6 +39,7 @@ export function createPlayerScreen({
   $("player-form").querySelector('[data-player-tab="buffs"]').hidden = false;
   $("player-form").querySelector('[data-player-tab="march-size"]').hidden = false;
   $("player-form").querySelector('[data-player-tab="rally-capacity"]').hidden = false;
+  $("player-form").querySelector('[data-player-tab="troops"]').hidden = false;
   async function saveProfile(id, changes, detailChanges = null) {
     if (!canEdit()) throw new Error("Unlock this player before editing.");
     let next = editPlayerProfile(getPlan(), id, changes);
@@ -58,6 +61,7 @@ export function createPlayerScreen({
       }, {
         ...buffs.read(),
         ...marchSizes.read(),
+        marches: marches.read(),
         rallyCapacity: numeric($("player-rally-capacity")),
       });
       status("Player saved.");
@@ -91,6 +95,7 @@ export function createPlayerScreen({
     $("player-remove").setAttribute("aria-label", `Remove ${player.name}`);
     buffs.render(player.details || {});
     marchSizes.render(player.details || {});
+    marches.render(player.details || {}, player.level);
     $("player-rally-capacity").value = player.details?.rallyCapacity ?? "";
     for (const [field, id] of Object.entries({
       name: "player-name",
