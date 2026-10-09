@@ -756,3 +756,22 @@
 @media (hover: hover) {
   .map-list-row:hover .map-forget { opacity: 1; pointer-events: auto; }
 }
+#formation-screen {
+  display: block;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+}
+#formation-screen .map-section { width: 100%; min-height: min(75vh, 900px); }
+#formation-screen .map-surface { position: relative; width: 100%; min-height: min(75vh, 900px); }
+#formation-screen #map { display: block; width: 100%; height: min(75vh, 900px); }
+#formation-screen .map-caption {
+  position: absolute;
+  top: 20px;
+  left: 24px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: #17261bcb;
+  pointer-events: none;
+}
+#formation-screen .map-caption h2 { margin: 2px 0 0; font-size: 18px; }
