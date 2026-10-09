@@ -18,5 +18,9 @@ export async function playerCastleAppearance({ page, driveFiles }) {
     await page.waitForTimeout(50);
   }
   assert.equal(playerFile.data.profile.skin, nextSkin);
+  for (let attempt = 0; attempt < 40; attempt++) {
+    if (/Europe/.test(await page.locator("#player-castle").getAttribute("aria-label"))) break;
+    await page.waitForTimeout(50);
+  }
   assert.match(await page.locator("#player-castle").getAttribute("aria-label"), /Europe/);
 }
