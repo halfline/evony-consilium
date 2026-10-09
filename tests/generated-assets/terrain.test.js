@@ -151,3 +151,28 @@ test("fixed building clearings replace trees with original dirt tiles", () => {
   );
 });
 
+
+test("whole-map view fits all server corners on screen", async () => {
+  const { MapRenderer } = await import(
+    "../../web/src/rendering/map-renderer.js"
+  );
+  const plan = createEmptyPlan();
+  const renderer = Object.assign(Object.create(MapRenderer.prototype), {
+    terrainFor: getTerrain,
+    width: 1000,
+    height: 800,
+    getPlan: () => plan,
+    draw() {},
+  });
+  renderer.fit(true);
+  for (const [x, y] of [
+    [0, 0],
+    [1200, 0],
+    [0, 1200],
+    [1200, 1200],
+  ]) {
+    const point = renderer.screen(x, y);
+    assert.ok(point.x >= 0 && point.x <= renderer.width);
+    assert.ok(point.y >= 0 && point.y <= renderer.height);
+  }
+});
