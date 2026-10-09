@@ -69,14 +69,13 @@ export function createPlacementInspector({
     $("placement-name").value = entity.name;
     $("placement-name").closest("label").hidden = "level" in entity;
     $("placement-name").disabled = "level" in entity || !canEdit();
+    const obstacle = getPlan().obstacles.some(({ id }) => id === entity.id);
     $("entity-kind").textContent = "level" in entity
-      ? "SELECTED KEEP" : "SELECTED TILE";
-    $("entity-location").textContent = entity.x === null
-      ? "Unplaced" : `X ${entity.x} · Y ${entity.y}`;
+      ? "SELECTED KEEP" : obstacle
+        ? "BLOCKED TILE" : "ALLIANCE / BATTLEFIELD TILE";
     $("entity-x").value = entity.x ?? "";
     $("entity-y").value = entity.y ?? "";
     $("entity-locked").checked = !!entity.locked;
-    const obstacle = getPlan().obstacles.some(({ id }) => id === entity.id);
     const structureAsset = assets.get(entity.skin);
     $("game-footprint").hidden = !structureAsset?.footprint ||
       (entity.w === structureAsset.footprint && entity.h === structureAsset.footprint);
