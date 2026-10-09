@@ -903,3 +903,18 @@
     height: auto;
   }
 }
+
+.player-detail-tabs {
+  margin: 0 0 28px;
+  padding: 0;
+  overflow-x: auto;
+}
+.player-detail-tabs button {
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .player-detail-tabs button {
+    padding: 12px;
+    font-size: 13px;
+  }
+}
