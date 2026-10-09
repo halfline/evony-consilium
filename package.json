@@ -1,0 +1,7 @@
+{
+  "name": "evony-consilium",
+  "private": true,
+  "devDependencies": {
+    "@pixi-spine/runtime-3.8": "^4.0.6"
+  }
+}
