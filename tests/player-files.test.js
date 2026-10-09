@@ -66,6 +66,15 @@ function fixture({ writable = true } = {}) {
     },
   };
 }
+test("creation requires central storage and retries reuse the created file", async () => {
+  const f = fixture();
+  await assert.rejects(f.files.create(f.player), /central team folder/);
+  const linked = await f.files.create(f.player, folder);
+  await f.files.create(f.player, folder);
+  assert.equal(f.calls.filter(([kind]) => kind === "create").length, 1);
+  assert.equal(f.calls[0][1].id, "central");
+  assert.equal(linked.playerSource.fileId, "source");
+});
 test("one user's Open player never grants another workspace access", async () => {
   const f = fixture();
   assert.equal(f.files.state(f.linked()).connected, false);
