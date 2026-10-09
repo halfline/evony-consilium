@@ -10,6 +10,7 @@ export function bindMapInteraction({
   undo = () => {},
   group = new Set(),
   groupChanged = () => {},
+  coordinates = () => {},
 }) {
   let pan = null;
   let drag = null;
@@ -103,6 +104,11 @@ export function bindMapInteraction({
     resetPending();
   };
   canvas.onpointermove = (event) => {
+    if (renderer.world) {
+      const pt = point(event);
+      const world = renderer.world(pt.x, pt.y);
+      coordinates({ x: Math.floor(world.x), y: Math.floor(world.y) });
+    }
     if (band) {
       const pt = point(event);
       const box = {

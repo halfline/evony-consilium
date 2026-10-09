@@ -205,6 +205,9 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     undo: () => store.undo(),
     openSubcity: (id) => subcities.open(id),
     openPlayer: (id) => players.open(id),
+    coordinates: ({ x, y }) => {
+      $("map-coordinates").textContent = `X: ${x} · Y: ${y}`;
+    },
   });
   function render() {
     $("plan-title").value = getPlan().title;
