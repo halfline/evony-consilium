@@ -153,6 +153,28 @@ test("identical remote content advances the base while preserving local edits", 
   assert.equal(sync.state().disabled, false);
 });
 
+test("Save retries a revision-only conflict after checking shared content", async () => {
+  const { sync, drive, edit } = fixture();
+  edit({ title: "My next edit" });
+  let uploads = 0;
+  drive.save = async (file) => {
+    uploads++;
+    if (uploads === 1)
+      throw Object.assign(new Error("Revision changed"), { status: 409 });
+    assert.equal(file.version, "2");
+    return { ...file, version: "3" };
+  };
+  drive.load = async (file) => ({
+    file: { ...file, version: "2" },
+    plan: { title: "Team" },
+  });
+  await sync.save();
+  assert.equal(uploads, 2);
+  assert.equal(sync.file.version, "3");
+  assert.equal(sync.state().disabled, true);
+  assert.equal(sync.remoteChanged, false);
+});
+
 test("a stale remote check does not prevent checks for the newly opened team", async () => {
   const { sync, drive } = fixture();
   let release;
