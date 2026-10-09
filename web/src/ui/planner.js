@@ -139,7 +139,11 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     onDraw: (state) => mapViewControls?.render(state),
   });
   renderer.selectedIds = selection.ids;
-  mapViewControls = bindMapViewControls({ root: $("formation-screen"), renderer });
+  mapViewControls = bindMapViewControls({
+    root: $("formation-screen"), renderer, getPlan,
+    selected: () => [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]
+      .find(({ id }) => id === selection.id),
+  });
   function selectKeep(id) {
     selection.select(id);
     renderer.selected = selection.id;
