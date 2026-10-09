@@ -61,7 +61,7 @@ export function bindMapInteraction({
       return;
     }
     const cityId = renderer.hitSubcity?.(pt.x, pt.y);
-    if (cityId && !getPending()) {
+    if (cityId && !getPending() && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
       openSubcity(cityId);
       return;
     }
