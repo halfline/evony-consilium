@@ -263,13 +263,13 @@
             required
           />
           <div class="team-stats">
-            <button id="team-players" class="team-stat" type="button">
+            <button id="team-players" hidden class="team-stat" type="button">
               <strong id="team-player-count">0</strong><span>Players</span>
             </button>
-            <button id="team-subcities" class="team-stat" type="button">
+            <button id="team-subcities" hidden class="team-stat" type="button">
               <strong id="team-subcity-count">0</strong><span>Subcities</span>
             </button>
-            <button id="team-maps" class="team-stat" type="button">
+            <button id="team-maps" hidden class="team-stat" type="button">
               <strong id="team-map-count">0</strong><span>Maps</span>
             </button>
           </div>
@@ -312,5 +312,6 @@
       </section>
     </div>
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+    <script type="module" src="app.js"></script>
   </body>
 </html>
