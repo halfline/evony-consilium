@@ -25,3 +25,18 @@ export function setRallySetter(plan, id) {
   next.rallyManual = true;
   return next;
 }
+
+export function ensureMapRallySetters(plan) {
+  ensureRallySetter(plan);
+  for (const map of plan.maps || []) {
+    const layout = {
+      keeps: plan.keeps,
+      rallyId: map.layout.rallyId,
+      rallyManual: map.layout.rallyManual,
+    };
+    ensureRallySetter(layout);
+    map.layout.rallyId = layout.rallyId;
+    map.layout.rallyManual = layout.rallyManual;
+  }
+  return plan;
+}
