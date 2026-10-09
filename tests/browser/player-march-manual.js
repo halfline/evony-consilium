@@ -4,7 +4,8 @@ export async function playerMarchManual({ page, driveFiles }) {
   await page.locator("#player-march-list .march-card").filter({ hasText: "Ground" }).click();
   assert.equal(await page.locator("#player-march-editor").isVisible(), true);
   await page.getByRole("spinbutton", { name: "T15 Ground" }).fill("1234567");
-  await page.getByRole("spinbutton", { name: "Mounted base count" }).fill("6789");
+  await page.locator("#player-troops details summary").click();
+  await page.getByRole("spinbutton", { name: "Mounted base count per tier" }).fill("6789");
   await page.locator("#player-march-name").fill("Ground lead");
   await page.locator("#player-form [type=submit]").click();
   const playerFile = [...driveFiles.values()].find(
