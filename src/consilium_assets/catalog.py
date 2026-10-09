@@ -3,6 +3,7 @@
 import re
 from pathlib import Path
 from consilium_assets.config_protobuf import rows, value
+from consilium_assets.culture_growth import CULTURE_GROWTH
 
 
 def apply_castle_upgrade_groups(catalog, config):
@@ -89,3 +90,31 @@ def apply_castle_categories(catalog, config, language):
             }
         )
         asset["categories"] = [categories[code]["id"] for code in codes]
+
+
+def apply_culture_growth(entries, config):
+    """Apply observed client growth rules, overridden by supplied config rows."""
+    ranges = CULTURE_GROWTH
+    growth = {}
+    art = config / "WorldMapArtResource.bytes"
+    for record in rows(art) if art.exists() else []:
+        if value(record, 1) != 1 or not value(record, 104):
+            continue
+        sprite = value(record, 104).lower().removesuffix(".png")
+        key = "map-" + sprite.rsplit("/map/", 1)[-1].replace("/", "-")
+        growth.setdefault(key, []).append(value(record, 3))
+    for asset in entries.values():
+        if not asset.get("culture"):
+            continue
+        bounds = next(
+            (item for item in ranges if item["spriteTier"] == asset["tier"]), None
+        )
+        if bounds:
+            asset.update(
+                minKeepLevel=bounds["minKeepLevel"],
+                maxKeepLevel=bounds["maxKeepLevel"],
+                footprint=2,
+            )
+    for key, levels in growth.items():
+        if key in entries:
+            entries[key].update(minKeepLevel=min(levels), maxKeepLevel=max(levels))
