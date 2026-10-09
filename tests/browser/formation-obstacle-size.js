@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 
 export async function formationObstacleSize({ page, driveFiles }) {
   await page.locator("#structure-list .players-row").last().click();
+  assert.equal(await page.locator("#entity-kind").textContent(), "BLOCKED TILE");
   assert.equal(await page.locator("#entity-w").isVisible(), true);
   await page.locator("#entity-w").fill("2");
   await page.locator("#entity-h").fill("3");
