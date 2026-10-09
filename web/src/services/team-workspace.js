@@ -7,6 +7,7 @@ import { createEmptyPlan } from "../domain/plan.js";
 import { parseDriveLink } from "../domain/drive-links.js";
 import { PlayerFiles } from "./player-files.js";
 import { PlayerProfiles } from "./player-profiles.js";
+import { PlayerCacheSync } from "./player-cache-sync.js";
 
 const teamFingerprint = (plan) =>
   JSON.stringify(plan, (_key, value) =>
@@ -40,8 +41,13 @@ export class TeamWorkspace {
   expiresIn() {
     return Math.max(0, this.session.expires - Date.now());
   }
-  checkRemote() {
-    return this.sync.checkRemote();
+  async checkRemote() {
+    await this.sync.checkRemote();
+    if (this.sync.canCheck()) await this.players.probe(this.getPlayer(), true);
+    await this.refreshPlayers();
+  }
+  refreshPlayers() {
+    return this.playerCache.refresh();
   }
   save() {
     return this.sync.save();
@@ -118,6 +124,15 @@ export class TeamWorkspace {
       validatePlan,
       isEditing: isEditingPlayer,
     });
+    this.playerCache = new PlayerCacheSync({
+      players: this.players,
+      profiles: this.profiles,
+      sync: this.sync,
+      getPlan,
+      isEditing: isEditingPlayer,
+      save: () => this.save(),
+      status,
+    });
   }
   key() {
     return this.account && this.project && this.sync.file
@@ -148,6 +163,7 @@ export class TeamWorkspace {
     this.session.clear();
     this.sync.reset();
     this.players.reset();
+    this.playerCache.reset();
     this.account = null;
     this.project = null;
   }
@@ -160,6 +176,7 @@ export class TeamWorkspace {
     if (this.account?.sub !== account.sub) {
       this.sync.reset();
       this.players.reset();
+      this.playerCache.reset();
       this.project = null;
     }
     this.account = account;
@@ -201,6 +218,7 @@ export class TeamWorkspace {
       discardDraft: discardDraft || readOnly,
     });
     this.players.reset();
+    this.playerCache.reset();
     this.openPlan(draft.plan);
     this.setReadOnly(readOnly);
     this.project = project;
