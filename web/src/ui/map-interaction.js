@@ -4,7 +4,7 @@ import { previewPlacementMove, movePlacements } from "../domain/placement-comman
 export function bindMapInteraction({
   canvas, renderer, getPlan, terrainFor = () => null,
   getPending, resetPending, canEdit = () => true,
-  mutate, commit, toast, select = () => {},
+  mutate, commit, toast, select = () => {}, openSubcity = () => {},
 }) {
   let pan = null;
   let drag = null;
@@ -15,6 +15,11 @@ export function bindMapInteraction({
   canvas.onpointerdown = (event) => {
     if (event.button !== 0) return;
     const pt = point(event);
+    const cityId = renderer.hitSubcity?.(pt.x, pt.y);
+    if (cityId && !getPending()) {
+      openSubcity(cityId);
+      return;
+    }
     if (!getPending()) {
       const id = renderer.hit(pt.x, pt.y);
       select(id);
