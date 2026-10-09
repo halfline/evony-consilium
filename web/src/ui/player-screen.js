@@ -23,6 +23,7 @@ export function createPlayerScreen({
   remove,
   canEdit,
   status,
+  applied,
 }) {
   const $ = view(root);
   const details = createPlayerDetails({ root, getPlayer });
@@ -36,7 +37,8 @@ export function createPlayerScreen({
     let next = editPlayerProfile(getPlan(), id, changes);
     if (detailChanges) next = editPlayerDetails(next, id, detailChanges);
     validatePlan(next, catalog);
-    await commit(next.keeps.find((player) => player.id === id));
+    await commit(next);
+    applied(next.keeps.find((player) => player.id === id));
     render();
   }
   $("player-form").onsubmit = async (event) => {
@@ -50,7 +52,6 @@ export function createPlayerScreen({
         allianceTag: $("player-tag").value.trim(),
         level: Number($("player-level").value),
       }, details.read());
-      status("Player saved.");
     } catch (error) {
       status(error.message, true);
     }
@@ -76,7 +77,7 @@ export function createPlayerScreen({
           getPlan(), id, asset, terrainFor(getPlan().map),
         );
         validatePlan(next, catalog);
-        await commit(next.keeps.find((item) => item.id === id));
+        await commit(next);
         render();
       } catch (error) {
         status(error.message, true);

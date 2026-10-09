@@ -76,11 +76,20 @@ export function createPlayerWorkflow({
     browseAvatar: avatars.open,
     browseCastle,
     canEdit: () => !!getWorkspace()?.players.state(cachedPlayer()).canEdit,
-    commit: async (player) => {
-      await getWorkspace().profiles.save(player, fileControls.resolve);
+    commit: async (next) => {
+      const player = next.keeps.find((item) => item.id === selectedId);
+      roots.profile.setAttribute("aria-busy", "true");
+      try {
+        await getWorkspace().profiles.save(player, fileControls.resolve);
+        status("Player saved.");
+        list.render();
+        refreshAccess();
+      } finally {
+        roots.profile.setAttribute("aria-busy", "false");
+      }
+    },
+    applied: (player) => {
       lastTag = player.allianceTag;
-      list.render();
-      refreshAccess();
     },
     unlock: (id) => getWorkspace().profiles.unlock(id),
     remove: (id) => {
