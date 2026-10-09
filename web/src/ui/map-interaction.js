@@ -22,6 +22,7 @@ export function bindMapInteraction({
         canvas.releasePointerCapture(state.pointerId);
     pan = drag = band = blocked = null;
     renderer.preview = renderer.previews = renderer.selectionBox = null;
+    if (canvas.style) canvas.style.cursor = "default";
     renderer.draw();
   }
   const point = (event) => {
@@ -167,6 +168,7 @@ export function bindMapInteraction({
         getPlan(), drag.members, dx, dy, terrainFor(getPlan().map));
       renderer.previews = preview.positions.map((item) => ({ ...item, valid: preview.valid }));
       renderer.preview = renderer.previews.find((item) => item.id === drag.entity.id);
+      if (canvas.style) canvas.style.cursor = "grabbing";
       renderer.draw();
       return;
     }
@@ -174,6 +176,7 @@ export function bindMapInteraction({
     const pt = point(event);
     renderer.camera.x = pan.camera.x - (pt.x - pan.pt.x) / pan.camera.zoom;
     renderer.camera.y = pan.camera.y - (pt.y - pan.pt.y) / pan.camera.zoom;
+    if (canvas.style) canvas.style.cursor = "grabbing";
     renderer.draw();
   };
   const endPan = (event, canceled = false) => {
@@ -182,6 +185,7 @@ export function bindMapInteraction({
         toast("Unlock this position before moving it.");
       if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
       blocked = null;
+      if (canvas.style) canvas.style.cursor = "default";
       return;
     }
     if (band) {
@@ -213,12 +217,14 @@ export function bindMapInteraction({
       drag = null;
       renderer.preview = null;
       renderer.previews = null;
+      if (canvas.style) canvas.style.cursor = "default";
       renderer.draw();
       return;
     }
     if (pan?.pointerId === event.pointerId && canvas.hasPointerCapture(event.pointerId))
       canvas.releasePointerCapture(event.pointerId);
     pan = null;
+    if (canvas.style) canvas.style.cursor = "default";
   };
   canvas.onpointerup = (event) => endPan(event);
   canvas.onpointercancel = () => cancel();
