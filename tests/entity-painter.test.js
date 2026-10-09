@@ -88,6 +88,21 @@ test("offscreen sprites leave no draw call or hit region", () => {
   assert.equal(view.hits[0].id, "near");
 });
 
+test("an image still loading paints a selectable castle marker", () => {
+  const texts = [];
+  const view = {
+    ctx: { fillText: (...args) => texts.push(args) },
+    screen: (x, y) => ({ x, y }),
+    assets: new Map([["castle", { src: "castle.webp", width: 100, height: 80 }]]),
+    image: () => null, hits: [],
+  };
+  const plan = { grid: { ax: 48, ay: 24, bx: -48, by: 24 }, labels: false };
+  drawEntity(view, { id: "keep", skin: "castle", x: 10, y: 20, w: 2, h: 2 }, plan, 1);
+  assert.deepEqual(texts, [["♜", 11, 21]]);
+  assert.equal(view.ctx.fillStyle, "#d1ba7c");
+  assert.equal(view.hits[0].id, "keep");
+});
+
 test("entity labels follow the map preference and mark the rally keep", () => {
   const labels = [];
   const plates = [];
