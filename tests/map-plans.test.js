@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createEmptyPlan } from "../web/src/domain/plan.js";
 import { MAPS, MAP_ICONS } from "../web/src/domain/maps.js";
 import { createLayout } from "../web/src/domain/layout.js";
-import { syncMapLayouts, defaultFormationName } from "../web/src/domain/map-plans.js";
+import { syncMapLayouts, defaultFormationName, createMapPlan } from "../web/src/domain/map-plans.js";
 
 test("new teams expose verified named map choices and a blank canvas", () => {
   const plan = createEmptyPlan();
@@ -13,6 +13,18 @@ test("new teams expose verified named map choices and a blank canvas", () => {
   assert.equal(plan.mapPresets.find(({ id }) => id === "blank").verified, false);
   assert.equal(plan.mapPresets.find(({ id }) => id === "server").verified, true);
   assert.ok(MAP_ICONS.server.endsWith("server.webp"));
+});
+
+test("creating a map opens an independent layout and checks type and name", () => {
+  const plan = createEmptyPlan();
+  const next = createMapPlan(plan, "server", "  First hive  ");
+  assert.equal(next.maps[0].name, "First hive");
+  assert.equal(next.maps[0].type, "server");
+  assert.equal(next.activeMapId, next.maps[0].id);
+  assert.equal(next.map, "server");
+  assert.deepEqual(plan.maps, []);
+  assert.throws(() => createMapPlan(plan, "unknown", "Map"), /map type/);
+  assert.throws(() => createMapPlan(plan, "server", " "), /formation name/);
 });
 
 test("map synchronization records active placements and drops removed players", () => {
