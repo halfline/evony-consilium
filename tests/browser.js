@@ -44,6 +44,7 @@ import { formationDelete } from "./browser/formation-delete.js";
 import { formationDragOff } from "./browser/formation-drag-off.js";
 import { formationEscape } from "./browser/formation-escape.js";
 import { formationUndo } from "./browser/formation-undo.js";
+import { formationNudge } from "./browser/formation-nudge.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -131,10 +132,11 @@ try {
   await formationDragOff({ page, driveFiles });
   await formationEscape({ page });
   await formationUndo({ page });
+  await formationNudge({ page, driveFiles });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
-    "Browser checks passed: team entry, linked players, subcities, maps, terrain, drag, Delete, drag-off, Escape, and undo.",
+    "Browser checks passed: team entry, linked players, subcities, maps, terrain, drag, Delete, Escape, undo, and arrow nudge.",
   );
 } catch (error) {
   console.error(
