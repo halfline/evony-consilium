@@ -91,3 +91,28 @@ test("fit frames placed formation more closely than the whole map", () => {
     globalThis.devicePixelRatio = previousDpr;
   }
 });
+
+test("turning off the grid removes map grid strokes", () => {
+  const previousObserver = globalThis.ResizeObserver;
+  const previousDpr = globalThis.devicePixelRatio;
+  globalThis.ResizeObserver = class { observe() {} };
+  globalThis.devicePixelRatio = 1;
+  try {
+    let strokes = 0;
+    const ctx = new Proxy({}, { get: (_target, key) => key === "stroke"
+      ? () => { strokes++; } : () => {} });
+    const canvas = { parentElement: {}, getContext: () => ctx,
+      getBoundingClientRect: () => ({ width: 800, height: 600 }) };
+    const plan = createEmptyPlan();
+    const renderer = new MapRenderer(canvas, () => plan);
+    renderer.resize();
+    assert.ok(strokes > 0);
+    const before = strokes;
+    plan.showGrid = false;
+    renderer.draw();
+    assert.equal(strokes, before);
+  } finally {
+    globalThis.ResizeObserver = previousObserver;
+    globalThis.devicePixelRatio = previousDpr;
+  }
+});
