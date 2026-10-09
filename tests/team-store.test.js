@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { TeamStore } from "../web/src/application/team-store.js";
 import { createEmptyPlan } from "../web/src/domain/plan.js";
-import { createMapPlan } from "../web/src/domain/map-plans.js";
+import { createMapPlan, selectMapPlan } from "../web/src/domain/map-plans.js";
 import { setRallySetter } from "../web/src/domain/rally.js";
 import { catalog } from "./fixtures/catalog.js";
 
@@ -142,4 +142,41 @@ test("opening a map emits navigation without adding an Undo step", () => {
   assert.equal(store.canUndo, true);
   assert.equal(store.undo(), true);
   assert.equal(store.plan.maps.length, 1);
+});
+
+
+test("map navigation does not enter undo history but layout edits do", () => {
+  let plan = createMapPlan(createEmptyPlan(), "server", "Hive");
+  const first = plan.activeMapId;
+  plan = createMapPlan(plan, "bog", "Rally");
+  const store = new TeamStore();
+  store.replace(plan);
+  assert.equal(store.commit(selectMapPlan(store.plan, first)), false);
+  assert.equal(store.canUndo, false);
+
+  store.openMap(first);
+  assert.equal(store.canUndo, false);
+  assert.equal(store.mutate((next) => { next.spacing = 5; }), true);
+  assert.equal(store.canUndo, true);
+  assert.equal(store.undo(), true);
+  assert.equal(store.canUndo, false);
+
+  assert.equal(store.mutate((next) => {
+    next.maps.find(({ id }) => id !== first).layout.spacing = 7;
+  }), true);
+  assert.equal(store.canUndo, true);
+});
+
+test("locking an unplaced keep is a saved edit", () => {
+  let plan = createEmptyPlan();
+  plan.keeps = [{
+    id: "one", name: "One", level: 40, skin: "placeholder",
+    x: null, y: null, w: 2, h: 2, locked: false,
+  }];
+  plan = createMapPlan(plan, "blank", "Formation");
+  const store = new TeamStore();
+  assert.equal(store.commit(plan), true);
+  assert.equal(store.mutate((next) => { next.keeps[0].locked = true; }), true);
+  assert.equal(store.plan.keeps[0].locked, true);
+  assert.equal(store.canUndo, true);
 });
