@@ -98,6 +98,27 @@ function validatePlacement(plan) {
         throw new Error("Overlapping tiles in imported plan.");
 }
 
+function validateBackgrounds(plan) {
+  if (
+    !plan.backgrounds ||
+    typeof plan.backgrounds !== "object" ||
+    Array.isArray(plan.backgrounds)
+  )
+    throw new Error("Invalid backgrounds.");
+  for (const background of Object.values(plan.backgrounds)) {
+    string(background.src, 12000000, "background image");
+    if (!/^data:image\/(png|jpeg|webp);base64,/.test(background.src))
+      throw new Error("Invalid background image.");
+    number(background.x, 0, plan.extent, "background X");
+    number(background.y, 0, plan.extent, "background Y");
+    number(background.width, 1, 20000, "background width", false);
+    number(background.height, 1, 20000, "background height", false);
+    number(background.opacity, 0, 1, "background opacity", false);
+  }
+  plan.labels = Boolean(plan.labels);
+  plan.showGrid = Boolean(plan.showGrid);
+}
+
 function validateMapCollection(plan) {
   if (plan.maps === undefined) {
     const id = crypto.randomUUID();
@@ -171,6 +192,7 @@ export function validatePlan(input, catalog = { assets: [] }) {
   validateCustomAssets(plan);
   validateEntities(plan, catalog);
   validatePlacement(plan);
+  validateBackgrounds(plan);
   delete plan.allianceTag;
   plan.subcities ||= [];
   validateSubcities(plan.subcities, catalog.subcityTypes || null, plan.keeps);
