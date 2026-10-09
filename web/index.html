@@ -71,6 +71,17 @@
             aria-label="Team workflow"
           >
             <button
+              id="project-tab-teams"
+              type="button"
+              role="tab"
+              aria-selected="false"
+              aria-controls="project-panel-teams"
+              tabindex="-1"
+              hidden
+            >
+              Your teams
+            </button>
+            <button
               id="project-tab-open"
               type="button"
               role="tab"
@@ -91,6 +102,14 @@
               Create team
             </button>
           </div>
+          <section
+            id="project-panel-teams"
+            role="tabpanel"
+            aria-labelledby="project-tab-teams"
+            hidden
+          >
+            <div id="project-list" class="project-list" hidden></div>
+          </section>
           <section
             id="project-panel-open"
             role="tabpanel"

@@ -31,6 +31,99 @@
 .entry-card .entry-error {
   color: #ffb6a3;
 }
+.project-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 24px 18px;
+}
+.project-row {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.project-row button:first-child {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 12px 8px;
+  border-color: transparent;
+  background: transparent;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.team-portrait {
+  display: grid;
+  place-items: center;
+  width: 128px;
+  height: 128px;
+  padding: 6px;
+  overflow: hidden;
+  border-radius: 28%;
+  border: 1px solid #cbb47760;
+  background: linear-gradient(145deg, #344739, #17261d);
+  box-shadow: 0 8px 20px #0003;
+  transition:
+    border-color 150ms,
+    transform 150ms;
+}
+.project-row button:first-child:hover .team-portrait {
+  border-color: var(--gold);
+  transform: translateY(-2px);
+}
+.team-caption {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+}
+.team-caption > span:last-child {
+  color: var(--gold);
+}
+.team-initials {
+  color: var(--gold);
+  font-size: 32px;
+  letter-spacing: 2px;
+}
+.team-forget {
+  position: absolute;
+  top: 6px;
+  right: calc(50% - 70px);
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: #28392e;
+  color: var(--muted);
+  font-size: 19px;
+  line-height: 1;
+  box-shadow: 0 2px 6px #0004;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms;
+}
+.team-forget:hover {
+  color: var(--gold);
+  border-color: var(--gold);
+}
+.team-actions-open .team-forget,
+.project-row:focus-within .team-forget {
+  opacity: 1;
+  pointer-events: auto;
+}
+@media (hover: hover) {
+  .project-row:hover .team-forget {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
 .project-tabs {
   padding: 0;
   margin-top: 24px;
@@ -212,6 +305,9 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+#project-panel-teams {
+  padding-top: 24px;
 }
 #project-panel-create {
   min-height: clamp(360px, calc(100dvh - 340px), 640px);
