@@ -19,6 +19,10 @@ export async function playerRoster({ page, driveFiles }) {
   assert.equal(await page.locator("#player-title").textContent(), "First player");
   await page.locator('[data-screen="players"]').click();
   assert.equal(await page.locator("#players .player-card").count(), 1);
+  assert.equal(
+    await page.locator("#players").evaluate((list) => getComputedStyle(list).display),
+    "flex",
+  );
   assert.match(await page.locator("#players").textContent(), /First player/);
   const playerFiles = [...driveFiles.values()].filter(
     ({ data }) => data?.format === "evony-consilium-player",

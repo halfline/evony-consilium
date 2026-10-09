@@ -12,6 +12,10 @@ export async function mapList({ page, driveFiles }) {
   assert.equal(await page.locator("#map-kicker").textContent(), "Alliance hive");
   await page.locator('[data-screen="maps"]').click();
   assert.equal(await page.locator("#maps-list .map-row").count(), 1);
+  assert.equal(
+    await page.locator("#maps-list").evaluate((list) => getComputedStyle(list).display),
+    "flex",
+  );
   assert.deepEqual(
     await page.locator("#maps-list .map-caption").first().evaluate((caption) => ({
       position: getComputedStyle(caption).position,
