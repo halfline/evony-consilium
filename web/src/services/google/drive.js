@@ -132,6 +132,30 @@ export class Drive {
       folder,
     );
   }
+  async savePlayer(file, profile) {
+    const current = await this.metadata(file);
+    if (!current.capabilities?.canEdit)
+      throw new DriveError(
+        "You have view-only access to this player file.",
+        403,
+      );
+    if (current.version !== file.version)
+      throw new DriveError(
+        "This player file changed. Open it again before saving.",
+        409,
+      );
+    const saved = await this.request(
+      `https://www.googleapis.com/upload/drive/v3/files/${file.id}?uploadType=media&supportsAllDrives=true&fields=${FIELDS}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(playerDocument(profile)),
+        headers: { "Content-Type": "application/json" },
+        resource: file,
+      },
+    );
+    saved.resourceKey ||= file.resourceKey || "";
+    return saved;
+  }
   async createJSON(name, data, folder = null) {
     const metadata = {
       name,
