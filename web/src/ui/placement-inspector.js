@@ -16,6 +16,7 @@ export function createPlacementInspector({
       const next = structuredClone(getPlan());
       const target = [...next.keeps, ...next.structures, ...next.obstacles]
         .find(({ id }) => id === entity.id);
+      target.locked = $("entity-locked").checked;
       const x = $("entity-x").value, y = $("entity-y").value;
       if ((x === "") !== (y === ""))
         throw new Error("Enter both X and Y, or leave both blank.");
@@ -40,6 +41,7 @@ export function createPlacementInspector({
       ? "Unplaced" : `X ${entity.x} · Y ${entity.y}`;
     $("entity-x").value = entity.x ?? "";
     $("entity-y").value = entity.y ?? "";
+    $("entity-locked").checked = !!entity.locked;
     for (const input of $("entity-form").querySelectorAll("input,button"))
       input.disabled = !canEdit();
   }
