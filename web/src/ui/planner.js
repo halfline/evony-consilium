@@ -9,13 +9,14 @@ import { $ } from "./dom.js";
 import { createCatalogBrowser } from "./catalog-browser.js";
 import { createPlayerWorkflow } from "./player-workflow.js";
 import { createSubcitiesScreen } from "./subcities-screen.js";
+import { createPlayerSubcities } from "./player-subcities.js";
 import { removePlayer } from "../domain/players.js";
 
 export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
   const store = new TeamStore(catalog);
   const toast = createNotifier($("toast"));
   const getPlan = () => store.plan;
-  let workspace, entry, players;
+  let workspace, entry, players, playerSubcities;
   let screen = "project";
   const access = createReadOnlyView(
     $("planner"),
@@ -46,6 +47,7 @@ export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
     $("subcities-search-control").hidden = screen !== "subcities";
     if (screen === "players") players.renderList();
     if (screen === "player") players.renderProfile();
+    if (screen === "player") playerSubcities?.render();
     if (screen === "subcities") subcities.render();
   }
   const team = createTeamScreen({
@@ -80,6 +82,7 @@ export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
     subcities.render();
     players?.renderList();
     if (screen === "player") players?.renderProfile();
+    if (screen === "player") playerSubcities?.render();
     access.render();
   }
   store.subscribe(({ kind }) => {
@@ -144,6 +147,20 @@ export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
     navigate: showScreen,
     refreshAccess: () => access.render(),
   });
+  playerSubcities = createPlayerSubcities({
+    root: $("player-screen"),
+    dialog: $("assign-subcity-dialog"),
+    getPlan,
+    getPlayerId: () => players.selected()?.id,
+    types: () => catalog.subcityTypes || [],
+    canEdit: () => !store.readOnly,
+    commit: (plan) => store.commit(plan),
+    openSubcity: subcities.open,
+    addSubcity: subcities.add,
+    context: () => workspace?.key(),
+    status: toast,
+  });
+  $("player-form").querySelector('[data-player-tab="subcities"]').hidden = false;
   entry = new TeamEntry({
     header: $("planner").querySelector(".topbar"),
     root: $("entry"),
