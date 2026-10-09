@@ -345,3 +345,29 @@ test("dispose releases capture and removes every map listener", () => {
     "onpointercancel", "onwheel", "onkeydown"])
     assert.equal(canvas[name], null, name);
 });
+
+test("dragging a group off canvas unplaces all members", () => {
+  let plan = createEmptyPlan();
+  plan.keeps.push(
+    { id: "a", x: 10, y: 10, w: 2, h: 2, locked: false },
+    { id: "b", x: 20, y: 20, w: 2, h: 2, locked: false },
+  );
+  const captures = new Set(), group = new Set(["a", "b"]);
+  const canvas = {
+    getBoundingClientRect: () => ({ left: 0, top: 0, right: 100, bottom: 100 }),
+    setPointerCapture: (id) => captures.add(id),
+    hasPointerCapture: (id) => captures.has(id),
+    releasePointerCapture: (id) => captures.delete(id),
+  };
+  const renderer = { hit: () => "a", world: (x, y) => ({ x, y }), draw() {} };
+  bindMapInteraction({
+    canvas, renderer, group, getPlan: () => plan, getPending: () => null,
+    commit: (next) => { plan = next; },
+  });
+  canvas.onpointerdown({ button: 0, pointerId: 9, clientX: 10, clientY: 10 });
+  canvas.onpointermove({ pointerId: 9, clientX: 110, clientY: 10 });
+  canvas.onpointerup({ pointerId: 9, clientX: 110, clientY: 10 });
+  assert.deepEqual(plan.keeps.map(({ x, y }) => [x, y]), [[null, null], [null, null]]);
+  assert.equal(group.size, 0);
+  assert.equal(captures.size, 0);
+});
