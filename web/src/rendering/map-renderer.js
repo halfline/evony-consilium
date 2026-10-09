@@ -133,13 +133,14 @@ export class MapRenderer {
     c.fillStyle = map?.color || "#647947";
     c.fillRect(0, 0, this.width, this.height);
     const terrain = this.terrainFor(p.map);
+    const extent = terrain?.extent ?? p.extent;
+    const corners = [[0, 0], [this.width, 0], [0, this.height], [this.width, this.height]]
+      .map(([x, y]) => this.world(x, y));
+    const minX = Math.max(0, Math.floor(Math.min(...corners.map(({ x }) => x))) - 2);
+    const maxX = Math.min(extent, Math.ceil(Math.max(...corners.map(({ x }) => x))) + 2);
+    const minY = Math.max(0, Math.floor(Math.min(...corners.map(({ y }) => y))) - 2);
+    const maxY = Math.min(extent, Math.ceil(Math.max(...corners.map(({ y }) => y))) + 2);
     if (terrain) {
-      const corners = [[0, 0], [this.width, 0], [0, this.height], [this.width, this.height]]
-        .map(([x, y]) => this.world(x, y));
-      const minX = Math.max(0, Math.floor(Math.min(...corners.map(({ x }) => x))));
-      const maxX = Math.min(terrain.extent, Math.ceil(Math.max(...corners.map(({ x }) => x))));
-      const minY = Math.max(0, Math.floor(Math.min(...corners.map(({ y }) => y))));
-      const maxY = Math.min(terrain.extent, Math.ceil(Math.max(...corners.map(({ y }) => y))));
       c.save();
       c.translate(this.width / 2 - this.camera.x * this.camera.zoom,
         this.height / 2 - this.camera.y * this.camera.zoom);
@@ -162,12 +163,6 @@ export class MapRenderer {
       }
     }
     if (p.showGrid) {
-      const corners = [[0, 0], [this.width, 0], [0, this.height], [this.width, this.height]]
-        .map(([x, y]) => this.world(x, y));
-      const minX = Math.max(0, Math.floor(Math.min(...corners.map(({ x }) => x))));
-      const maxX = Math.min(p.extent, Math.ceil(Math.max(...corners.map(({ x }) => x))));
-      const minY = Math.max(0, Math.floor(Math.min(...corners.map(({ y }) => y))));
-      const maxY = Math.min(p.extent, Math.ceil(Math.max(...corners.map(({ y }) => y))));
       const stride = this.camera.zoom < 0.25 ? 10 : 1;
       c.strokeStyle = "#17261b35";
       c.lineWidth = 0.6;
@@ -184,7 +179,6 @@ export class MapRenderer {
     }
     c.strokeStyle = "#e1d2a255";
     c.lineWidth = 1;
-    const extent = terrain?.extent ?? p.extent;
     this.path({ x: 0, y: 0, w: extent, h: extent });
     c.stroke();
     this.hits = [];
