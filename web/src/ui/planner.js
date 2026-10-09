@@ -157,6 +157,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     commit: (plan) => store.commit(plan), toast,
     select: selectKeep,
     getSelection: () => selectedKeep,
+    undo: () => store.undo(),
     openSubcity: (id) => subcities.open(id),
     openPlayer: (id) => players.open(id),
   });

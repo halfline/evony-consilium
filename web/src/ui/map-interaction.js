@@ -7,6 +7,7 @@ export function bindMapInteraction({
   mutate, commit, toast, select = () => {}, openSubcity = () => {},
   openPlayer = () => {},
   getSelection = () => null,
+  undo = () => {},
 }) {
   let pan = null;
   let drag = null;
@@ -109,6 +110,11 @@ export function bindMapInteraction({
     renderer.zoom(Math.exp(-event.deltaY * 0.001), pt.x, pt.y);
   };
   canvas.onkeydown = (event) => {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z") {
+      event.preventDefault();
+      undo();
+      return;
+    }
     if (event.key === "Escape") {
       event.preventDefault();
       resetPending();
