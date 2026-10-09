@@ -33,3 +33,11 @@ export function createMapPlan(plan, type, name, terrain = null) {
   applyLayout(next, layout);
   return syncMapLayouts(next);
 }
+export function selectMapPlan(plan, id) {
+  const next = syncMapLayouts(copy(plan));
+  const map = next.maps.find((item) => item.id === id);
+  if (!map) throw new Error("Map not found.");
+  next.activeMapId = id;
+  applyLayout(next, map.layout);
+  return next;
+}
