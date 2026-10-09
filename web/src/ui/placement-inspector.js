@@ -16,6 +16,10 @@ export function createPlacementInspector({
       const next = structuredClone(getPlan());
       const target = [...next.keeps, ...next.structures, ...next.obstacles]
         .find(({ id }) => id === entity.id);
+      if (next.obstacles.some(({ id }) => id === target.id)) {
+        target.w = Number($("entity-w").value);
+        target.h = Number($("entity-h").value);
+      }
       target.locked = $("entity-locked").checked;
       const x = $("entity-x").value, y = $("entity-y").value;
       if ((x === "") !== (y === ""))
@@ -42,8 +46,15 @@ export function createPlacementInspector({
     $("entity-x").value = entity.x ?? "";
     $("entity-y").value = entity.y ?? "";
     $("entity-locked").checked = !!entity.locked;
+    const obstacle = getPlan().obstacles.some(({ id }) => id === entity.id);
+    for (const key of ["w", "h"]) {
+      const input = $("entity-" + key);
+      input.value = entity[key];
+      input.closest("label").hidden = !obstacle;
+      input.disabled = !obstacle || !canEdit();
+    }
     for (const input of $("entity-form").querySelectorAll("input,button"))
-      input.disabled = !canEdit();
+      if (!input.matches("#entity-w, #entity-h")) input.disabled = !canEdit();
   }
   return { render };
 }
