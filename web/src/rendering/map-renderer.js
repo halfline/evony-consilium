@@ -87,20 +87,32 @@ export class MapRenderer {
     this.camera.y -= delta.y;
     this.draw();
   }
-  fit() {
+  fit(whole = false) {
     const p = this.getPlan();
-    const extent = p.extent;
-    const points = [[0, 0], [extent, 0], [0, extent], [extent, extent]]
+    const extent = this.terrainFor(p.map)?.extent ?? p.extent;
+    const placed = [...p.keeps, ...p.structures, ...p.obstacles]
+      .filter((entity) => entity.x !== null);
+    let points;
+    if (whole) points = [[0, 0], [extent, 0], [0, extent], [extent, extent]]
       .map(([x, y]) => project(x, y, p.grid));
+    else if (placed.length) points = placed.flatMap((entity) => [
+      [entity.x, entity.y], [entity.x + entity.w, entity.y],
+      [entity.x, entity.y + entity.h], [entity.x + entity.w, entity.y + entity.h],
+    ].map(([x, y]) => project(x, y, p.grid)));
+    else {
+      this.camera.zoom = 1;
+      this.center(p.center.x, p.center.y);
+      return;
+    }
     const xs = points.map(({ x }) => x), ys = points.map(({ y }) => y);
     const minX = Math.min(...xs), maxX = Math.max(...xs);
     const minY = Math.min(...ys), maxY = Math.max(...ys);
     this.camera = {
       x: (minX + maxX) / 2,
-      y: (minY + maxY) / 2,
+      y: (minY + maxY) / 2 - 30,
       zoom: Math.max(0.002, Math.min(1.1,
-        (this.width - 80) / (maxX - minX + 80),
-        (this.height - 80) / (maxY - minY + 80))),
+        (this.width - 130) / (maxX - minX + 180),
+        (this.height - 220) / (maxY - minY + 180))),
     };
     this.draw();
   }
