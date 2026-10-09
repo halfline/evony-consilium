@@ -1,4 +1,4 @@
-import { number } from "./constraints.js";
+import { number, string } from "./constraints.js";
 import {
   TROOP_TYPES,
   BUFF_CONTEXTS,
@@ -39,6 +39,24 @@ function validateMarchSizes(sizes) {
   for (const type of TROOP_TYPES)
     optionalNumber(sizes[type], Number.MAX_SAFE_INTEGER, "march size");
 }
+function validateSubcities(cities) {
+  if (!Array.isArray(cities) || cities.length > 50)
+    throw new Error("Maximum 50 subcities per player.");
+  const ids = new Set();
+  for (const city of cities) {
+    if (!city || typeof city !== "object") throw new Error("Invalid subcity.");
+    string(city.id, 120, "subcity ID");
+    if (!city.id || ids.has(city.id))
+      throw new Error("Invalid or duplicate subcity ID.");
+    ids.add(city.id);
+    for (const key of ["name", "culture", "quality", "mayor"])
+      if (city[key] !== undefined) string(city[key], 100, `subcity ${key}`);
+    for (const key of ["level", "server", "x", "y"])
+      optionalNumber(city[key], 1000000, `subcity ${key}`);
+    if ((city.x == null) !== (city.y == null))
+      throw new Error("Enter both subcity coordinates, or leave both blank.");
+  }
+}
 export function validatePlayerDetails(details) {
   if (!details || typeof details !== "object" || Array.isArray(details))
     throw new Error("Invalid player details.");
@@ -49,5 +67,6 @@ export function validatePlayerDetails(details) {
   if (details.marchSizes !== undefined) validateMarchSizes(details.marchSizes);
   if (details.marches !== undefined) validateMarches(details.marches);
   if (details.troops !== undefined) validateTroops(details.troops);
+  if (details.subcities !== undefined) validateSubcities(details.subcities);
   return details;
 }
