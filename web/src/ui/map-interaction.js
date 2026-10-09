@@ -48,4 +48,9 @@ export function bindMapInteraction({
   };
   canvas.onpointerup = endPan;
   canvas.onpointercancel = endPan;
+  canvas.onwheel = (event) => {
+    event.preventDefault();
+    const pt = point(event);
+    renderer.zoom(Math.exp(-event.deltaY * 0.001), pt.x, pt.y);
+  };
 }
