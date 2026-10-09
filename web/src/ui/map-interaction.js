@@ -16,12 +16,11 @@ export function bindMapInteraction({
 }) {
   let drag = null;
   let band = null;
-  let blocked = null;
   function cancel() {
-    for (const state of [drag, band, blocked])
+    for (const state of [drag, band])
       if (state?.pointerId !== undefined && canvas.hasPointerCapture(state.pointerId))
         canvas.releasePointerCapture(state.pointerId);
-    drag = band = blocked = null;
+    drag = band = null;
     renderer.preview = renderer.previews = renderer.selectionBox = null;
     if (canvas.style) canvas.style.cursor = "default";
     renderer.draw();
@@ -102,7 +101,7 @@ export function bindMapInteraction({
         const entity = entities()
           .find((item) => item.id === id);
         if (canEdit() && entity?.locked) {
-          blocked = { pt, pointerId: event.pointerId, moved: false };
+          drag = { pt, pointerId: event.pointerId, blocked: true, moved: false };
           canvas.setPointerCapture(event.pointerId);
           return;
         }
@@ -145,9 +144,9 @@ export function bindMapInteraction({
       }
       return;
     }
-    if (blocked) {
+    if (drag?.blocked) {
       const pt = point(event);
-      blocked.moved ||= Math.hypot(pt.x - blocked.pt.x, pt.y - blocked.pt.y) > 4;
+      drag.moved ||= Math.hypot(pt.x - drag.pt.x, pt.y - drag.pt.y) > 4;
       return;
     }
     if (band) {
@@ -169,7 +168,7 @@ export function bindMapInteraction({
       renderer.draw();
       return;
     }
-    if (drag && !drag.pan) {
+    if (drag && !drag.pan && !drag.blocked) {
       const pt = point(event);
       const start = renderer.world(drag.pt.x, drag.pt.y);
       const end = renderer.world(pt.x, pt.y);
@@ -191,11 +190,11 @@ export function bindMapInteraction({
     renderer.draw();
   };
   const endPan = (event, canceled = false) => {
-    if (blocked) {
-      if (!canceled && blocked.moved)
+    if (drag?.blocked) {
+      if (!canceled && drag.moved)
         toast("Unlock this position before moving it.");
       if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
-      blocked = null;
+      drag = null;
       if (canvas.style) canvas.style.cursor = "default";
       return;
     }
@@ -206,7 +205,7 @@ export function bindMapInteraction({
       renderer.draw();
       return;
     }
-    if (drag && !drag.pan) {
+    if (drag && !drag.pan && !drag.blocked) {
       const box = canvas.getBoundingClientRect();
       const outside = event.clientX < box.left || event.clientX > box.right ||
         event.clientY < box.top || event.clientY > box.bottom;
