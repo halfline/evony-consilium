@@ -141,6 +141,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
   renderer.selectedIds = selection.ids;
   mapViewControls = bindMapViewControls({
     root: $("formation-screen"), renderer, getPlan,
+    mutate: (change) => store.mutate(change),
     selected: () => [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]
       .find(({ id }) => id === selection.id),
   });

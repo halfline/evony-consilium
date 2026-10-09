@@ -1,6 +1,6 @@
 import { view } from "./dom.js";
 
-export function bindMapViewControls({ root, renderer, getPlan, selected }) {
+export function bindMapViewControls({ root, renderer, getPlan, selected, mutate }) {
   const $ = view(root);
   $("zoom-in").onclick = () => renderer.zoom(1.2);
   $("zoom-out").onclick = () => renderer.zoom(1 / 1.2);
@@ -12,10 +12,13 @@ export function bindMapViewControls({ root, renderer, getPlan, selected }) {
   };
   $("fit-map").onclick = () => renderer.fit();
   $("overview-map").onclick = () => renderer.fit(true);
+  $("show-grid").onchange = () =>
+    mutate((plan) => { plan.showGrid = $("show-grid").checked; });
   $("map-zoom-controls").hidden = false;
   return {
     render({ zoom }) {
       $("zoom-level").textContent = Math.round(zoom * 100) + "%";
+      $("show-grid").checked = getPlan().showGrid;
     },
   };
 }
