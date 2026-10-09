@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { saveSubcity, removeSubcity, validateSubcities } from "../web/src/domain/subcities.js";
+import { saveSubcity, removeSubcity, assignSubcityOwner, validateSubcities } from "../web/src/domain/subcities.js";
 import { createEmptyPlan } from "../web/src/domain/plan.js";
 
 const values = { name: "", culture: "Japan", color: "gold", x: 0, y: 1199 };
@@ -44,4 +44,20 @@ test("removing a city leaves the source team unchanged", () => {
   const removed = removeSubcity(plan, id);
   assert.equal(removed.subcities.length, 0);
   assert.equal(plan.subcities[0].id, id);
+});
+
+test("city ownership is one optional reference to a team player", () => {
+  const original = createEmptyPlan();
+  original.keeps = [{ id: "first" }, { id: "second" }];
+  const unowned = saveSubcity(original, values);
+  const id = unowned.subcities[0].id;
+  const assigned = assignSubcityOwner(unowned, id, "first");
+  assert.equal(assigned.subcities[0].ownerId, "first");
+  assert.equal(unowned.subcities[0].ownerId, null);
+  const transferred = assignSubcityOwner(assigned, id, "second");
+  assert.equal(transferred.subcities[0].ownerId, "second");
+  assert.equal(saveSubcity(transferred, { ...values, x: 100 }, id).subcities[0].ownerId, "second");
+  assert.equal(assignSubcityOwner(assigned, id, null).subcities[0].ownerId, null);
+  assert.throws(() => assignSubcityOwner(assigned, id, "unknown"), /player on this team/);
+  assert.throws(() => assignSubcityOwner(assigned, "missing", null), /Subcity not found/);
 });
