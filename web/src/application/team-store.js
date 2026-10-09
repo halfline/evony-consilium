@@ -2,7 +2,7 @@ import { createEmptyPlan } from "../domain/plan.js";
 import { validatePlan } from "../domain/validation.js";
 import { updateKeepAppearances } from "../domain/castles.js";
 import { selectMapPlan, syncMapLayouts } from "../domain/map-plans.js";
-import { ensureRallySetter } from "../domain/rally.js";
+import { ensureRallySetter, ensureMapRallySetters } from "../domain/rally.js";
 
 function readonly(value) {
   if (value && typeof value === "object" && !Object.isFrozen(value)) {
@@ -50,7 +50,7 @@ export class TeamStore {
       [...this.catalog.assets, ...(next.customAssets || [])].map((asset) => [asset.id, asset]),
     );
     updateKeepAppearances(next.keeps, assets);
-    ensureRallySetter(next);
+    ensureMapRallySetters(next);
     syncMapLayouts(next);
     return readonly(next);
   }
@@ -95,7 +95,7 @@ export class TeamStore {
     return true;
   }
   openMap(id) {
-    this.#plan = readonly(selectMapPlan(this.#plan, id));
+    this.#plan = readonly(ensureRallySetter(selectMapPlan(this.#plan, id)));
     this.refreshAssets();
     this.emit("navigate");
   }
