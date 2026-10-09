@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { TerrainCatalog, terrainTileAt } from "../web/src/domain/terrain.js";
 import { loadTerrain } from "../web/src/services/terrain-loader.js";
+import { drawTerrain } from "../web/src/rendering/terrain-painter.js";
 
 test("terrain catalogs remain independent across resource loads", () => {
   const manifest = {
@@ -72,4 +73,21 @@ test("landmark clearings override ground and vegetation only within the footprin
   assert.equal(terrainTileAt(terrain, vegetation, 1, 0), 0);
   assert.equal(terrainTileAt(terrain, surface, 2, 0), 3);
   assert.equal(terrainTileAt(terrain, vegetation, 2, 0), 6);
+});
+
+test("terrain painter draws overview and decoded surface tile", () => {
+  const images = [];
+  const ctx = {
+    save() {}, restore() {}, transform() {},
+    drawImage(image) { images.push(image); },
+  };
+  const view = { ctx, image: (src) => src };
+  const terrain = {
+    overview: "overview", width: 1, height: 1,
+    tiles: { 1: { src: "tile", width: 256, height: 128 } },
+    layers: [{ name: "surface", tiles: Uint8Array.of(1) }],
+    landmarks: [],
+  };
+  drawTerrain(view, terrain, 0, 0, 1, 1, { ax: 48, ay: 24, bx: -48, by: 24 });
+  assert.deepEqual(images, ["overview", "tile"]);
 });
