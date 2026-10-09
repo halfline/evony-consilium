@@ -1041,8 +1041,8 @@
   max-height: none;
   overflow: visible;
 }
-#players .player-tile,
-#maps-list .map-list-row {
+.player-tile,
+.map-list-row {
   flex: 0 0 168px;
 }
 #players .add-player-icon,
