@@ -211,4 +211,44 @@ export class PlayerFiles {
       return linkedPlayer(player, profile, file);
     });
   }
+  async saveOwn(player, resolveConflicts) {
+    const id = player.playerSource?.fileId;
+    return this.run(id, async (current) => {
+      const entry = this.#files.get(id);
+      if (!entry || entry.error)
+        throw new Error("Open player before saving its file.");
+      const draft = {
+        profile: validateProfile(player),
+        baseline: entry.draft?.baseline || entry.profile,
+      };
+      entry.draft = draft;
+      await this.writeDraft(id, draft);
+      current();
+      const loaded = await this.drive.loadPlayer(entry.file);
+      current();
+      let result = mergePlayerProfiles(
+        draft.baseline,
+        draft.profile,
+        loaded.profile,
+      );
+      if (result.conflicts.length) {
+        const resolution = await resolveConflicts(result.conflicts);
+        current();
+        if (!resolution) throw new OperationCancelled();
+        result = mergePlayerProfiles(
+          draft.baseline,
+          draft.profile,
+          loaded.profile,
+          resolution,
+        );
+      }
+      const profile = validateProfile(result.profile);
+      const file = await this.drive.savePlayer(loaded.file, profile);
+      current();
+      this.#files.set(id, { file, profile });
+      await this.writeDraft(id, null);
+      current();
+      return profile;
+    });
+  }
 }
