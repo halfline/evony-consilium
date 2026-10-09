@@ -290,6 +290,7 @@ export function bindMapInteraction({
     group.clear();
     select(null);
     groupChanged();
+    resetPending?.();
   };
   const documentKeydown = (event) => {
     if (!canEdit() || event.target === canvas ||
