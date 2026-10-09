@@ -14,6 +14,14 @@ export function bindMapInteraction({
   let pan = null;
   let drag = null;
   let band = null;
+  function cancel() {
+    for (const state of [pan, drag, band])
+      if (state?.pointerId !== undefined && canvas.hasPointerCapture(state.pointerId))
+        canvas.releasePointerCapture(state.pointerId);
+    pan = drag = band = null;
+    renderer.preview = renderer.previews = renderer.selectionBox = null;
+    renderer.draw();
+  }
   const point = (event) => {
     const box = canvas.getBoundingClientRect();
     return { x: event.clientX - box.left, y: event.clientY - box.top };
@@ -161,7 +169,7 @@ export function bindMapInteraction({
     pan = null;
   };
   canvas.onpointerup = (event) => endPan(event);
-  canvas.onpointercancel = (event) => endPan(event, true);
+  canvas.onpointercancel = () => cancel();
   canvas.onwheel = (event) => {
     event.preventDefault();
     const pt = point(event);
@@ -204,4 +212,5 @@ export function bindMapInteraction({
     select(null);
     groupChanged();
   };
+  return { cancel };
 }

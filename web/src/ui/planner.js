@@ -25,6 +25,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
   const getPlan = () => store.plan;
   let workspace, entry, players, playerSubcities;
   const selection = new PlacementSelection(getPlan);
+  let mapInteraction;
   let screen = "project";
   const access = createReadOnlyView(
     $("planner"),
@@ -40,7 +41,12 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
   });
   function showScreen(next) {
     if (!["project", "players", "player", "subcities", "maps", "formation"].includes(next)) return;
-    if (next !== "formation") selection.pending = null;
+    if (next !== "formation") {
+      mapInteraction?.cancel();
+      selection.clear();
+      renderer.selected = null;
+      formationList.render();
+    }
     screen = next;
     for (const name of ["project", "players", "subcities", "maps"]) {
       const active = name === screen || (name === "players" && screen === "player") || (name === "maps" && screen === "formation");
@@ -145,7 +151,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     },
     center: (keep) => renderer.center(keep.x + keep.w / 2, keep.y + keep.h / 2),
   });
-  bindMapInteraction({
+  mapInteraction = bindMapInteraction({
     canvas: $("map"), renderer, getPlan,
     terrainFor: (id) => terrain?.get(id),
     getPending: () => selection.pending,
@@ -180,6 +186,11 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     access.render();
   }
   store.subscribe(({ kind }) => {
+    if (["undo", "replace", "navigate"].includes(kind)) {
+      mapInteraction?.cancel();
+      selection.clear();
+      renderer.selected = null;
+    }
     if (kind === "edit" || kind === "undo") workspace?.persist();
     render();
   });
