@@ -43,12 +43,11 @@ export function bindMapInteraction({
     commit(removePlacements(getPlan(), ids));
     group.clear();
     select(null);
-    groupChanged();
-    resetPending?.();
+    resetPending();
   }
-  const point = (event) => {
-    const box = canvas.getBoundingClientRect();
-    return { x: event.clientX - box.left, y: event.clientY - box.top };
+  const point = (ev) => {
+    const r = canvas.getBoundingClientRect();
+    return { x: ev.clientX - r.left, y: ev.clientY - r.top };
   };
   canvas.ondblclick = (event) => {
     if (getPending() || event.ctrlKey || event.metaKey || event.shiftKey)
