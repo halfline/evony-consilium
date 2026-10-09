@@ -36,4 +36,8 @@ test("player validation preserves profile extensions while rejecting invalid fil
     () => validatePlan({ ...plan, keeps: [{ ...player(), accountId: "abc" }] }, catalog),
     /Account IDs/,
   );
+  assert.throws(
+    () => validatePlan({ ...plan, keeps: [{ ...player(), details: { marches: [{ id: "bad", name: "" }] } }] }, catalog),
+    /march name/,
+  );
 });
