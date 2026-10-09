@@ -610,11 +610,15 @@ code {
   border-radius: 5px;
 }
 @media (min-width: 1600px) {
-
+  .sidebar {
+    width: 380px;
+  }
   .players-row {
     padding: 10px;
   }
-
+  .map-caption h2 {
+    font-size: 38px;
+  }
 }
 @media (max-width: 1150px) {
   .topbar {
@@ -634,7 +638,34 @@ code {
     padding: 8px;
     font-size: 11px;
   }
-
+  .sidebar {
+    width: 310px;
+  }
+  .sidebar-heading,
+  .panel {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+  .map-toolbar {
+    padding: 0 14px;
+  }
+  .map-picker label {
+    display: none;
+  }
+  .view-options {
+    gap: 9px;
+  }
+  .entity-fields {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .entity-fields label:first-child {
+    grid-column: span 2;
+  }
+  .map-guide {
+    left: 20px;
+    transform: none;
+    font-size: 9px;
+  }
 }
 @media (max-width: 800px) {
   .topbar {
@@ -656,12 +687,85 @@ code {
     flex-shrink: 0;
     justify-content: flex-end;
   }
-
+  .workspace {
+    height: auto;
+    min-height: calc(100dvh - 100px);
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    border-right: 0;
+  }
+  .sidebar-heading {
+    padding: 16px;
+  }
+  .sidebar-heading p {
+    display: none;
+  }
+  .panel {
+    max-height: 330px;
+  }
+  .sidebar-footer {
+    display: none;
+  }
   .players {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
   }
 
+  .map-section {
+    min-height: 650px;
+  }
+  .map-surface {
+    height: 490px;
+    flex: none;
+  }
+  .map-toolbar {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 80px;
+    padding: 10px 12px;
+    gap: 9px;
+  }
+  .map-picker {
+    flex: 1;
+  }
+  .map-picker select {
+    min-width: 150px;
+    width: 100%;
+  }
+  .view-options {
+    flex-wrap: wrap;
+  }
+  .map-guide {
+    display: none;
+  }
+  .map-caption {
+    top: 16px;
+    left: 16px;
+  }
+  .map-caption h2 {
+    font-size: 28px;
+  }
+  .map-footer {
+    padding: 0 10px;
+    font-size: 8px;
+  }
+  .entity-fields {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .entity-fields label:first-child {
+    grid-column: span 1;
+  }
+  .inspector {
+    max-height: none;
+  }
+  .catalog-filters {
+    flex-direction: column;
+  }
+  .catalog-filters select {
+    width: 100%;
+  }
   .brand-icon {
     width: 48px;
     height: 48px;
