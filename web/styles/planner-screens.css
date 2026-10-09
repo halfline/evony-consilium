@@ -782,24 +782,6 @@
   font-size: 23px;
   padding: 4px;
 }
-#map-editor { padding: 0 12px 12px; }
-.inspector {
-  border: 1px solid #344338;
-  border-radius: 6px;
-  background: #202f26;
-  padding: 12px;
-}
-.inspector-heading { display: flex; justify-content: space-between; align-items: flex-start; }
-.inspector-heading h2 { margin: 3px 0 0; }
-#close-inspector { border: 0; background: transparent; font-size: 24px; }
-#entity-form .entity-fields { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
-#entity-form .entity-fields label { flex: 1; min-width: 80px; }
-#entity-form .entity-fields input { width: 100%; }
-#entity-form .inspector-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
-.formation-obstacles { margin-top: 18px; border-top: 1px solid #344338; padding-top: 12px; }
-.formation-obstacles h2 { margin: 0 0 8px; }
-.formation-obstacles #add-obstacle { width: 100%; }
-.formation-obstacles [data-building] { width: 100%; margin-bottom: 6px; }
 .building-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .building-tools button[data-building] {
   display: flex;
@@ -867,3 +849,28 @@
 .workflow-nav .view-options { display: flex; align-items: center; gap: 10px; }
 .workflow-nav .view-options label { display: flex; align-items: center; gap: 5px; }
 .workflow-nav .view-options button { white-space: nowrap; }
+
+#entity-w:read-only,
+#entity-h:read-only {
+  border-color: transparent;
+  background: transparent;
+}
+
+#entity-form .entity-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+#entity-form .entity-fields label:first-child {
+  flex: 1 0 100%;
+}
+#entity-x,
+#entity-y,
+#entity-w,
+#entity-h,
+#subcity-form .subcity-fields input {
+  width: 10ch;
+}
+#subcity-form .subcity-fields {
+  grid-template-columns: repeat(2, max-content);
+}
