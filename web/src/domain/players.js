@@ -60,3 +60,9 @@ export function removePlayer(plan, id) {
   if (next.rallyId === id) next.rallyId = next.keeps[0]?.id || null;
   return next;
 }
+
+export function addPlayer(plan, player) {
+  validatePlayerProfile(player);
+  if (!player.name.trim()) throw new Error("Enter a player name.");
+  return addEntity(plan, "keeps", player);
+}
