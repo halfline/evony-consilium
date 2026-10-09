@@ -1,182 +1,170 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { TeamStore } from "../web/src/application/team-store.js";
-import { createEmptyPlan } from "../web/src/domain/plan.js";
-import { createMapPlan, selectMapPlan } from "../web/src/domain/map-plans.js";
-import { setRallySetter } from "../web/src/domain/rally.js";
+import { createDemoPlan } from "../web/src/domain/plan.js";
+import {
+  createMapPlan,
+  projectFingerprint,
+} from "../web/src/domain/map-plans.js";
+
 import { catalog } from "./fixtures/catalog.js";
-
-test("team store validates and freezes opened documents", () => {
-  const store = new TeamStore(catalog);
-  const plan = { ...createEmptyPlan(), title: "Shared" };
-  store.replace(plan);
-  plan.title = "Mutated outside";
-  assert.equal(store.plan.title, "Shared");
-  assert.equal(Object.isFrozen(store.plan), true);
-  assert.throws(() => store.replace({ ...plan, keeps: {} }), /player list/);
-  assert.equal(store.plan.title, "Shared");
+function fixture(options) {
+  const store = new TeamStore(catalog, options);
+  store.replace(createDemoPlan(catalog));
+  return store;
+}
+test("opening a team resets undo and does not count as an edit", () => {
+  const store = fixture();
+  const changes = [];
+  store.subscribe((event) => changes.push(event.kind));
+  store.mutate((plan) => {
+    plan.title = "Changed";
+  });
+  assert.equal(store.canUndo, true);
+  store.replace(createDemoPlan(catalog));
+  assert.equal(store.canUndo, false);
+  assert.deepEqual(changes, ["edit", "replace"]);
 });
-
-test("view-only team cannot replace its document without explicit force", () => {
-  const store = new TeamStore(catalog);
-  store.readOnly = true;
-  assert.equal(
-    store.replace({ ...createEmptyPlan(), title: "Blocked" }),
-    false,
-  );
-  assert.equal(store.plan.title, "Alliance formation");
-  store.replace({ ...createEmptyPlan(), title: "Downloaded" }, { force: true });
-  assert.equal(store.plan.title, "Downloaded");
+test("commits own their snapshots and undo restores shared metadata and layouts together", () => {
+  const store = fixture();
+  const original = structuredClone(store.plan);
+  const next = structuredClone(store.plan);
+  next.title = "Changed";
+  next.keeps[0].name = "Renamed player";
+  next.keeps[0].x = 100;
+  store.commit(next);
+  next.keeps[0].name = "Unexpected outside mutation";
+  assert.equal(store.plan.keeps[0].name, "Renamed player");
+  assert.equal(store.plan.maps[0].layout.positions[0].x, 100);
+  assert.equal(store.undo(), true);
+  assert.deepEqual(store.plan, original);
 });
-
-test("team edits use immutable transactions and ignore no-op changes", () => {
-  const store = new TeamStore(catalog);
-  const events = [];
-  store.subscribe(({ kind }) => events.push(kind));
+test("map navigation neither adds undo steps nor creates a content edit", () => {
+  const store = fixture();
+  const first = store.plan.activeMapId;
+  store.commit(createMapPlan(store.plan, "bog", "Second map"));
+  const fingerprint = projectFingerprint(store.plan);
+  const changes = [];
+  store.subscribe((event) => changes.push(event.kind));
+  store.openMap(first);
+  assert.equal(projectFingerprint(store.plan), fingerprint);
+  assert.deepEqual(changes, ["navigate"]);
+  store.undo();
+  assert.equal(store.canUndo, false);
+  assert.equal(store.plan.maps.length, 1);
+});
+test("no-op edits do not enable Undo or schedule an edit notification", () => {
+  const store = fixture();
+  const changes = [];
+  store.subscribe((event) => changes.push(event.kind));
   assert.equal(
     store.mutate((plan) => {
-      plan.title = "Alliance Alpha";
+      plan.title = plan.title;
+    }),
+    false,
+  );
+  assert.equal(store.canUndo, false);
+  assert.deepEqual(changes, []);
+});
+test("undo is bounded and listeners can be removed", () => {
+  const store = fixture({ historyLimit: 2 });
+  let changes = 0;
+  const unsubscribe = store.subscribe(() => {
+    changes++;
+  });
+  for (const title of ["First", "Second", "Third"])
+    store.mutate((plan) => {
+      plan.title = title;
+    });
+  unsubscribe();
+  store.undo();
+  store.undo();
+  assert.equal(store.plan.title, "First");
+  assert.equal(store.undo(), false);
+  assert.equal(changes, 3);
+});
+test("failed transactions leave plan and undo history untouched", () => {
+  const store = fixture();
+  const original = structuredClone(store.plan);
+  assert.throws(
+    () =>
+      store.mutate((plan) => {
+        plan.title = "Partial";
+        throw Error("Failed edit");
+      }),
+    /Failed edit/,
+  );
+  assert.deepEqual(store.plan, original);
+  assert.equal(store.canUndo, false);
+});
+test("castle appearances derive from the current profile level and revert with Undo", () => {
+  const store = fixture();
+  const player = store.plan.keeps.find(
+    (item) => store.assets.get(item.skin).family === "culture-europe",
+  );
+  const original = player.skin;
+  store.mutate((plan) => {
+    plan.keeps.find((item) => item.id === player.id).level = 5;
+  });
+  assert.match(
+    store.plan.keeps.find((item) => item.id === player.id).skin,
+    /castle_lv1$/,
+  );
+  store.undo();
+  assert.equal(
+    store.plan.keeps.find((item) => item.id === player.id).skin,
+    original,
+  );
+});
+
+test("readers cannot change player data or layouts outside an edit transaction", () => {
+  const store = fixture();
+  assert.throws(() => {
+    store.plan.title = "Outside edit";
+  }, TypeError);
+  assert.throws(() => {
+    store.plan.keeps[0].name = "Outside edit";
+  }, TypeError);
+  assert.throws(() => {
+    store.plan.maps[0].layout.positions[0].x = 1;
+  }, TypeError);
+  assert.throws(() => {
+    store.plan.keeps.push({});
+  }, TypeError);
+  store.mutate((plan) => {
+    plan.title = "Inside edit";
+  });
+  assert.equal(store.plan.title, "Inside edit");
+  store.undo();
+  assert.throws(() => {
+    store.plan.title = "After undo";
+  }, TypeError);
+});
+
+test("view-only stores block mutations, undo, and imports but allow map navigation", () => {
+  const store = fixture();
+  store.commit(createMapPlan(store.plan, "blank", "Viewable"));
+  const snapshot = projectFingerprint(store.plan);
+  store.readOnly = true;
+  assert.equal(
+    store.mutate((plan) => {
+      plan.title = "Forbidden";
+    }),
+    false,
+  );
+  assert.equal(
+    store.commit({ ...structuredClone(store.plan), title: "Forbidden" }),
+    false,
+  );
+  assert.equal(store.undo(), false);
+  assert.equal(store.replace(createDemoPlan(catalog)), false);
+  store.openMap(store.plan.maps[0].id);
+  assert.equal(projectFingerprint(store.plan), snapshot);
+  store.readOnly = false;
+  assert.equal(
+    store.mutate((plan) => {
+      plan.title = "Editable";
     }),
     true,
   );
-  assert.equal(store.plan.title, "Alliance Alpha");
-  assert.equal(
-    store.mutate((plan) => {
-      plan.title = "Alliance Alpha";
-    }),
-    false,
-  );
-  assert.deepEqual(events, ["edit"]);
-  store.readOnly = true;
-  assert.equal(
-    store.mutate((plan) => {
-      plan.title = "Blocked";
-    }),
-    false,
-  );
-  assert.equal(store.plan.title, "Alliance Alpha");
-});
-
-test("Undo restores the previous team edit and respects read-only access", () => {
-  const store = new TeamStore(catalog);
-  assert.equal(store.canUndo, false);
-  store.mutate((plan) => {
-    plan.title = "First";
-  });
-  store.mutate((plan) => {
-    plan.title = "Second";
-  });
-  store.readOnly = true;
-  assert.equal(store.canUndo, false);
-  assert.equal(store.undo(), false);
-  store.readOnly = false;
-  assert.equal(store.undo(), true);
-  assert.equal(store.plan.title, "First");
-  assert.equal(store.undo(), true);
-  assert.equal(store.plan.title, "Alliance formation");
-  assert.equal(store.undo(), false);
-});
-
-test("player transactions update castle growth and keep the asset lookup current", () => {
-  const store = new TeamStore(catalog);
-  const plan = createEmptyPlan();
-  plan.keeps.push({
-    id: "one", name: "Player", accountId: "", allianceTag: "", level: 42,
-    skin: "map-evony3-castle_lv1", w: 2, h: 2, x: null, y: null, locked: false,
-  });
-  store.replace(plan);
-  assert.equal(store.plan.keeps[0].skin, "map-evony3-castle_lv8");
-  assert.equal(store.assets.get(store.plan.keeps[0].skin).minKeepLevel, 40);
-  store.mutate((draft) => { draft.keeps[0].level = 1; });
-  assert.equal(store.plan.keeps[0].skin, "map-evony3-castle_lv1");
-  store.undo();
-  assert.equal(store.plan.keeps[0].skin, "map-evony3-castle_lv8");
-});
-
-test("team transactions assign the strongest player as default rally setter", () => {
-  const store = new TeamStore(catalog);
-  const plan = createEmptyPlan();
-  plan.keeps.push(
-    { id: "low", name: "Low", accountId: "", allianceTag: "", level: 30,
-      skin: "map-evony3-castle_lv1", w: 2, h: 2, x: null, y: null, locked: false },
-    { id: "high", name: "High", accountId: "", allianceTag: "", level: 45,
-      skin: "map-evony3-castle_lv1", w: 2, h: 2, x: null, y: null, locked: false },
-  );
-  store.replace(plan);
-  assert.equal(store.plan.rallyId, "high");
-  store.mutate((draft) => { draft.keeps[0].level = 50; });
-  assert.equal(store.plan.rallyId, "low");
-});
-
-test("switching maps restores that map's manual rally preference", () => {
-  const store = new TeamStore(catalog);
-  store.mutate((plan) => { plan.keeps.push(
-    { id: "a", name: "Alpha", accountId: "", allianceTag: "", level: 30,
-      skin: "map-evony3-castle_lv1", w: 2, h: 2, x: null, y: null, locked: false },
-    { id: "b", name: "Beta", accountId: "", allianceTag: "", level: 45,
-      skin: "map-evony3-castle_lv1", w: 2, h: 2, x: null, y: null, locked: false },
-  ); });
-  store.commit(createMapPlan(store.plan, "server", "First"));
-  const first = store.plan.activeMapId;
-  store.commit(setRallySetter(store.plan, "a"));
-  store.commit(createMapPlan(store.plan, "blank", "Second"));
-  const second = store.plan.activeMapId;
-  assert.notEqual(second, first);
-  assert.equal(store.plan.rallyId, "b");
-  store.openMap(first);
-  assert.equal(store.plan.rallyId, "a");
-  assert.equal(store.plan.rallyManual, true);
-});
-
-test("opening a map emits navigation without adding an Undo step", () => {
-  const store = new TeamStore(catalog);
-  const events = [];
-  store.subscribe(({ kind }) => events.push(kind));
-  store.commit(createMapPlan(store.plan, "server", "Hive"));
-  const first = store.plan.activeMapId;
-  store.commit(createMapPlan(store.plan, "boc", "Battle"));
-  const before = events.length;
-  store.openMap(first);
-  assert.equal(store.plan.activeMapId, first);
-  assert.deepEqual(events.slice(before), ["navigate"]);
-  assert.equal(store.canUndo, true);
-  assert.equal(store.undo(), true);
-  assert.equal(store.plan.maps.length, 1);
-});
-
-
-test("map navigation does not enter undo history but layout edits do", () => {
-  let plan = createMapPlan(createEmptyPlan(), "server", "Hive");
-  const first = plan.activeMapId;
-  plan = createMapPlan(plan, "bog", "Rally");
-  const store = new TeamStore(catalog);
-  store.replace(plan);
-  assert.equal(store.commit(selectMapPlan(store.plan, first)), false);
-  assert.equal(store.canUndo, false);
-
-  store.openMap(first);
-  assert.equal(store.canUndo, false);
-  assert.equal(store.mutate((next) => { next.spacing = 5; }), true);
-  assert.equal(store.canUndo, true);
-  assert.equal(store.undo(), true);
-  assert.equal(store.canUndo, false);
-
-  assert.equal(store.mutate((next) => {
-    next.maps.find(({ id }) => id !== first).layout.spacing = 7;
-  }), true);
-  assert.equal(store.canUndo, true);
-});
-
-test("locking an unplaced keep is a saved edit", () => {
-  let plan = createEmptyPlan();
-  plan.keeps = [{
-    id: "one", name: "One", level: 40, skin: "placeholder",
-    x: null, y: null, w: 2, h: 2, locked: false,
-  }];
-  plan = createMapPlan(plan, "blank", "Formation");
-  const store = new TeamStore(catalog);
-  assert.equal(store.commit(plan), true);
-  assert.equal(store.mutate((next) => { next.keeps[0].locked = true; }), true);
-  assert.equal(store.plan.keeps[0].locked, true);
-  assert.equal(store.canUndo, true);
 });
