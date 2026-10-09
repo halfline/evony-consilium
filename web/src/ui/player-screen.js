@@ -93,9 +93,6 @@ export function createPlayerScreen({
     $("player-inspector").hidden = !player;
     if (!player) return;
     $("player-title").textContent = player.name;
-    $("player-avatar").disabled = !canEdit();
-    $("player-unlock").hidden = true;
-    $("player-remove").hidden = false;
     $("player-remove").setAttribute("aria-label", `Remove ${player.name}`);
     root
       .querySelector(".player-name-actions")
