@@ -105,14 +105,36 @@ test("dragging a selected keep previews and commits one valid position", () => {
     select: (id) => selected.push(id), commit: (next) => { plan = next; },
   });
   canvas.onpointerdown({ button: 0, pointerId: 7, clientX: 10, clientY: 10 });
-  canvas.onpointermove({ pointerId: 7, clientX: 14, clientY: 10 });
+  canvas.onpointermove({ pointerId: 7, clientX: 16, clientY: 10 });
   assert.equal(renderer.preview.valid, true);
-  assert.equal(renderer.preview.x, 14);
+  assert.equal(renderer.preview.x, 16);
   canvas.onpointerup({ pointerId: 7 });
-  assert.deepEqual([plan.keeps[0].x, plan.keeps[0].y], [14, 10]);
+  assert.deepEqual([plan.keeps[0].x, plan.keeps[0].y], [16, 10]);
   assert.equal(renderer.preview, null);
   assert.equal(captures.size, 0);
   assert.deepEqual(selected, ["keep"]);
+});
+
+test("a slight pointer movement does not commit a keep drag", () => {
+  let plan = createEmptyPlan(), commits = 0;
+  plan.keeps.push({ id: "keep", x: 10, y: 10, w: 2, h: 2, locked: false });
+  const captures = new Set();
+  const canvas = {
+    getBoundingClientRect: () => ({ left: 0, top: 0, right: 100, bottom: 100 }),
+    setPointerCapture: (id) => captures.add(id),
+    hasPointerCapture: (id) => captures.has(id),
+    releasePointerCapture: (id) => captures.delete(id),
+  };
+  const renderer = { hit: () => "keep", world: (x, y) => ({ x, y }), draw() {} };
+  bindMapInteraction({ canvas, renderer, getPlan: () => plan, getPending: () => null,
+    commit: (next) => { plan = next; commits++; } });
+  canvas.onpointerdown({ button: 0, pointerId: 5, clientX: 10, clientY: 10 });
+  canvas.onpointermove({ pointerId: 5, clientX: 13, clientY: 10 });
+  assert.equal(renderer.preview.x, 13);
+  canvas.onpointerup({ pointerId: 5, clientX: 13, clientY: 10 });
+  assert.equal(commits, 0);
+  assert.equal(plan.keeps[0].x, 10);
+  assert.equal(captures.size, 0);
 });
 
 test("clicking a mapped subcity opens its details without beginning a drag", () => {
@@ -225,7 +247,7 @@ test("an occupied destination keeps the placement and explains the rejection", (
   let plan = createEmptyPlan();
   plan.keeps.push(
     { id: "a", x: 10, y: 10, w: 2, h: 2, locked: false },
-    { id: "b", x: 14, y: 10, w: 2, h: 2, locked: false },
+    { id: "b", x: 16, y: 10, w: 2, h: 2, locked: false },
   );
   const captures = new Set();
   const canvas = {
@@ -239,10 +261,10 @@ test("an occupied destination keeps the placement and explains the rejection", (
   bindMapInteraction({ canvas, renderer, getPlan: () => plan, getPending: () => null,
     commit: (next) => { plan = next; }, toast: (text) => { message = text; } });
   canvas.onpointerdown({ button: 0, pointerId: 2, clientX: 10, clientY: 10 });
-  canvas.onpointermove({ pointerId: 2, clientX: 14, clientY: 10 });
+  canvas.onpointermove({ pointerId: 2, clientX: 16, clientY: 10 });
   assert.equal(renderer.preview.valid, false);
-  canvas.onpointerup({ pointerId: 2, clientX: 14, clientY: 10 });
-  assert.deepEqual(plan.keeps.map(({ x, y }) => [x, y]), [[10, 10], [14, 10]]);
+  canvas.onpointerup({ pointerId: 2, clientX: 16, clientY: 10 });
+  assert.deepEqual(plan.keeps.map(({ x, y }) => [x, y]), [[10, 10], [16, 10]]);
   assert.match(message, /Position blocked/);
   assert.equal(captures.size, 0);
 });
