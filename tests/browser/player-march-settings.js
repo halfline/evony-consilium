@@ -1,6 +1,17 @@
 import assert from "node:assert/strict";
 
 export async function playerMarchSettings({ page, driveFiles }) {
+  await page.locator('[data-player-tab="march-size"]').click();
+  await page.locator('[data-march-size="ground"]').fill("8123456");
+  await page.locator('[data-march-size="ground"]').press("Tab");
+  await page.locator('[data-player-tab="troops"]').click();
+  await page.locator("#player-march-list .march-card").filter({ hasText: "Ground lead" }).click();
+  assert.equal(await page.locator("#player-march-capacity").inputValue(), "8123456");
+  await page.locator("#player-march-back").click();
+  await page.locator('[data-player-tab="march-size"]').click();
+  await page.locator('[data-march-size="ground"]').fill("7936450");
+  await page.locator('[data-march-size="ground"]').press("Tab");
+  await page.locator('[data-player-tab="troops"]').click();
   await page.locator("#player-march-list .march-card").filter({ hasText: "Ground lead" }).click();
   await page.locator("#player-march-highest").selectOption("16");
   await page.locator("#player-march-capacity").fill("5000000");
