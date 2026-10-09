@@ -159,6 +159,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     select: selectKeep,
     getSelection: () => selection.id,
     group: selection.ids,
+    groupChanged: () => formationList.render(),
     undo: () => store.undo(),
     openSubcity: (id) => subcities.open(id),
     openPlayer: (id) => players.open(id),

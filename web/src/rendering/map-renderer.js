@@ -17,6 +17,7 @@ export class MapRenderer {
     this.selected = null;
     this.selectedIds = new Set();
     this.preview = null;
+    this.selectionBox = null;
     this.subcityHits = [];
     this.images = new ImageCache(() => this.draw());
     this.camera = { x: 0, y: 0, zoom: 1 };
@@ -157,6 +158,13 @@ export class MapRenderer {
       c.strokeStyle = this.preview.valid ? "#e4f7b4" : "#ffad98";
       c.lineWidth = 2;
       c.stroke();
+    }
+    if (this.selectionBox) {
+      const box = this.selectionBox;
+      c.fillStyle = "#cfe3a922";
+      c.fillRect(box.x, box.y, box.w, box.h);
+      c.strokeStyle = "#e4f7b4";
+      c.strokeRect(box.x, box.y, box.w, box.h);
     }
     this.onDraw({ zoom: this.camera.zoom });
   }
