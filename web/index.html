@@ -465,7 +465,17 @@
               </div>
               <div data-player-panel="troops" role="tabpanel" hidden>
                 <div id="player-march-list" class="march-grid"></div>
-                <div id="player-march-editor" hidden></div>
+                <div id="player-march-editor" hidden>
+                  <div class="player-march-toolbar">
+                    <button id="player-march-back" type="button" aria-label="Back to marches">←</button>
+                    <input id="player-march-name" maxlength="100" aria-label="March name" />
+                    <button id="player-remove-march" type="button" aria-label="Remove attack march">×</button>
+                  </div>
+                  <button id="player-reset-strategy" type="button" hidden>Reset to strategy</button>
+                  <div id="player-troop-summary" class="player-stat-summary"></div>
+                  <div id="player-troops" class="player-table-scroll"></div>
+                  <button id="player-add-tier" type="button" class="player-small-add" aria-label="Add troop tier">＋</button>
+                </div>
               </div>
               <div id="player-profile-actions" class="inspector-actions">
                 <button class="primary apply-entity" type="submit">

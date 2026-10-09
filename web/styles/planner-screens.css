@@ -113,6 +113,14 @@
   font-size: 28px;
   color: var(--gold);
 }
+.player-march-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.player-march-toolbar input { flex: 1; min-width: 0; }
+.player-stat-summary { margin: 12px 0; color: var(--muted); }
+.player-small-add { padding: 4px 10px; color: var(--gold); }
 .player-table-scroll { overflow-x: auto; }
 .player-table-scroll h3 { margin: 24px 0 12px; font-size: 18px; color: var(--gold); }
 .player-table-scroll h3:first-child { margin-top: 0; }
