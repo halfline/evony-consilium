@@ -294,11 +294,19 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
     setReadOnly: (value) => {
       store.readOnly = value;
       render();
+      if (value) {
+        placementView.reset();
+        mapInteraction?.cancel();
+      }
     },
     openPlan: (plan) => {
       opening = true;
       store.replace(plan, { force: true });
       showScreen("project");
+      requestAnimationFrame(() => {
+        renderer.resize();
+        renderer.fit();
+      });
     },
     changed: createSaveControls({
       button: $("drive-save"),
