@@ -238,9 +238,9 @@
           >Players
         </button>
         <button data-screen="subcities" aria-pressed="false">Subcities</button>
-        <button data-screen="maps" aria-pressed="false"><span id="maps-return-arrow" aria-hidden="true" hidden>← </span>Maps</button>
-
-
+        <button data-screen="maps" aria-pressed="false">
+          <span id="maps-return-arrow" aria-hidden="true" hidden>← </span>Maps
+        </button>
         <label id="players-search-control" class="tab-search">
           <svg
             viewBox="0 0 24 24"
@@ -288,17 +288,17 @@
             <strong id="formation-name"></strong>
           </div>
           <div class="view-options">
-            <label><input id="show-grid" type="checkbox" /> Grid</label>
-            <label><input id="show-labels" type="checkbox" /> Names</label>
-            <button
+            <label><input id="show-grid" type="checkbox" /> Grid</label
+            ><label><input id="show-labels" type="checkbox" /> Names</label
+            ><button
               id="auto-place"
               class="icon-action"
-              type="button"
               aria-label="Arrange formation"
               title="Arrange around the rally setter"
-            >✦</button>
-            <button id="fit-map" type="button">Fit formation</button>
-            <button id="overview-map" type="button">Whole map</button>
+            >
+              ✦</button
+            ><button id="fit-map">Fit formation</button
+            ><button id="overview-map">Whole map</button>
           </div>
         </div>
       </nav>
@@ -389,7 +389,12 @@
           </section>
         </div>
       </section>
-      <section id="subcities-screen" class="players-screen" aria-label="Subcities" hidden>
+      <section
+        id="subcities-screen"
+        class="players-screen"
+        aria-label="Subcities"
+        hidden
+      >
         <div class="subcity-filters">
           <select id="subcities-type" aria-label="Filter subcity type">
             <option value="">All types</option>
@@ -408,7 +413,15 @@
         </div>
         <p id="subcities-empty" class="muted" hidden>No matching subcities.</p>
         <div id="subcities" class="subcities-grid">
-          <button id="add-subcity" class="add-subcity-icon" type="button" aria-label="Add subcity" title="Add subcity">＋</button>
+          <button
+            id="add-subcity"
+            class="add-subcity-icon"
+            type="button"
+            aria-label="Add subcity"
+            title="Add subcity"
+          >
+            ＋
+          </button>
         </div>
       </section>
       <section
@@ -639,12 +652,24 @@
         <div class="players-workspace">
           <div class="players-panel">
             <div id="maps-list" class="players">
-              <button id="add-map" class="add-map-icon" type="button" aria-label="Add map" title="Add map">＋</button>
+              <button
+                id="add-map"
+                class="add-map-icon"
+                aria-label="Add map"
+                title="Add map"
+              >
+                ＋
+              </button>
             </div>
           </div>
         </div>
       </section>
-      <main id="formation-screen" class="workspace" aria-label="Map and formation" hidden>
+      <main
+        id="formation-screen"
+        class="workspace"
+        aria-label="Map and formation"
+        hidden
+      >
         <aside class="sidebar">
           <div class="sidebar-heading">
             <span class="eyebrow">YOUR ALLIANCE</span>
@@ -911,13 +936,42 @@
         </p>
         <div id="subcity-browser-grid" class="catalog-grid"></div>
       </dialog>
+      <dialog id="add-map-dialog">
+        <div class="dialog-heading">
+          <h2>Add map</h2>
+          <button data-close="add-map-dialog" aria-label="Close Add map">
+            ×
+          </button>
+        </div>
+        <form id="add-map-form">
+          <label>Map type<select id="new-formation-type"></select></label>
+          <label
+            >Formation name<input
+              id="new-formation-name"
+              maxlength="100"
+              required
+          /></label>
+          <p id="new-formation-error" class="entry-error" role="alert"></p>
+          <div class="dialog-actions">
+            <button type="button" data-close="add-map-dialog">Cancel</button
+            ><button class="primary" type="submit">Add map</button>
+          </div>
+        </form>
+      </dialog>
       <dialog id="avatar-dialog" class="catalog-dialog">
         <div class="dialog-heading">
           <h2>Choose an avatar</h2>
-          <button data-close="avatar-dialog" aria-label="Close avatar picker">×</button>
+          <button data-close="avatar-dialog" aria-label="Close avatar picker">
+            ×
+          </button>
         </div>
         <div class="catalog-filters">
-          <input id="avatar-search" type="search" placeholder="Find avatar" aria-label="Find avatar" />
+          <input
+            id="avatar-search"
+            type="search"
+            placeholder="Find avatar"
+            aria-label="Find avatar"
+          />
           <select id="avatar-category" aria-label="Avatar category"></select>
         </div>
         <div id="avatar-grid" class="catalog-grid"></div>
@@ -925,31 +979,67 @@
       <dialog id="add-player-dialog">
         <div class="dialog-heading">
           <h2>Add player</h2>
-          <button data-close="add-player-dialog" aria-label="Close Add player">×</button>
+          <button data-close="add-player-dialog" aria-label="Close Add player">
+            ×
+          </button>
         </div>
         <p id="new-player-error" class="entry-error" role="alert"></p>
         <form id="new-player-form">
           <div class="player-appearance">
-            <button id="new-player-castle" class="castle-choice" type="button" aria-label="Choose castle"></button>
-            <button id="new-player-avatar" class="avatar-choice" type="button" aria-label="Choose avatar"></button>
+            <button
+              id="new-player-castle"
+              class="castle-choice"
+              type="button"
+              aria-label="Choose castle"
+            ></button>
+            <button
+              id="new-player-avatar"
+              class="avatar-choice"
+              type="button"
+              aria-label="Choose avatar"
+            ></button>
           </div>
-          <label>Name<input id="new-player-name" maxlength="100" required /></label>
-          <label>Account ID<input id="new-player-account" inputmode="numeric" pattern="[0-9]*" maxlength="40" /></label>
-          <label>Alliance tag<input id="new-player-tag" maxlength="16" /></label>
-          <label>Keep level<input id="new-player-level" type="number" min="1" max="100" value="42" required /></label>
+          <label
+            >Name<input id="new-player-name" maxlength="100" required
+          /></label>
+          <label
+            >Account ID<input
+              id="new-player-account"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              maxlength="40"
+          /></label>
+          <label
+            >Alliance tag<input id="new-player-tag" maxlength="16"
+          /></label>
+          <label
+            >Keep level<input
+              id="new-player-level"
+              type="number"
+              min="1"
+              max="100"
+              value="42"
+              required
+          /></label>
           <div class="dialog-actions">
-            <button data-close="add-player-dialog" type="button">Cancel</button><button class="primary" type="submit">Add player</button>
+            <button data-close="add-player-dialog" type="button">Cancel</button
+            ><button class="primary" type="submit">Add player</button>
           </div>
         </form>
       </dialog>
       <dialog id="player-sync-dialog">
         <div class="dialog-heading"><h2>Player edits conflict</h2></div>
-        <p>Someone saved different values for these fields while you were editing. Other edits will be merged.</p>
+        <p>
+          Someone saved different values for these fields while you were
+          editing. Other edits will be merged.
+        </p>
         <p id="player-sync-conflicts"></p>
         <div class="dialog-actions">
           <button data-resolution="cancel" type="button">Cancel</button>
           <button data-resolution="team" type="button">Keep my edits</button>
-          <button data-resolution="player" type="button">Use latest saved values</button>
+          <button data-resolution="player" type="button">
+            Use latest saved values
+          </button>
         </div>
       </dialog>
       <dialog id="catalog-dialog" class="catalog-dialog">
@@ -958,12 +1048,21 @@
             <span class="eyebrow">ORIGINAL GAME GRAPHICS</span>
             <h2 id="catalog-title">Choose a castle</h2>
           </div>
-          <button data-close="catalog-dialog" aria-label="Close castle browser">×</button>
+          <button data-close="catalog-dialog" aria-label="Close castle browser">
+            ×
+          </button>
         </div>
-        <p class="muted">Choose a castle, then its tier. Castles that grow with keep level update their appearance automatically.</p>
+        <p class="muted">
+          Choose a castle, then its tier. Castles that grow with keep level
+          update their appearance automatically.
+        </p>
         <div class="catalog-filters">
-          <input id="catalog-search" type="search" placeholder="Search castles, cultures, tiers…" aria-label="Search castles" />
-          <select id="catalog-category" aria-label="Filter castle category">
+          <input
+            id="catalog-search"
+            type="search"
+            placeholder="Search castles, cultures, tiers…"
+            aria-label="Search castles"
+          /><select id="catalog-category" aria-label="Filter castle category">
             <option value="">All castles</option>
           </select>
         </div>
@@ -972,24 +1071,11 @@
       <dialog id="variant-dialog" class="catalog-dialog">
         <div class="dialog-heading">
           <h2 id="variant-title">Choose a tier</h2>
-          <button data-close="variant-dialog" aria-label="Back to castle types">×</button>
+          <button data-close="variant-dialog" aria-label="Back to castle types">
+            ×
+          </button>
         </div>
         <div id="variant-grid" class="catalog-grid"></div>
-      </dialog>
-      <dialog id="add-map-dialog">
-        <div class="dialog-heading">
-          <h2>Add map</h2>
-          <button data-close="add-map-dialog" aria-label="Close Add map">×</button>
-        </div>
-        <form id="add-map-form">
-          <label>Map type<select id="new-formation-type"></select></label>
-          <label>Formation name<input id="new-formation-name" maxlength="100" required /></label>
-          <p id="new-formation-error" class="entry-error" role="alert"></p>
-          <div class="dialog-actions">
-            <button type="button" data-close="add-map-dialog">Cancel</button>
-            <button class="primary" type="submit">Add map</button>
-          </div>
-        </form>
       </dialog>
       <dialog id="help-dialog">
         <div class="dialog-heading">
