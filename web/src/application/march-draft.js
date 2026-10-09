@@ -65,4 +65,35 @@ export class MarchDraft {
     });
     this.currentIndex = 0;
   }
+  markEdited() {
+    this.explicit.add(this.current.id);
+  }
+  count(tier, type, value) {
+    const march = this.current;
+    let row = march.layers.find((row) => row.tier === tier);
+    if (!row) march.layers.push((row = { tier }));
+    row[type] = value;
+    this.manual();
+  }
+  base(type, value) {
+    (this.current.bases ||= {})[type] = value;
+    this.manual();
+  }
+  manual() {
+    this.current.generation.manual = true;
+    this.markEdited();
+  }
+  addTier() {
+    const march = this.current;
+    const tier = march.generation.highestTier + 1;
+    if (tier > 17) return;
+    march.generation.highestTier = tier;
+    march.generation.weights = strategyWeights(
+      marchType(march),
+      march.generation.strategy,
+      tier,
+    );
+    if (march.generation.manual) march.layers.push({ tier });
+    else this.generate();
+  }
 }
