@@ -109,6 +109,7 @@ export function createPlayerWorkflow({
     refresh: () => {
       profile.render();
       list.render();
+      fileControls.render();
       refreshAccess();
     },
   });
