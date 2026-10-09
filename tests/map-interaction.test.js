@@ -323,3 +323,25 @@ test("cancel releases a captured drag without committing its preview", () => {
   assert.equal(commits, 0);
   assert.equal(plan.keeps[0].x, 10);
 });
+
+test("dispose releases capture and removes every map listener", () => {
+  const captures = new Set();
+  const canvas = {
+    getBoundingClientRect: () => ({ left: 0, top: 0 }),
+    setPointerCapture: (id) => captures.add(id),
+    hasPointerCapture: (id) => captures.has(id),
+    releasePointerCapture: (id) => captures.delete(id),
+  };
+  const renderer = { hit: () => null, camera: { x: 0, y: 0, zoom: 1 }, draw() {} };
+  const interaction = bindMapInteraction({
+    canvas, renderer, getPending: () => null,
+  });
+  canvas.onpointerdown({ button: 0, pointerId: 7, clientX: 10, clientY: 10 });
+  assert.deepEqual([...captures], [7]);
+  interaction.dispose();
+  assert.equal(captures.size, 0);
+  assert.equal(renderer.preview, null);
+  for (const name of ["ondblclick", "onpointerdown", "onpointermove", "onpointerup",
+    "onpointercancel", "onwheel", "onkeydown"])
+    assert.equal(canvas[name], null, name);
+});
