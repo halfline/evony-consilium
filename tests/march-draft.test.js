@@ -32,3 +32,38 @@ test("manual troop and base edits survive later size synchronization", () => {
   assert.equal(draft.current.generation.manual, true);
   assert.equal(draft.explicit.has(draft.current.id), true);
 });
+
+test("draft exports keep support troops and return independent snapshots", () => {
+  const draft = new MarchDraft(() => ({ ground: 8000000 }));
+  draft.load({}, 42);
+  draft.currentIndex = draft.marches.findIndex((march) => march.troopType === "ground");
+  draft.count(15, "ground", 12345);
+  const saved = draft.read().find((march) => march.id === draft.current.id);
+  assert.equal(saved.layers.find((row) => row.tier === 15).ranged, 5000);
+  draft.count(15, "ground", 54321);
+  assert.equal(saved.layers.find((row) => row.tier === 15).ground, 12345);
+});
+
+test("adding and removing a draft march preserves loaded details", () => {
+  const draft = new MarchDraft(() => ({}));
+  draft.load({}, 50);
+  assert.equal(draft.read().length, 0);
+  assert.equal(draft.current.generation.highestTier, 17);
+  assert.equal(draft.add(), true);
+  const details = { marches: draft.read() };
+  draft.load(details, 50);
+  draft.currentIndex = draft.marches.findIndex((march) => march.id === details.marches[0].id);
+  draft.remove();
+  assert.equal(details.marches.length, 1);
+  assert.ok(!draft.read().some((march) => march.id === details.marches[0].id));
+});
+
+test("a saved march with no rows accepts a manual troop count", () => {
+  const draft = new MarchDraft(() => ({}));
+  draft.load({ marches: [{ id: "empty", name: "General one", troopType: "ground" }] }, 45);
+  assert.equal(draft.current.id, "empty");
+  assert.deepEqual(draft.current.layers, []);
+  draft.count(16, "ground", 100);
+  assert.equal(draft.current.generation.manual, true);
+  assert.equal(draft.read()[0].layers[0].ground, 100);
+});
