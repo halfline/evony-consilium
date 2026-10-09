@@ -33,6 +33,7 @@ import { mapSwitch } from "./browser/map-switch.js";
 import { mapRemove } from "./browser/map-remove.js";
 import { mapZoom } from "./browser/map-zoom.js";
 import { mapToolbar } from "./browser/map-toolbar.js";
+import { routeNavigation } from "./browser/route-navigation.js";
 import { subcityLocate } from "./browser/subcity-locate.js";
 import { mapTerrain } from "./browser/map-terrain.js";
 import { formationPlace } from "./browser/formation-place.js";
@@ -116,6 +117,7 @@ try {
       badResponses.push(res.url());
   });
   const { projectLogo } = await entryWorkflow({ page, context });
+  await routeNavigation({ page });
   await playerRoster({ page, driveFiles });
   await playerProfileEarly({ page, driveFiles });
   await playerAvatarChange({ page, driveFiles });
