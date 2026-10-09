@@ -64,5 +64,6 @@ export function createSubcitiesScreen({
       const city = getPlan().subcities.find((city) => city.id === id);
       if (city) editor.open(city);
     },
+    add: (ownerId) => editor.open(null, ownerId, { lockOwner: true }),
   };
 }

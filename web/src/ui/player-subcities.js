@@ -12,12 +12,14 @@ export function createPlayerSubcities({
   canEdit,
   commit,
   openSubcity,
+  addSubcity,
   context,
   status,
 }) {
   const $ = view(root, dialog);
   const grid = $("player-subcities"),
-    add = $("player-add-subcity");
+    add = $("player-add-subcity"),
+    create = $("player-create-subcity");
   let assigningTo = null,
     openedContext;
   bindTileActions(grid, {
@@ -62,9 +64,16 @@ export function createPlayerSubcities({
     );
     $("assign-subcity-empty").hidden = !!$("assign-subcity-list").children
       .length;
+    $("assign-subcity-list").append(create);
     dialog.showModal();
   }
   add.onclick = choose;
+  create.onclick = () => {
+    if (openedContext !== context() || !canEdit()) return;
+    const owner = assigningTo;
+    dialog.close();
+    addSubcity(owner);
+  };
   function render() {
     const plan = getPlan(),
       id = getPlayerId();
