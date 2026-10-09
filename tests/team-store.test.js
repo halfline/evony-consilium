@@ -92,6 +92,21 @@ test("player transactions update castle growth and keep the asset lookup current
   assert.equal(store.plan.keeps[0].skin, "map-evony3-castle_lv8");
 });
 
+test("team transactions assign the strongest player as default rally setter", () => {
+  const store = new TeamStore(catalog);
+  const plan = createEmptyPlan();
+  plan.keeps.push(
+    { id: "low", name: "Low", accountId: "", allianceTag: "", level: 30,
+      skin: "map-evony3-castle_lv1", w: 2, h: 2, x: null, y: null, locked: false },
+    { id: "high", name: "High", accountId: "", allianceTag: "", level: 45,
+      skin: "map-evony3-castle_lv1", w: 2, h: 2, x: null, y: null, locked: false },
+  );
+  store.replace(plan);
+  assert.equal(store.plan.rallyId, "high");
+  store.mutate((draft) => { draft.keeps[0].level = 50; });
+  assert.equal(store.plan.rallyId, "low");
+});
+
 test("opening a map emits navigation without adding an Undo step", () => {
   const store = new TeamStore();
   const events = [];
