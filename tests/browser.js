@@ -57,6 +57,7 @@ import { formationInspectorCoordinates } from "./browser/formation-inspector-coo
 import { formationInspectorLock } from "./browser/formation-inspector-lock.js";
 import { formationObstacle } from "./browser/formation-obstacle.js";
 import { formationObstacleSize } from "./browser/formation-obstacle-size.js";
+import { formationObstacleName } from "./browser/formation-obstacle-name.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -157,6 +158,7 @@ try {
   await formationInspectorLock({ page, driveFiles });
   await formationObstacle({ page, driveFiles });
   await formationObstacleSize({ page, driveFiles });
+  await formationObstacleName({ page, driveFiles });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
