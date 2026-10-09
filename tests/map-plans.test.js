@@ -27,6 +27,22 @@ test("import validates map choices and restores the blank fallback", () => {
   assert.throws(() => validatePlan(plan), /Unknown map/);
 });
 
+test("map imports reject dangling placement references and migrate legacy layouts", () => {
+  const plan = createMapPlan(createEmptyPlan(), "server", "Hive");
+  assert.doesNotThrow(() => validatePlan(plan));
+  plan.maps[0].layout.positions.push({ id: "missing", x: 10, y: 20 });
+  assert.throws(() => validatePlan(plan), /map player reference/);
+  plan.maps[0].layout.positions = [];
+  plan.activeMapId = "missing";
+  assert.throws(() => validatePlan(plan), /Unknown active map/);
+  const legacy = createEmptyPlan();
+  delete legacy.maps;
+  delete legacy.activeMapId;
+  const migrated = validatePlan(legacy);
+  assert.equal(migrated.maps.length, 1);
+  assert.equal(migrated.activeMapId, migrated.maps[0].id);
+});
+
 test("removing an active map selects a remaining map or clears placement", () => {
   const plan = createEmptyPlan();
   plan.keeps = [{ id: "one", x: 20, y: 30, w: 2, h: 2, locked: true }];
