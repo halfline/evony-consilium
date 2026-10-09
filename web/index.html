@@ -571,6 +571,24 @@
           </div>
         </form>
       </dialog>
+      <dialog id="subcity-owner-dialog" class="catalog-dialog">
+        <div class="dialog-heading">
+          <h2>Choose owner</h2>
+          <button
+            data-close="subcity-owner-dialog"
+            aria-label="Close owner picker"
+          >
+            ×
+          </button>
+        </div>
+        <label
+          >Search players<input id="subcity-owner-search" type="search"
+        /></label>
+        <div id="subcity-owner-grid" class="catalog-grid"></div>
+        <p id="subcity-owner-empty" class="muted" hidden>
+          No matching players.
+        </p>
+      </dialog>
       <dialog id="avatar-dialog" class="catalog-dialog">
         <div class="dialog-heading">
           <h2>Choose an avatar</h2>
