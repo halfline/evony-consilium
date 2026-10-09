@@ -21,8 +21,8 @@ export function createSubcitiesScreen({
   search.oninput = render;
   function tile(city) {
     const card = createSubcityCard({ city, types: types(), owner:
-      getPlan().keeps.find((player) => player.id === city.ownerId) || null });
-    card.querySelector(".subcity-card").disabled = true;
+      getPlan().keeps.find((player) => player.id === city.ownerId) || null,
+      open: () => editor.open(city) });
     return card;
   }
   function render() {
@@ -34,5 +34,11 @@ export function createSubcitiesScreen({
     $("subcities-empty").hidden = cities.length > 0;
     grid.replaceChildren(...cities.map(tile), addButton);
   }
-  return { render };
+  return {
+    render,
+    open: (id) => {
+      const city = getPlan().subcities.find((city) => city.id === id);
+      if (city) editor.open(city);
+    },
+  };
 }
