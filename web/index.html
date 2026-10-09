@@ -627,6 +627,35 @@
         </p>
         <div id="subcity-browser-grid" class="catalog-grid"></div>
       </dialog>
+      <dialog id="assign-subcity-dialog" class="catalog-dialog">
+        <div class="dialog-heading">
+          <h2>Assign a subcity</h2>
+          <button
+            data-close="assign-subcity-dialog"
+            aria-label="Close subcity assignment"
+          >
+            ×
+          </button>
+        </div>
+        <p class="muted">
+          Choose a city to assign to this player. Choosing an owned city
+          transfers it from its current owner.
+        </p>
+        <p id="assign-subcity-empty" class="muted" hidden>
+          No other subcities to assign.
+        </p>
+        <div id="assign-subcity-list" class="subcities-grid">
+          <button
+            id="player-create-subcity"
+            class="add-subcity-icon"
+            type="button"
+            aria-label="Add subcity"
+            title="Add subcity"
+          >
+            +
+          </button>
+        </div>
+      </dialog>
       <dialog id="avatar-dialog" class="catalog-dialog">
         <div class="dialog-heading">
           <h2>Choose an avatar</h2>
