@@ -12,9 +12,10 @@ test("placed entities paint a sprite and expose a selectable hit region", () => 
     assets: new Map([["castle", { src: "castle.webp", width: 100, height: 80 }]]),
     image: (src) => src,
     hits: [],
+    path() {},
   };
   drawEntity(view, { id: "keep", skin: "castle", x: 10, y: 20, w: 2, h: 2 },
-    { grid: { ax: 48, ay: 24, bx: -48, by: 24 } }, 1);
+    { grid: { ax: 48, ay: 24, bx: -48, by: 24 }, obstacles: [] }, 1);
   assert.equal(images.length, 1);
   assert.equal(images[0][0], "castle.webp");
   assert.ok(Math.abs(images[0][3] - 167.04) < 1e-6);
@@ -33,10 +34,10 @@ test("map anchor metadata positions large and pixel-scale sprites", () => {
   const view = {
     ctx: { drawImage: (...args) => images.push(args) },
     screen: (x, y) => ({ x, y }),
-    assets: new Map([["landmark", asset]]), image: (src) => src, hits: [],
+    assets: new Map([["landmark", asset]]), image: (src) => src, hits: [], path() {},
   };
   const entity = { id: "landmark", skin: "landmark", x: 10, y: 20, w: 2, h: 2 };
-  const plan = { grid: { ax: 48, ay: 24, bx: -48, by: 24 }, labels: false };
+  const plan = { grid: { ax: 48, ay: 24, bx: -48, by: 24 }, labels: false, obstacles: [] };
   drawEntity(view, entity, plan, 1);
   assert.equal(images[0][0], "landmark.webp");
   for (const [index, expected] of [[1, -49.44], [2, -116.24], [3, 307.2], [4, 153.6]])
@@ -61,13 +62,13 @@ test("fixed landmarks are inert and major ones stay visible at distant zoom", ()
   };
   const plan = {
     grid: { ax: 48, ay: 24, bx: -48, by: 24 },
-    obstacles: [], rallyId: "throne", labels: false,
+    obstacles: [], rallyId: null, labels: false,
   };
   drawEntity(view, { id: "throne", skin: "map-kingdom", x: 10, y: 20, w: 5, h: 5 }, plan, 0.02, true);
   drawEntity(view, { id: "minor", skin: "minor", x: 10, y: 20, w: 1, h: 1 }, plan, 0.02, true);
   assert.equal(images.length, 1);
   assert.ok(images[0][3] >= 60);
-  assert.equal(outlines, 0);
+  assert.equal(outlines, 1);
   assert.deepEqual(view.hits, []);
 });
 
@@ -77,9 +78,9 @@ test("offscreen sprites leave no draw call or hit region", () => {
     ctx: { drawImage: () => drawings++ },
     screen: (x, y) => ({ x, y }), width: 400, height: 300,
     assets: new Map([["castle", { src: "castle.webp", width: 100, height: 80 }]]),
-    image: (src) => src, hits: [],
+    image: (src) => src, hits: [], path() {},
   };
-  const plan = { grid: { ax: 48, ay: 24, bx: -48, by: 24 }, labels: false };
+  const plan = { grid: { ax: 48, ay: 24, bx: -48, by: 24 }, labels: false, obstacles: [] };
   drawEntity(view, { id: "far", skin: "castle", x: 1000, y: 1000, w: 2, h: 2 }, plan, 1);
   assert.equal(drawings, 0);
   assert.deepEqual(view.hits, []);
@@ -94,9 +95,9 @@ test("an image still loading paints a selectable castle marker", () => {
     ctx: { fillText: (...args) => texts.push(args) },
     screen: (x, y) => ({ x, y }),
     assets: new Map([["castle", { src: "castle.webp", width: 100, height: 80 }]]),
-    image: () => null, hits: [],
+    image: () => null, hits: [], path() {},
   };
-  const plan = { grid: { ax: 48, ay: 24, bx: -48, by: 24 }, labels: false };
+  const plan = { grid: { ax: 48, ay: 24, bx: -48, by: 24 }, labels: false, obstacles: [] };
   drawEntity(view, { id: "keep", skin: "castle", x: 10, y: 20, w: 2, h: 2 }, plan, 1);
   assert.deepEqual(texts, [["♜", 11, 21]]);
   assert.equal(view.ctx.fillStyle, "#d1ba7c");
@@ -108,9 +109,9 @@ test("an entity without catalog art keeps only a minimal selectable hit", () => 
   const view = {
     ctx: { drawImage: () => painted++, fillText: () => painted++,
       fill: () => painted++, stroke: () => painted++ },
-    screen: (x, y) => ({ x, y }), assets: new Map(), hits: [],
+    screen: (x, y) => ({ x, y }), assets: new Map(), hits: [], path() {},
   };
-  const plan = { grid: { ax: 48, ay: 24, bx: -48, by: 24 }, labels: false };
+  const plan = { grid: { ax: 48, ay: 24, bx: -48, by: 24 }, labels: false, obstacles: [] };
   drawEntity(view, { id: "unknown", skin: "missing", x: 10, y: 20, w: 2, h: 2 }, plan, 1);
   assert.equal(painted, 0);
   assert.equal(view.hits[0].right - view.hits[0].left, 20);
@@ -136,7 +137,7 @@ test("entity labels follow the map preference and mark the rally keep", () => {
     hits: [],
   };
   const entity = { id: "keep", name: "Central Keep", allianceTag: "ABC", level: 35, skin: "castle", x: 10, y: 20, w: 2, h: 2 };
-  const plan = { labels: true, rallyId: "keep", grid: { ax: 48, ay: 24, bx: -48, by: 24 } };
+  const plan = { labels: true, rallyId: "keep", obstacles: [], grid: { ax: 48, ay: 24, bx: -48, by: 24 } };
   drawEntity(view, entity, plan, 1);
   assert.deepEqual(labels, ["★ [ABC] Central Keep", "K35"]);
   assert.deepEqual(outlined, ["K35"]);
