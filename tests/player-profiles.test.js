@@ -6,17 +6,12 @@ import {
   linkedPlayer,
   validateProfile,
 } from "../web/src/domain/player-document.js";
-import { createEmptyPlan } from "../web/src/domain/plan.js";
+import { createDemoPlan } from "../web/src/domain/plan.js";
 import { validatePlan } from "../web/src/domain/validation.js";
 import { catalog } from "./fixtures/catalog.js";
 
 async function fixture(canEdit = true) {
-  let plan = createEmptyPlan();
-  plan.keeps = ["Player", "Another player"].map((name, index) => ({
-    id: `player-${index}`, name, accountId: "", allianceTag: "", level: 42,
-    skin: "map-evony3-castle_lv8", w: 2, h: 2, x: null, y: null, locked: false,
-  }));
-  plan = validatePlan(plan, catalog);
+  let plan = validatePlan(createDemoPlan(catalog), catalog);
   let sourceProfile = validateProfile(plan.keeps[0]);
   let file = { id: "source", version: "1", capabilities: { canEdit: true } };
   plan.keeps[0] = linkedPlayer(plan.keeps[0], sourceProfile, file);
