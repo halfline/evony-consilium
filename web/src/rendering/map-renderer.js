@@ -14,6 +14,7 @@ export class MapRenderer {
     this.terrainFor = terrainFor;
     this.assets = assets;
     this.hits = [];
+    this.selected = null;
     this.subcityHits = [];
     this.images = new ImageCache(() => this.draw());
     this.camera = { x: 0, y: 0, zoom: 1 };

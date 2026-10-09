@@ -24,6 +24,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
   const getPlan = () => store.plan;
   let workspace, entry, players, playerSubcities;
   let pendingKeep = null;
+  let selectedKeep = null;
   let screen = "project";
   const access = createReadOnlyView(
     $("planner"),
@@ -127,8 +128,15 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     onDraw: (state) => mapViewControls?.render(state),
   });
   mapViewControls = bindMapViewControls({ root: $("formation-screen"), renderer });
+  function selectKeep(id) {
+    selectedKeep = id;
+    renderer.selected = id;
+    formationList.render();
+    renderer.draw();
+  }
   const formationList = createFormationList({
     root: $("formation-screen"), getPlan,
+    getSelection: () => selectedKeep, select: selectKeep,
     canEdit: () => !store.readOnly,
     place: (keep) => {
       pendingKeep = keep.id;
@@ -146,6 +154,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     },
     canEdit: () => !store.readOnly,
     mutate: (change) => store.mutate(change), toast,
+    select: selectKeep,
   });
   function render() {
     $("plan-title").value = getPlan().title;

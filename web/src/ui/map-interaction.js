@@ -3,7 +3,7 @@ import { canPlace } from "../domain/placement.js";
 export function bindMapInteraction({
   canvas, renderer, getPlan, terrainFor = () => null,
   getPending, resetPending, canEdit = () => true,
-  mutate, toast,
+  mutate, toast, select = () => {},
 }) {
   let pan = null;
   const point = (event) => {
@@ -14,7 +14,9 @@ export function bindMapInteraction({
     if (event.button !== 0) return;
     const pt = point(event);
     if (!getPending()) {
-      if (renderer.hit(pt.x, pt.y)) return;
+      const id = renderer.hit(pt.x, pt.y);
+      select(id);
+      if (id) return;
       pan = { pt, camera: { ...renderer.camera }, pointerId: event.pointerId };
       canvas.setPointerCapture(event.pointerId);
       return;
