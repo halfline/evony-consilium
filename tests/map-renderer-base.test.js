@@ -3,6 +3,27 @@ import assert from "node:assert/strict";
 import { MapRenderer } from "../web/src/rendering/map-renderer.js";
 import { createEmptyPlan } from "../web/src/domain/plan.js";
 
+test("renderer observes the current placement selection without mirrored state", () => {
+  const previousObserver = globalThis.ResizeObserver;
+  globalThis.ResizeObserver = class { observe() {} };
+  try {
+    const selection = { id: null, ids: new Set() };
+    const canvas = { parentElement: {}, getContext: () => ({}) };
+    const renderer = new MapRenderer(canvas, createEmptyPlan, { selection });
+    assert.equal(renderer.selected, null);
+    selection.id = "keep";
+    selection.ids.add("other");
+    assert.equal(renderer.selected, "keep");
+    assert.deepEqual([...renderer.selectedIds], ["other"]);
+    selection.id = null;
+    selection.ids.clear();
+    assert.equal(renderer.selected, null);
+    assert.equal(renderer.selectedIds.size, 0);
+  } finally {
+    globalThis.ResizeObserver = previousObserver;
+  }
+});
+
 test("map grid fits the canvas and zoom preserves the pointer world location", () => {
   const previousObserver = globalThis.ResizeObserver;
   const previousDpr = globalThis.devicePixelRatio;
