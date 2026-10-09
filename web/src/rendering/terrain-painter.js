@@ -64,3 +64,37 @@ export function drawTerrain(view, terrain, minX, minY, maxX, maxY, grid) {
   }
 }
 
+export function drawMoatOverlay(view, entity, plan, zoom) {
+  const terrain = view.terrainFor(plan.map);
+  if (!terrain?.foregroundRegions?.length || !entity.groundTile ||
+      !terrain.landmarks.some(({ id }) => id === entity.id)) return;
+  const ctx = view.ctx;
+  ctx.save();
+  view.path(entity);
+  ctx.clip();
+  ctx.translate(view.width / 2 - view.camera.x * zoom,
+    view.height / 2 - view.camera.y * zoom);
+  ctx.scale(zoom, zoom);
+  const scale = Math.abs(plan.grid.ax - plan.grid.bx) / 256;
+  for (const region of terrain.foregroundRegions) {
+    const cut = region.exclude;
+    for (const layer of terrain.layers.filter(({ name }) => name === "surface"))
+      for (let y = region.y; y < region.y + region.h; y++)
+        for (let x = region.x; x < region.x + region.w; x++) {
+          if (cut && x >= cut.x && x < cut.x + cut.w &&
+              y >= cut.y && y < cut.y + cut.h) continue;
+          if (x + 1 < entity.x || x > entity.x + entity.w ||
+              y + 1 < entity.y || y > entity.y + entity.h) continue;
+          const tile = terrain.tiles[layer.tiles[y * terrain.width + x]];
+          if (!tile || tile.invisible) continue;
+          const image = view.image(tile.src);
+          if (!image) continue;
+          const anchor = project(x + 0.5, y + 0.5, plan.grid);
+          const width = tile.width * scale, height = tile.height * scale;
+          ctx.drawImage(image, anchor.x - width / 2,
+            anchor.y + (plan.grid.ay + plan.grid.by) / 2 - height,
+            width, height);
+        }
+  }
+  ctx.restore();
+}
