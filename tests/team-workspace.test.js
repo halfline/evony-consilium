@@ -86,3 +86,26 @@ test("viewers read shared content without destroying an editor's unsaved local d
   assert.equal(cached.plan.title, "Local edits");
   assert.equal(f.workspace.sync.state().disabled, true);
 });
+
+test("navigation flushes the outgoing team's latest edits under its original key", async () => {
+  const f = fixture();
+  await f.workspace.signIn();
+  await f.workspace.open({ id: "folder" });
+  f.getPlan().title = "Outgoing draft";
+  f.workspace.persist();
+  const originalKey = f.workspace.key();
+  f.drive.project = async () => ({
+    folder: { id: "second-folder" },
+    file: { ...f.file, id: "second-file" },
+  });
+  f.drive.load = async () => ({
+    file: { ...f.file, id: "second-file" },
+    plan: { ...createEmptyPlan(), title: "Incoming" },
+  });
+  await f.workspace.open({ id: "second-folder" });
+  assert.equal(f.writes[0].key, originalKey);
+  assert.equal(f.writes[0].data.plan.title, "Outgoing draft");
+  assert.notEqual(f.workspace.key(), originalKey);
+  assert.equal(f.getPlan().title, "Incoming");
+});
+
