@@ -6,7 +6,7 @@ import { createPlayerMarchSizes } from "./player-march-sizes.js";
 
 export function createPlayerDetails({ root, getPlayer }) {
   const $ = view(root);
-  let original = {};
+  let signature, original = {};
   const buffs = createPlayerBuffs({ root });
   const marchSizes = createPlayerMarchSizes({ root });
   const marches = createPlayerMarches({
@@ -65,11 +65,16 @@ export function createPlayerDetails({ root, getPlayer }) {
     return result;
   }
   function render(player) {
+    const nextSignature = JSON.stringify([player.id, player.details, player.level]);
+    if (signature === nextSignature) return;
+    const changedPlayer = !signature || JSON.parse(signature)[0] !== player.id;
+    signature = nextSignature;
     original = structuredClone(player.details || {});
     buffs.render(original);
     marchSizes.render(original);
     marches.render(original, player.level);
     $("player-rally-capacity").value = original.rallyCapacity ?? "";
+    if (changedPlayer) showTab("overview");
   }
   return { read, render };
 }
