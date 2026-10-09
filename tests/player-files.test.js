@@ -93,6 +93,39 @@ test("opening for the roster rejects files outside the central folder", async ()
   await assert.rejects(f.files.open(null, folder), /central team folder/);
   assert.equal(f.files.state(f.linked()).connected, false);
 });
+test("personal editing saves only the player file and retains a recoverable draft on failure", async () => {
+  const f = fixture();
+  const cached = f.linked();
+  await f.files.open(cached);
+  f.options.drive.savePlayer = async () => {
+    throw new Error("Offline");
+  };
+  await assert.rejects(
+    f.files.saveOwn({ ...cached, name: "My draft" }),
+    /Offline/,
+  );
+  assert.equal(f.drafts.get("source").profile.name, "My draft");
+  assert.equal(cached.name, f.player.name);
+  f.files.reset();
+  await f.files.open(cached);
+  assert.equal(f.files.profile(cached).name, "My draft");
+});
+test("personal edits merge concurrent independent changes without updating the team cache", async () => {
+  const f = fixture();
+  const cached = f.linked();
+  await f.files.open(cached);
+  f.editRemote((profile) => {
+    profile.accountId = "00123";
+  });
+  await f.files.saveOwn({ ...cached, name: "My change" }, () =>
+    assert.fail("No conflict"),
+  );
+  assert.equal(f.remote().name, "My change");
+  assert.equal(f.remote().accountId, "00123");
+  assert.equal(cached.name, f.player.name);
+  assert.equal(f.drafts.get("source"), null);
+});
+
 test("native Drive access can enable editing without Picker or a remembered grant", async () => {
   const f = fixture();
   f.options.drive.metadata = async () => structuredClone(f.file);
