@@ -1100,3 +1100,13 @@
     pointer-events: auto;
   }
 }
+
+#players-screen {
+  display: grid;
+  place-items: center;
+  flex: 1;
+  width: 100%;
+}
+#players-screen .players-workspace {
+  width: 100%;
+}
