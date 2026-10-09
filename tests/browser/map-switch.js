@@ -5,7 +5,7 @@ export async function mapSwitch({ page }) {
   assert.equal(await rows.first().isEnabled(), true);
   await rows.first().click();
   assert.equal(await page.locator("#formation-screen").isVisible(), true);
-  assert.equal(await page.locator("#map-name").textContent(), "First hive");
+  assert.equal(await page.locator("#map-name").textContent(), "Server map");
   await page.waitForFunction(() => {
     const canvas = document.querySelector("#map");
     return canvas.width > 0 && canvas.height > 0;
@@ -15,7 +15,7 @@ export async function mapSwitch({ page }) {
   assert.equal(await page.locator("#drive-save").isDisabled(), true);
   await page.locator('[data-screen="maps"]').click();
   await rows.last().click();
-  assert.equal(await page.locator("#map-name").textContent(), "Battle map");
+  assert.equal(await page.locator("#map-name").textContent(), "Battle of Constantinople");
   assert.equal(await page.locator("#drive-save").isDisabled(), true);
   await page.locator('[data-screen="maps"]').click();
 }

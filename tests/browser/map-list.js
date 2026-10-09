@@ -8,7 +8,8 @@ export async function mapList({ page, driveFiles }) {
   await page.locator('#add-map-form button[type="submit"]').click();
   await page.locator("#add-map-dialog").waitFor({ state: "hidden" });
   assert.equal(await page.locator("#formation-screen").isVisible(), true);
-  assert.equal(await page.locator("#map-name").textContent(), "First hive");
+  assert.equal(await page.locator("#map-name").textContent(), "Server map");
+  assert.equal(await page.locator("#map-kicker").textContent(), "Alliance hive");
   await page.locator('[data-screen="maps"]').click();
   assert.equal(await page.locator("#maps-list .map-row").count(), 1);
   await page.locator("#add-map").click();
@@ -16,7 +17,8 @@ export async function mapList({ page, driveFiles }) {
   await page.locator("#new-formation-name").fill("Battle map");
   await page.locator('#add-map-form button[type="submit"]').click();
   await page.locator("#add-map-dialog").waitFor({ state: "hidden" });
-  assert.equal(await page.locator("#map-name").textContent(), "Battle map");
+  assert.equal(await page.locator("#map-name").textContent(), "Battle of Constantinople");
+  assert.equal(await page.locator("#map-kicker").textContent(), "BoC");
   await page.locator('[data-screen="maps"]').click();
   assert.equal(await page.locator("#maps-list .map-row").count(), 2);
   await page.locator("#drive-save").click();

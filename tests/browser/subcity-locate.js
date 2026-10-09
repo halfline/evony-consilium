@@ -21,7 +21,7 @@ export async function subcityLocate({ page }) {
   await page.locator("#subcities .subcity-card").first().click();
   await page.locator("#subcity-locate").click();
   await page.locator("#formation-screen").waitFor({ state: "visible" });
-  assert.equal(await page.locator("#map-name").textContent(), "Subcity server");
+  assert.equal(await page.locator("#map-name").textContent(), "Server map");
   await page.waitForFunction(() => {
     const canvas = document.querySelector("#map");
     const center = canvas.getContext("2d").getImageData(
