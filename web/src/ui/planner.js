@@ -21,6 +21,7 @@ import { createMapPlan, removeMapPlan } from "../domain/map-plans.js";
 import { setRallySetter } from "../domain/rally.js";
 import { createPlacementInspector } from "./placement-inspector.js";
 import { createFormationControls } from "./formation-controls.js";
+import { createDemoPlan } from "../domain/plan.js";
 
 export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorkspace }) {
   const store = new TeamStore(catalog);
@@ -217,6 +218,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     formationList.render();
     placementInspector.render();
     formationControls.render();
+    $("load-demo").disabled = store.readOnly;
     players?.renderList();
     if (screen === "player") players?.renderProfile();
     if (screen === "player") playerSubcities?.render();
@@ -237,6 +239,16 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     });
   $("undo").onclick = () => store.undo();
   $("help").onclick = () => $("help-dialog").showModal();
+  $("load-demo").onclick = () => {
+    if (store.readOnly) return;
+    selection.clear();
+    selection.pending = null;
+    renderer.selected = null;
+    $("map-guide").textContent = "Choose an unplaced player, then click a free map tile.";
+    store.commit(validatePlan(createDemoPlan(catalog), catalog));
+    renderer.fit();
+    $("help-dialog").close();
+  };
   document.querySelector('[data-screen="project"]').onclick = () => showScreen("project");
   const playersTab = document.querySelector('[data-screen="players"]');
   playersTab.hidden = false;
