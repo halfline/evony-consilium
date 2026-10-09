@@ -1,4 +1,7 @@
 import { readTeamDocument } from "../../domain/document-migrations.js";
+import {
+  readPlayerDocument,
+} from "../../domain/player-document.js";
 import { isTeamLogo } from "../../domain/team.js";
 const API = "https://www.googleapis.com/drive/v3";
 const FIELDS =
@@ -96,6 +99,23 @@ export class Drive {
     }
     throw new DriveError(
       "This team changed while opening. Open it again.",
+      409,
+    );
+  }
+  async loadPlayer(file) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const before = await this.metadata(file);
+      const data = await this.request(
+        `/files/${file.id}?alt=media&supportsAllDrives=true`,
+        { resource: file },
+      );
+      const after = await this.metadata(file);
+      if (before.version !== after.version) continue;
+      after.resourceKey ||= file.resourceKey || "";
+      return { file: after, profile: readPlayerDocument(data) };
+    }
+    throw new DriveError(
+      "This player changed while opening. Open it again.",
       409,
     );
   }
