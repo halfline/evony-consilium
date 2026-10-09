@@ -942,3 +942,43 @@ code {
 #add-obstacle {
   grid-column: 1 / -1;
 }
+
+/* View-only teams keep navigation, search, and camera controls available. */
+.read-only
+  :is(
+    #undo,
+    #add-player,
+    #add-map,
+    #add-subcity,
+    #subcity-save,
+    .subcity-remove,
+    .player-remove,
+    .map-forget,
+    .project-settings [data-logo="remove"],
+    #team-discord-remove,
+    #player-remove,
+    #player-remove-march,
+    #player-add-tier,
+    #player-reset-strategy,
+    .march-add,
+    #player-form button[type="submit"],
+    #entity-form button,
+    [data-building],
+    #add-obstacle,
+    #auto-place,
+    #formation-players,
+    #team-discord-entry,
+    #player-march-settings button
+  ) {
+  display: none !important;
+}
+.read-only :is(.project-settings [data-logo="upload"], #player-castle) {
+  pointer-events: none;
+}
+
+.read-only #player-avatar {
+  pointer-events: none;
+}
+.read-only #player-form input[type="file"] {
+  display: none !important;
+}
