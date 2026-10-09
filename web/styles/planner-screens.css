@@ -912,8 +912,6 @@
     pointer-events: auto;
   }
 }
-.help-content { max-width: 680px; line-height: 1.55; }
-.help-content p { margin: 12px 0; }
 .map-coordinates { margin: 6px 12px; color: var(--muted); font-size: 11px; }
 #formation-screen .map-section { flex: 1; min-width: 0; min-height: min(75vh, 900px); }
 #formation-screen .map-surface { position: relative; width: 100%; min-height: min(75vh, 900px); }
