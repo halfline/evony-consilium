@@ -5,12 +5,21 @@ export function bindMapInteraction({
   canvas, renderer, getPlan, terrainFor = () => null,
   getPending, resetPending, canEdit = () => true,
   mutate, commit, toast, select = () => {}, openSubcity = () => {},
+  openPlayer = () => {},
 }) {
   let pan = null;
   let drag = null;
   const point = (event) => {
     const box = canvas.getBoundingClientRect();
     return { x: event.clientX - box.left, y: event.clientY - box.top };
+  };
+  canvas.ondblclick = (event) => {
+    if (getPending() || event.ctrlKey || event.metaKey || event.shiftKey) return;
+    const pt = point(event);
+    const id = renderer.hit(pt.x, pt.y);
+    if (!getPlan().keeps.some((keep) => keep.id === id)) return;
+    resetPending();
+    openPlayer(id);
   };
   canvas.onpointerdown = (event) => {
     if (event.button !== 0) return;

@@ -157,6 +157,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     commit: (plan) => store.commit(plan), toast,
     select: selectKeep,
     openSubcity: (id) => subcities.open(id),
+    openPlayer: (id) => players.open(id),
   });
   function render() {
     $("plan-title").value = getPlan().title;

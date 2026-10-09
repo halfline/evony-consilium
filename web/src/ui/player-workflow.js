@@ -100,6 +100,10 @@ export function createPlayerWorkflow({
     },
   });
   return {
+    open: (id) => {
+      selectedId = id;
+      navigate("player");
+    },
     renderList: () => {
       list.render();
       roots.list.querySelector("#add-player").hidden =
