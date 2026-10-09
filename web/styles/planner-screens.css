@@ -933,3 +933,51 @@
 #maps-list .add-map-icon {
   flex: 0 0 44px;
 }
+
+.player-layer-table {
+  min-width: 0;
+}
+.player-layer-table th:first-child {
+  width: 48px;
+  padding: 4px 6px;
+  text-align: center;
+}
+.player-layer-table th,
+.player-layer-table td {
+  padding: 3px 4px;
+}
+.player-layer-table input,
+.player-layer-table th select {
+  height: 32px;
+  min-height: 0;
+  padding: 4px 8px;
+  font-size: 13px;
+}
+
+#player-form input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+#player-form input[type="number"]::-webkit-inner-spin-button,
+#player-form input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.player-layer-table th:first-child {
+  width: 76px;
+}
+.player-tier-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.player-tier-header .player-small-add {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  margin: 0;
+  padding: 0;
+  font-size: 20px;
+  color: var(--gold);
+}
