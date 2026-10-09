@@ -125,6 +125,9 @@ export function createPlayerWorkflow({
     },
     openAdd: dialog.open,
     draft: dialog.player,
+    resetTag: () => {
+      lastTag = getPlan().keeps.at(-1)?.allianceTag || "";
+    },
     selected: () => getPlan().keeps.find((player) => player.id === selection.id),
     renderProfile: () => {
       profile.render();
