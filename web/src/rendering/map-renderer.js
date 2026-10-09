@@ -1,7 +1,7 @@
 import { project, unproject } from "../domain/geometry.js";
 import { ImageCache } from "./image-cache.js";
 import { drawSubcities } from "./subcity-painter.js";
-import { drawTerrain } from "./terrain-painter.js";
+import { drawTerrain, drawMoatOverlay } from "./terrain-painter.js";
 import { drawEntity } from "./entity-painter.js";
 
 export class MapRenderer {
@@ -53,6 +53,9 @@ export class MapRenderer {
       ? this.ctx.lineTo(point.x, point.y)
       : this.ctx.moveTo(point.x, point.y));
     this.ctx.closePath();
+  }
+  drawMoatOverlay(...args) {
+    drawMoatOverlay(this, ...args);
   }
   hitSubcity(x, y) {
     return [...this.subcityHits].reverse().find((hit) =>
