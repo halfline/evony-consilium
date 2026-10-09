@@ -1,7 +1,19 @@
 {
   "name": "evony-consilium",
   "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/serve.js",
+    "test": "node --test tests/*.test.js",
+    "test:browser": "node tests/browser.js",
+    "format": "prettier --write \"web/{app.js,index.html,style.css,src/**/*.js,styles/*.css}\" \"scripts/*.{js,cjs}\" \"tests/**/*.js\" \"docs/*.md\" README.md PRIVACY.md TERMS.md package.json",
+    "format:check": "prettier --check \"web/{app.js,index.html,style.css,src/**/*.js,styles/*.css}\" \"scripts/*.{js,cjs}\" \"tests/**/*.js\" \"docs/*.md\" README.md PRIVACY.md TERMS.md package.json",
+    "assets": "node scripts/assets.js",
+    "test:assets": "node --test tests/generated-assets/*.test.js"
+  },
   "devDependencies": {
-    "@pixi-spine/runtime-3.8": "^4.0.6"
+    "@pixi-spine/runtime-3.8": "^4.0.6",
+    "playwright": "1.56.1",
+    "prettier": "3.6.2"
   }
 }

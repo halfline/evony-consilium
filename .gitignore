@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.asset-cache/
+.venv/
+test-results/
+__pycache__/
+*.pyc
+*.egg-info/
+secrets/
+
+# Download-derived resources; maintained branding stays in source control.
+/web/assets/*
+!/web/assets/branding/
