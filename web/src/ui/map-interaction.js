@@ -72,6 +72,11 @@ export function bindMapInteraction({
       if (!group.has(id)) group.clear();
       select(id);
       if (id) {
+        if (!canEdit()) {
+          pan = { pt, camera: { ...renderer.camera }, pointerId: event.pointerId };
+          canvas.setPointerCapture(event.pointerId);
+          return;
+        }
         const entity = [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]
           .find((item) => item.id === id);
         if (canEdit() && entity?.locked) {
