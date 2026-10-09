@@ -6,7 +6,8 @@ export async function playerProfileEarly({ page, driveFiles }) {
   assert.equal(await page.locator("#players-screen").isVisible(), false);
   assert.equal(await page.locator("#player-name").inputValue(), "First player");
   assert.equal(await page.locator("#player-unlock").isVisible(), false);
-  assert.equal(await page.locator("#player-castle").isVisible(), false);
+  assert.equal(await page.locator("#player-castle").isVisible(), true);
+  assert.match(await page.locator("#player-castle").getAttribute("aria-label"), /Japan/);
   await page.locator("#player-name").fill("Renamed player");
   await page.locator("#player-form [type=submit]").click();
   await page.waitForFunction(() =>

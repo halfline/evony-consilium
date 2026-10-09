@@ -2,6 +2,7 @@ import { entryWorkflow } from "./browser/entry.js";
 import { playerRoster } from "./browser/player-roster.js";
 import { playerProfileEarly } from "./browser/player-profile-early.js";
 import { playerAvatarChange } from "./browser/player-avatar-change.js";
+import { playerCastleAppearance } from "./browser/player-castle-appearance.js";
 import { playerRemove } from "./browser/player-remove.js";
 import { playerBuffs } from "./browser/player-buffs.js";
 import { playerMarchSize } from "./browser/player-march-size.js";
@@ -117,6 +118,7 @@ try {
   await playerRoster({ page, driveFiles });
   await playerProfileEarly({ page, driveFiles });
   await playerAvatarChange({ page, driveFiles });
+  await playerCastleAppearance({ page, driveFiles });
   await playerRemove({ page, driveFiles });
   await playerBuffs({ page, driveFiles });
   await playerMarchSize({ page, driveFiles });
