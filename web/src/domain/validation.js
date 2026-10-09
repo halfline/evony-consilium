@@ -1,6 +1,7 @@
 import { isTeamLogo, normalizeDiscordUrl } from "./team.js";
 import { validatePlayerProfile } from "./players.js";
 import { validatePlayerSource } from "./player-document.js";
+import { validateSubcities } from "./subcities.js";
 import { number, string } from "./constraints.js";
 
 // Validate the shared team envelope while preserving fields owned by later editors.
@@ -51,5 +52,7 @@ export function validatePlan(input, catalog = { assets: [] }) {
     player.locked = Boolean(player.locked);
   }
   delete plan.allianceTag;
+  plan.subcities ||= [];
+  validateSubcities(plan.subcities, catalog.subcityTypes || null, plan.keeps);
   return plan;
 }
