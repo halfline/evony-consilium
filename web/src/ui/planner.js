@@ -117,6 +117,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
   });
   let mapViewControls;
   const renderer = new MapRenderer($("map"), getPlan, {
+    assets: store.assets,
     subcityTypes: catalog.subcityTypes || [],
     terrainFor: (id) => terrain?.get(id),
     onDraw: (state) => mapViewControls?.render(state),

@@ -2,15 +2,18 @@ import { project, unproject } from "../domain/geometry.js";
 import { ImageCache } from "./image-cache.js";
 import { drawSubcities } from "./subcity-painter.js";
 import { drawTerrain } from "./terrain-painter.js";
+import { drawEntity } from "./entity-painter.js";
 
 export class MapRenderer {
-  constructor(canvas, getPlan, { onDraw = () => {}, subcityTypes = [], terrainFor = () => undefined } = {}) {
+  constructor(canvas, getPlan, { onDraw = () => {}, subcityTypes = [], terrainFor = () => undefined, assets = new Map() } = {}) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
     this.getPlan = getPlan;
     this.onDraw = onDraw;
     this.subcityTypes = subcityTypes;
     this.terrainFor = terrainFor;
+    this.assets = assets;
+    this.hits = [];
     this.subcityHits = [];
     this.images = new ImageCache(() => this.draw());
     this.camera = { x: 0, y: 0, zoom: 1 };
@@ -29,6 +32,23 @@ export class MapRenderer {
     this.draw();
   }
   image(src) { return this.images.get(src); }
+  hit(x, y) {
+    return [...this.hits].reverse().find((region) =>
+      x >= region.left && x <= region.right && y >= region.top && y <= region.bottom)?.id || null;
+  }
+  path(entity) {
+    const points = [
+      [entity.x, entity.y],
+      [entity.x + entity.w, entity.y],
+      [entity.x + entity.w, entity.y + entity.h],
+      [entity.x, entity.y + entity.h],
+    ].map(([x, y]) => this.screen(x, y));
+    this.ctx.beginPath();
+    points.forEach((point, index) => index
+      ? this.ctx.lineTo(point.x, point.y)
+      : this.ctx.moveTo(point.x, point.y));
+    this.ctx.closePath();
+  }
   hitSubcity(x, y) {
     return [...this.subcityHits].reverse().find((hit) =>
       x >= hit.left && x <= hit.right && y >= hit.top && y <= hit.bottom)?.id || null;
@@ -122,6 +142,10 @@ export class MapRenderer {
       }
       c.stroke();
     }
+    this.hits = [];
+    for (const entity of [...p.obstacles, ...p.structures, ...p.keeps])
+      if (entity.x !== null && entity.y !== null)
+        drawEntity(this, entity, p, this.camera.zoom);
     drawSubcities(this, p, this.subcityTypes);
     this.onDraw({ zoom: this.camera.zoom });
   }
