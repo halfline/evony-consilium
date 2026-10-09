@@ -152,7 +152,9 @@ export function bindMapInteraction({
       const outside = event.clientX < box.left || event.clientX > box.right ||
         event.clientY < box.top || event.clientY > box.bottom;
       if (!canceled && drag.moved && outside) {
-        commit(removePlacements(getPlan(), new Set([drag.entity.id])));
+        commit(removePlacements(getPlan(), new Set(drag.members.map((item) => item.id))));
+        group.clear();
+        groupChanged();
         select(null);
       } else if (!canceled && drag.moved && renderer.preview?.valid)
         commit(movePlacements(getPlan(), renderer.previews || [renderer.preview],
