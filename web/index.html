@@ -589,6 +589,37 @@
           No matching players.
         </p>
       </dialog>
+      <dialog id="subcity-browser-dialog" class="catalog-dialog">
+        <div class="dialog-heading">
+          <h2>Choose a subcity</h2>
+          <button
+            data-close="subcity-browser-dialog"
+            aria-label="Close subcity chooser"
+          >
+            ×
+          </button>
+        </div>
+        <div class="catalog-filters">
+          <input
+            id="subcity-search"
+            type="search"
+            placeholder="Find a subcity…"
+            aria-label="Find a subcity"
+          />
+          <select
+            id="subcity-filter-type"
+            aria-label="Filter subcity type"
+          ></select>
+          <select
+            id="subcity-filter-color"
+            aria-label="Filter subcity color"
+          ></select>
+        </div>
+        <p id="subcity-browser-empty" class="muted" hidden>
+          No subcities match.
+        </p>
+        <div id="subcity-browser-grid" class="catalog-grid"></div>
+      </dialog>
       <dialog id="avatar-dialog" class="catalog-dialog">
         <div class="dialog-heading">
           <h2>Choose an avatar</h2>
