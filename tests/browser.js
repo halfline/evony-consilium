@@ -18,6 +18,7 @@ import { playerFileUnlock } from "./browser/player-file-unlock.js";
 import { playerFileResolution } from "./browser/player-file-resolution.js";
 import { playerProfileUnlock } from "./browser/player-profile-unlock.js";
 import { playerFileConflicts } from "./browser/player-file-conflicts.js";
+import { subcityRegistry } from "./browser/subcity-registry.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -79,10 +80,11 @@ try {
   await playerFileResolution({ page });
   await playerProfileUnlock({ page, driveFiles });
   await playerFileConflicts({ page, driveFiles });
+  await subcityRegistry({ page, driveFiles });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
-    "Browser checks passed: mocked Google/Drive entry, linked player roster, profile, and attack march editing.",
+    "Browser checks passed: mocked Google/Drive entry, linked player editing, and alliance subcity registry.",
   );
 } catch (error) {
   console.error(
