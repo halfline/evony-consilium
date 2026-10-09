@@ -187,6 +187,32 @@ test("a drag beyond world bounds unplaces the keep even inside the canvas", () =
   assert.equal(captures.size, 0);
 });
 
+test("an occupied destination keeps the placement and explains the rejection", () => {
+  let plan = createEmptyPlan();
+  plan.keeps.push(
+    { id: "a", x: 10, y: 10, w: 2, h: 2, locked: false },
+    { id: "b", x: 14, y: 10, w: 2, h: 2, locked: false },
+  );
+  const captures = new Set();
+  const canvas = {
+    getBoundingClientRect: () => ({ left: 0, top: 0, right: 100, bottom: 100 }),
+    setPointerCapture: (id) => captures.add(id),
+    hasPointerCapture: (id) => captures.has(id),
+    releasePointerCapture: (id) => captures.delete(id),
+  };
+  const renderer = { hit: () => "a", world: (x, y) => ({ x, y }), draw() {} };
+  let message = "";
+  bindMapInteraction({ canvas, renderer, getPlan: () => plan, getPending: () => null,
+    commit: (next) => { plan = next; }, toast: (text) => { message = text; } });
+  canvas.onpointerdown({ button: 0, pointerId: 2, clientX: 10, clientY: 10 });
+  canvas.onpointermove({ pointerId: 2, clientX: 14, clientY: 10 });
+  assert.equal(renderer.preview.valid, false);
+  canvas.onpointerup({ pointerId: 2, clientX: 14, clientY: 10 });
+  assert.deepEqual(plan.keeps.map(({ x, y }) => [x, y]), [[10, 10], [14, 10]]);
+  assert.match(message, /Position blocked/);
+  assert.equal(captures.size, 0);
+});
+
 test("Escape clears pending placement and selection without editing plan", () => {
   const plan = createEmptyPlan();
   const canvas = {};
