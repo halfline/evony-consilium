@@ -109,7 +109,6 @@
 }
 .player-march-toolbar input { flex: 1; min-width: 0; }
 .player-stat-summary { margin: 12px 0; color: var(--muted); }
-.player-small-add { padding: 4px 10px; color: var(--gold); }
 .player-march-toolbar {
   gap: 10px;
   flex-wrap: wrap;
