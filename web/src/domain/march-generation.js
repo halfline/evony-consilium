@@ -68,3 +68,33 @@ export function initialGeneration(march, highestTier) {
     manual: false,
   };
 }
+export function validateGeneration(march) {
+  if (march.capacityOverride != null)
+    number(
+      march.capacityOverride,
+      0,
+      Number.MAX_SAFE_INTEGER,
+      "march capacity",
+    );
+  const g = march.generation;
+  if (!g) return;
+  if (!TROOP_TYPES.includes(marchType(march)))
+    throw new Error("Choose a march troop type.");
+  if (!["balanced", "big-siege", "small-siege"].includes(g.strategy))
+    throw new Error("Choose a march strategy.");
+  number(g.highestTier, 10, 17, "highest troop tier");
+  number(g.layerSize, 0, Number.MAX_SAFE_INTEGER, "layer size");
+  if (typeof g.manual !== "boolean")
+    throw new Error("Invalid march editing state.");
+  if (!g.weights || typeof g.weights !== "object" || Array.isArray(g.weights))
+    throw new Error("Invalid march percentages.");
+  for (const [tier, weight] of Object.entries(g.weights)) {
+    number(Number(tier), 10, g.highestTier, "allocation tier");
+    number(weight, 0, 100, "tier share", false);
+  }
+  const sum = Object.values(g.weights).reduce((a, b) => a + b, 0);
+  if (Math.abs(sum - 100) > 0.00001)
+    throw new Error("Tier shares must total 100%.");
+  if (g.strategy === "small-siege" && g.highestTier < 11)
+    throw new Error("Small siege requires T11.");
+}
