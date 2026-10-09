@@ -13,7 +13,8 @@ export async function playerMarchList({ page, driveFiles }) {
     await page.waitForTimeout(50);
   }
   assert.equal(playerFile.data.profile.details.marches.filter((march) => march.name === "New march").length, 1);
-  await page.getByRole("button", { name: "Remove New march" }).click();
+  await page.locator("#player-march-list .march-card").filter({ hasText: "New march" }).click();
+  await page.locator("#player-remove-march").click();
   await page.locator("#player-form [type=submit]").click();
   for (let attempt = 0; attempt < 40; attempt++) {
     if (!playerFile.data.profile.details?.marches?.some((march) => march.name === "New march")) break;
