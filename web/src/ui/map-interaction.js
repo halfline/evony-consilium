@@ -8,6 +8,7 @@ export function bindMapInteraction({
   openPlayer = () => {},
   getSelection = () => null,
   undo = () => {},
+  group = new Set(),
 }) {
   let pan = null;
   let drag = null;
@@ -27,6 +28,19 @@ export function bindMapInteraction({
     if (event.button !== 0) return;
     canvas.focus?.();
     const pt = point(event);
+    if ((event.ctrlKey || event.metaKey) && !getPending()) {
+      const id = renderer.hit(pt.x, pt.y);
+      const entity = [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]
+        .find((item) => item.id === id);
+      if (!entity || entity.locked || entity.x === null) return;
+      if (!group.size && getSelection() && getSelection() !== id)
+        group.add(getSelection());
+      if (group.has(id)) group.delete(id);
+      else group.add(id);
+      select(null);
+      renderer.draw();
+      return;
+    }
     const cityId = renderer.hitSubcity?.(pt.x, pt.y);
     if (cityId && !getPending()) {
       openSubcity(cityId);
@@ -34,6 +48,7 @@ export function bindMapInteraction({
     }
     if (!getPending()) {
       const id = renderer.hit(pt.x, pt.y);
+      if (!group.has(id)) group.clear();
       select(id);
       if (id) {
         const entity = [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]

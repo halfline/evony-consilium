@@ -127,6 +127,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     terrainFor: (id) => terrain?.get(id),
     onDraw: (state) => mapViewControls?.render(state),
   });
+  renderer.selectedIds = selection.ids;
   mapViewControls = bindMapViewControls({ root: $("formation-screen"), renderer });
   function selectKeep(id) {
     selection.select(id);
@@ -136,7 +137,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
   }
   const formationList = createFormationList({
     root: $("formation-screen"), getPlan,
-    getSelection: () => selection.id, select: selectKeep,
+    getSelection: () => selection.id, group: selection.ids, select: selectKeep,
     canEdit: () => !store.readOnly,
     place: (keep) => {
       selection.pending = keep.id;
@@ -157,6 +158,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     commit: (plan) => store.commit(plan), toast,
     select: selectKeep,
     getSelection: () => selection.id,
+    group: selection.ids,
     undo: () => store.undo(),
     openSubcity: (id) => subcities.open(id),
     openPlayer: (id) => players.open(id),

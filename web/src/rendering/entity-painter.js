@@ -5,7 +5,7 @@ export function drawEntity(view, entity, plan, zoom) {
   const height = (Math.abs(plan.grid.ay) + Math.abs(plan.grid.by)) * entity.h * zoom;
   const asset = view.assets.get(entity.skin);
   const image = asset && view.image(asset.src);
-  if (view.selected === entity.id) {
+  if (view.selected === entity.id || view.selectedIds?.has(entity.id)) {
     view.path(entity);
     ctx.strokeStyle = "#fff0b4";
     ctx.lineWidth = 2;

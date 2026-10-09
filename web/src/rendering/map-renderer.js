@@ -15,6 +15,7 @@ export class MapRenderer {
     this.assets = assets;
     this.hits = [];
     this.selected = null;
+    this.selectedIds = new Set();
     this.preview = null;
     this.subcityHits = [];
     this.images = new ImageCache(() => this.draw());
