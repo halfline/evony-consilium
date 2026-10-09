@@ -10,7 +10,10 @@ export async function unconfiguredDeployment({ browser }) {
   );
   const setupPage = await unconfigured.newPage();
   await setupPage.goto("http://127.0.0.1:4174");
-  await setupPage.locator("#loading").waitFor({ state: "hidden" });
+  await setupPage
+    .locator("#login-detail")
+    .filter({ hasText: /not configured/ })
+    .waitFor();
   assert.equal(await setupPage.locator("#google-login").isDisabled(), true);
   assert.match(
     await setupPage.locator("#login-detail").textContent(),
@@ -33,7 +36,7 @@ export async function unavailableResources({ browser }) {
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto("http://127.0.0.1:4174");
-    await page.locator("#loading").waitFor({ state: "hidden" });
+    await page.locator("#login-detail").filter({ hasText: message }).waitFor();
     assert.match(await page.locator("#login-detail").textContent(), message);
     assert.equal(await page.locator("#google-login").isDisabled(), true);
     assert.equal(await page.locator("#planner").isVisible(), false);
