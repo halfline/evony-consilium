@@ -28,15 +28,16 @@ export function bindMapInteraction({
 }) {
   let drag = null;
   function cancel() {
-    for (const state of [drag])
-      if (
-        state?.pointerId !== undefined &&
-        canvas.hasPointerCapture(state.pointerId)
-      )
-        canvas.releasePointerCapture(state.pointerId);
+    if (
+      drag?.pointerId !== undefined &&
+      canvas.hasPointerCapture(drag.pointerId)
+    )
+      canvas.releasePointerCapture(drag.pointerId);
     drag = null;
-    renderer.preview = renderer.previews = renderer.selectionBox = null;
-    if (canvas.style) canvas.style.cursor = "default";
+    renderer.selectionBox = null;
+    renderer.preview = null;
+    renderer.previews = null;
+    canvas.style.cursor = "default";
   }
   function removeObjects(ids) {
     commit(removePlacements(getPlan(), ids));
