@@ -93,3 +93,14 @@ test("dragging a selected keep previews and commits one valid position", () => {
   assert.equal(captures.size, 0);
   assert.deepEqual(selected, ["keep"]);
 });
+
+test("clicking a mapped subcity opens its details without beginning a drag", () => {
+  const canvas = { getBoundingClientRect: () => ({ left: 0, top: 0 }) };
+  const opened = [];
+  bindMapInteraction({
+    canvas, renderer: { hitSubcity: () => "city" },
+    getPending: () => null, openSubcity: (id) => opened.push(id),
+  });
+  canvas.onpointerdown({ button: 0, clientX: 20, clientY: 30 });
+  assert.deepEqual(opened, ["city"]);
+});
