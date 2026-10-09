@@ -7,7 +7,7 @@ export async function playerRemove({ page, driveFiles }) {
   await page.locator("#new-player-form [type=submit]").click();
   await page.locator("#add-player-dialog").waitFor({ state: "hidden" });
   assert.equal(await page.locator("#players .player-card").count(), 2);
-  await page.locator("#players .player-card").filter({ hasText: "Temporary player" }).click();
+  assert.equal(await page.locator("#player-title").textContent(), "Temporary player");
   assert.equal(await page.locator("#player-remove").getAttribute("aria-label"), "Remove Temporary player");
   await page.locator("#player-title").dispatchEvent("pointerdown", {
     pointerType: "touch",

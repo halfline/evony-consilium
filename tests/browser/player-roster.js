@@ -15,6 +15,9 @@ export async function playerRoster({ page, driveFiles }) {
   await page.locator("#new-player-tag").fill("ONE");
   await page.locator("#new-player-form [type=submit]").click();
   await page.locator("#add-player-dialog").waitFor({ state: "hidden" });
+  assert.equal(await page.locator("#player-screen").isVisible(), true);
+  assert.equal(await page.locator("#player-title").textContent(), "First player");
+  await page.locator('[data-screen="players"]').click();
   assert.equal(await page.locator("#players .player-card").count(), 1);
   assert.match(await page.locator("#players").textContent(), /First player/);
   const playerFiles = [...driveFiles.values()].filter(
