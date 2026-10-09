@@ -6,6 +6,7 @@ import { playerRemove } from "./browser/player-remove.js";
 import { playerBuffs } from "./browser/player-buffs.js";
 import { playerMarchSize } from "./browser/player-march-size.js";
 import { playerRallyCapacity } from "./browser/player-rally-capacity.js";
+import { playerMarchList } from "./browser/player-march-list.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -55,6 +56,7 @@ try {
   await playerBuffs({ page, driveFiles });
   await playerMarchSize({ page, driveFiles });
   await playerRallyCapacity({ page, driveFiles });
+  await playerMarchList({ page, driveFiles });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
