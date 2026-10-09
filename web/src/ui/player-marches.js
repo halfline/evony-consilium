@@ -130,9 +130,16 @@ export function createPlayerMarches({ root, getSizes }) {
     list.hidden = false;
     list.replaceChildren();
     draft.marches.forEach((march, index) => {
-      const button = element("button", march.name, "march-card");
+      const button = element("button", undefined, "march-card");
       button.type = "button";
       button.dataset.march = march.id;
+      button.setAttribute("aria-label", march.name);
+      const portrait = element("span", undefined, "map-portrait");
+      const image = element("img");
+      image.src = `assets/troop-icons/${marchType(march)}.webp`;
+      image.alt = "";
+      portrait.append(image);
+      button.append(portrait, element("strong", march.name));
       button.onclick = () => {
         draft.currentIndex = index;
         renderMarch();
