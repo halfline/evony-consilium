@@ -209,12 +209,7 @@ export function createPlanner(
     renderer,
     getPlan,
     mutate: (change) => store.mutate(change),
-    selected: () =>
-      [
-        ...getPlan().keeps,
-        ...getPlan().structures,
-        ...getPlan().obstacles,
-      ].find(({ id }) => id === selection.id),
+    selected: () => selection.selected,
   });
   placementView = createPlacementView({
     root: $("formation-screen"),
@@ -254,12 +249,7 @@ export function createPlanner(
       commit: (plan) => store.commit(plan),
       applied: () => placementView.reset(),
       status: toast,
-      selected: () =>
-        [
-          ...getPlan().keeps,
-          ...getPlan().structures,
-          ...getPlan().obstacles,
-        ].find(({ id }) => id === selection.id),
+      selected: () => selection.selected,
       close: () => selectKeep(null),
     });
     formationControls = createFormationControls({
