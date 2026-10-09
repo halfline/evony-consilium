@@ -286,6 +286,39 @@ test("Control-Z delegates to map undo and prevents browser undo", () => {
   assert.equal(prevented, true);
 });
 
+test("document shortcuts work outside canvas and are disposed", () => {
+  const original = globalThis.document;
+  let keydown = null, removed = null;
+  globalThis.document = {
+    addEventListener: (_type, handler) => { keydown = handler; },
+    removeEventListener: (_type, handler) => { removed = handler; },
+  };
+  try {
+    const group = new Set(["keep"]), canvas = {};
+    const renderer = { preview: { id: "keep" }, draw() {} };
+    let pending = "keep", undos = 0, prevented = false;
+    const interaction = bindMapInteraction({ canvas, renderer, group,
+      canEdit: () => true, undo: () => undos++,
+      resetPending: () => { pending = null; } });
+    const target = { closest: () => null };
+    keydown({ key: "z", ctrlKey: true, target,
+      preventDefault: () => { prevented = true; } });
+    assert.equal(undos, 1);
+    assert.equal(prevented, true);
+    keydown({ key: "Escape", target });
+    assert.equal(pending, null);
+    assert.equal(group.size, 0);
+    assert.equal(renderer.preview, null);
+    keydown({ key: "z", ctrlKey: true, target: { closest: () => ({}) },
+      preventDefault() {} });
+    assert.equal(undos, 1);
+    interaction.dispose();
+    assert.equal(removed, keydown);
+  } finally {
+    globalThis.document = original;
+  }
+});
+
 test("arrow keys nudge selected keep by one tile", () => {
   let plan = createEmptyPlan();
   plan.keeps.push({ id: "keep", x: 10, y: 10, w: 2, h: 2, locked: false });
