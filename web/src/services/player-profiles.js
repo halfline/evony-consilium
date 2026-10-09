@@ -59,4 +59,25 @@ export class PlayerProfiles {
     this.commitPlan(next);
     return linked;
   }
+  async unlock(id) {
+    const player = this.player(id);
+    if (!player) throw new Error("Player is no longer on the team.");
+    this.workspace.authorize();
+    if (player.playerSource) return this.workspace.players.open(player);
+    if (!this.canEditTeam())
+      throw new Error(
+        "Ask an admin to create this player's central file before unlocking.",
+      );
+    const current = this.context(),
+      before = JSON.stringify(player);
+    const folder = await this.workspace.playerFolder();
+    current();
+    const linked = await this.workspace.players.create(player, folder);
+    current();
+    if (!this.canEditTeam() || JSON.stringify(this.player(id)) !== before)
+      throw new Error(
+        "The roster changed. The player file was created; retry unlocking to link it.",
+      );
+    this.replaceCached(linked);
+  }
 }
