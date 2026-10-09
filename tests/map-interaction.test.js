@@ -25,6 +25,7 @@ test("pending keep placement commits only a free tile", () => {
 test("dragging empty canvas pans the camera and releases pointer capture", () => {
   const captures = new Set();
   const canvas = {
+    style: {},
     getBoundingClientRect: () => ({ left: 0, top: 0 }),
     setPointerCapture: (id) => captures.add(id),
     hasPointerCapture: (id) => captures.has(id),
@@ -40,9 +41,11 @@ test("dragging empty canvas pans the camera and releases pointer capture", () =>
   canvas.onpointerdown({ button: 0, pointerId: 1, clientX: 10, clientY: 20 });
   canvas.onpointermove({ pointerId: 1, clientX: 30, clientY: 40 });
   assert.deepEqual([renderer.camera.x, renderer.camera.y], [0, 10]);
+  assert.equal(canvas.style.cursor, "grabbing");
   assert.equal(draws, 1);
   canvas.onpointerup({ pointerId: 1 });
   assert.equal(captures.size, 0);
+  assert.equal(canvas.style.cursor, "default");
   canvas.onpointermove({ pointerId: 1, clientX: 50, clientY: 60 });
   assert.deepEqual([renderer.camera.x, renderer.camera.y], [0, 10]);
 });
