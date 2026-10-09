@@ -37,9 +37,8 @@ export function createPlayerWorkflow({
     add: async (player) => {
       const linked = await getWorkspace().profiles.add(player);
       lastTag = player.allianceTag;
-      select(linked.id);
-      list.render();
-      status("Player added.");
+      select(player.id);
+      navigate("player");
       return linked;
     },
   });
