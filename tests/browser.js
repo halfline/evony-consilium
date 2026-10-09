@@ -53,6 +53,7 @@ import { formationCancelNavigation } from "./browser/formation-cancel-navigation
 import { formationGroupDragOff } from "./browser/formation-group-drag-off.js";
 import { formationRally } from "./browser/formation-rally.js";
 import { formationInspectorRead } from "./browser/formation-inspector-read.js";
+import { formationInspectorCoordinates } from "./browser/formation-inspector-coordinates.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -149,6 +150,7 @@ try {
   await formationGroupDragOff({ page, driveFiles });
   await formationGroupDelete({ page, driveFiles });
   await formationCancelNavigation({ page, driveFiles });
+  await formationInspectorCoordinates({ page, driveFiles });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
