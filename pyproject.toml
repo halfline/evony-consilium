@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "consilium-assets"
+version = "0.0.0"
+description = "Offline asset-acquisition helpers imported by the Evony Consilium extraction scripts."
+requires-python = ">=3.12"
+dependencies = [
+    "UnityPy==1.25.4",
+    "Pillow",
+    "brotli",
+    "numpy",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
