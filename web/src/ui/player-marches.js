@@ -3,6 +3,7 @@ import { marchType, marchCapacity } from "../domain/march-generation.js";
 import { marchTotals } from "../domain/attack-marches.js";
 import { names, columns, numeric, element, numberInput, table } from "./player-fields.js";
 import { view } from "./dom.js";
+import { renderMarchSettings } from "./player-march-settings.js";
 
 export function createPlayerMarches({ root, getSizes }) {
   const $ = view(root);
@@ -22,6 +23,14 @@ export function createPlayerMarches({ root, getSizes }) {
     $("player-reset-strategy").hidden = true;
     const march = draft.current;
     $("player-march-name").value = march.name;
+    renderMarchSettings({
+      root: $("player-march-settings"),
+      march,
+      getSizes,
+      generate: () => draft.generate(),
+      renderMarch,
+      explicit: draft.explicit,
+    });
     const tableRoot = $("player-troops");
     const grid = table(["Tier", names[marchType(march)]]);
     for (let tier = march.generation.highestTier; tier >= 10; tier--) {
