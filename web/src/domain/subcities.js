@@ -90,3 +90,8 @@ export function saveSubcity(plan, values, id = null, types = null) {
   validateSubcities(next.subcities, types, next.keeps);
   return next;
 }
+export function removeSubcity(plan, id) {
+  const next = structuredClone(plan);
+  next.subcities = (next.subcities || []).filter((city) => city.id !== id);
+  return next;
+}
