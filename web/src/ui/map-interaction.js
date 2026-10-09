@@ -168,7 +168,7 @@ export function bindMapInteraction({
       const start = renderer.world(drag.pt.x, drag.pt.y);
       const end = renderer.world(pt.x, pt.y);
       const dx = Math.round(end.x - start.x), dy = Math.round(end.y - start.y);
-      drag.moved = drag.moved || dx !== 0 || dy !== 0;
+      drag.moved ||= Math.hypot(pt.x - drag.pt.x, pt.y - drag.pt.y) > 4;
       const preview = previewPlacementMove(
         getPlan(), drag.members, dx, dy, terrainFor(getPlan().map));
       renderer.previews = preview.positions.map((item) => ({ ...item, valid: preview.valid }));
