@@ -183,6 +183,8 @@ export function bindMapInteraction({
       } else if (!canceled && drag.moved && renderer.preview?.valid)
         commit(movePlacements(getPlan(), renderer.previews || [renderer.preview],
           terrainFor(getPlan().map)));
+      else if (!canceled && drag.moved && renderer.preview)
+        toast("Position blocked. The selection stayed at its original location.", true);
       if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
       drag = null;
       renderer.preview = null;
