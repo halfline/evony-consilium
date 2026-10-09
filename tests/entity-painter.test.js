@@ -21,6 +21,30 @@ test("placed entities paint a sprite and expose a selectable hit region", () => 
   assert.ok(view.hits[0].left < 11 && view.hits[0].right > 11);
 });
 
+test("entity labels follow the map preference and mark the rally keep", () => {
+  const labels = [];
+  const view = {
+    ctx: {
+      drawImage() {},
+      fillText: (label) => labels.push(label),
+    },
+    screen: (x, y) => ({ x, y }),
+    assets: new Map([["castle", { src: "castle.webp", width: 100, height: 80 }]]),
+    image: (src) => src,
+    hits: [],
+  };
+  const entity = { id: "keep", name: "Central Keep", skin: "castle", x: 10, y: 20, w: 2, h: 2 };
+  const plan = { labels: true, rallyId: "keep", grid: { ax: 48, ay: 24, bx: -48, by: 24 } };
+  drawEntity(view, entity, plan, 1);
+  assert.deepEqual(labels, ["★ Central Keep"]);
+  plan.labels = false;
+  drawEntity(view, entity, plan, 1);
+  assert.deepEqual(labels, ["★ Central Keep"]);
+  plan.labels = true;
+  drawEntity(view, entity, plan, 0.1);
+  assert.deepEqual(labels, ["★ Central Keep"]);
+});
+
 test("formation renderer paints placed keeps and exposes their hit region", () => {
   const original = globalThis.ResizeObserver;
   const originalRatio = globalThis.devicePixelRatio;
@@ -33,7 +57,7 @@ test("formation renderer paints placed keeps and exposes their hit region", () =
     let painted = 0;
     const ctx = {
       setTransform() {}, fillRect() {}, beginPath() {}, moveTo() {}, lineTo() {},
-      closePath() {}, fill() { painted++; }, stroke() {},
+      closePath() {}, fill() { painted++; }, stroke() {}, fillText() {},
     };
     const canvas = { getContext: () => ctx, parentElement: {} };
     const renderer = new MapRenderer(canvas, () => plan);
