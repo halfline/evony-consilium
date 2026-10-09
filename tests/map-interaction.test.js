@@ -65,6 +65,24 @@ test("mouse wheel zooms around the pointer and suppresses page scrolling", () =>
   assert.ok(zooms[0][0] > 1);
 });
 
+test("canvas cursor distinguishes pending placement, entity hover, and empty map", () => {
+  const canvas = { style: {}, getBoundingClientRect: () => ({ left: 0, top: 0 }) };
+  const plan = createEmptyPlan();
+  plan.keeps.push({ id: "keep", x: null, y: null, w: 2, h: 2 });
+  let pending = null;
+  bindMapInteraction({ canvas,
+    renderer: { hit: (x) => x < 50 ? "keep" : null,
+      world: () => ({ x: 10, y: 10 }), draw() {} },
+    getPlan: () => plan, getPending: () => pending });
+  canvas.onpointermove({ clientX: 20, clientY: 10 });
+  assert.equal(canvas.style.cursor, "grab");
+  canvas.onpointermove({ clientX: 80, clientY: 10 });
+  assert.equal(canvas.style.cursor, "default");
+  pending = "keep";
+  canvas.onpointermove({ clientX: 80, clientY: 10 });
+  assert.equal(canvas.style.cursor, "crosshair");
+});
+
 test("dragging a selected keep previews and commits one valid position", () => {
   let plan = createEmptyPlan();
   plan.keeps.push({ id: "keep", x: 10, y: 10, w: 2, h: 2, locked: false });
