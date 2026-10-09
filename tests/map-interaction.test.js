@@ -196,6 +196,19 @@ test("Backspace unplaces selected keep without deleting its player", () => {
   assert.equal(plan.keeps[0].x, null);
 });
 
+test("removing a selection also clears pending placement", () => {
+  let plan = createEmptyPlan();
+  plan.keeps.push({ id: "keep", x: 10, y: 10, w: 2, h: 2, locked: false });
+  let pending = "obstacle";
+  const canvas = {};
+  bindMapInteraction({ canvas, getPlan: () => plan, getSelection: () => "keep",
+    resetPending: () => { pending = null; },
+    commit: (next) => { plan = next; } });
+  canvas.onkeydown({ key: "Delete", preventDefault() {} });
+  assert.equal(plan.keeps[0].x, null);
+  assert.equal(pending, null);
+});
+
 test("dragging a keep outside the canvas removes only its placement", () => {
   let plan = createEmptyPlan();
   plan.keeps.push({ id: "keep", name: "Player", x: 10, y: 10, w: 2, h: 2, locked: false });
