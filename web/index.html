@@ -994,14 +994,68 @@
       <dialog id="help-dialog">
         <div class="dialog-heading">
           <h2>Your alliance war room</h2>
-          <button data-close="help-dialog" type="button" aria-label="Close help">×</button>
+          <p>
+            <a href="privacy.html" target="_blank" rel="noopener"
+              >Privacy policy</a
+            >
+            ·
+            <a href="terms.html" target="_blank" rel="noopener">Terms of use</a>
+          </p>
+          <button data-close="help-dialog" aria-label="Close help">×</button>
         </div>
         <div class="help-content">
-          <p>Select a keep on the map to move it, or use the inspector to edit its coordinates and lock it. Select a rally setter, then Arrange formation to place keeps around it. Blocked tiles and alliance buildings reserve map space.</p>
-          <p>Save stores team changes. Player profile edits save to their own Drive files. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="terms.html" target="_blank" rel="noopener">Terms of use</a></p>
-          <p>Asset source: the <a href="https://ew.evony.com/" target="_blank" rel="noopener">official browser client</a> references a public Unity bundle index. Extraction tooling and provenance are included in the repository. Evony graphics © Top Games Inc.; this is an unofficial planning tool.</p>
-          <p>Keyboard: Ctrl/Cmd Z undoes an edit, Esc cancels placement, arrow keys move a selected unlocked keep, Shift-drag selects a group, Ctrl/Command-click toggles an object, and Delete removes selected objects from the map.</p>
-          <button id="load-demo" type="button">Load demo formation</button>
+          <p>
+            Select a player in Players or a keep on the map to edit its name,
+            account ID, level, castle tier, or position. Castle footprints
+            follow their configured size. Drag a keep to a free grid location.
+            Locked keeps are excluded from automatic placement.
+          </p>
+          <p>
+            The highest keep starts as rally setter. Hover or hold another keep
+            to reveal its star, then use
+            <strong>Arrange formation</strong> above the map. Keeps are ranked
+            by level, with higher levels placed nearer the setter. Alliance
+            buildings and blocked tiles are avoided.
+          </p>
+          <p>
+            <strong>Save</strong> stores team changes. Player profile edits save
+            to their own Drive files. Keep level defaults to 42 and culture to
+            Japan.
+          </p>
+          <p>
+            <strong>Appearance:</strong> bundled images are extracted original
+            Evony sprites. The default grid uses a 2:1 diamond and is
+            adjustable. Battlefield geography, coordinate extents, footprints,
+            and premium skin names are not fully verified. Imported map
+            screenshots and custom sprites can supply missing current content.
+          </p>
+          <p>
+            <strong>Asset source:</strong> the
+            <a href="https://ew.evony.com/" target="_blank" rel="noopener"
+              >official browser client</a
+            >
+            references
+            <a
+              href="https://ewggcdn.ucimg.co/webgl/WebBuild/StreamingAssets/AssetsBundles/BundleMap.txt"
+              target="_blank"
+              rel="noopener"
+              >this public Unity bundle index</a
+            >. Extraction tooling and provenance are included in the repository.
+            Bundles may predate the live game; public availability does not
+            grant redistribution rights.
+          </p>
+          <p>
+            Evony graphics © Top Games Inc. This is an unofficial planning
+            tool. Account IDs are stored locally with your plan.
+          </p>
+          <p>
+            Keyboard: <kbd>Ctrl/Cmd Z</kbd> undo, <kbd>Esc</kbd> cancel,
+            <kbd>+</kbd>/<kbd>−</kbd> zoom, arrow keys move the selected
+            unlocked keep one tile. Shift-drag selects a group;
+            Ctrl/Command-click toggles individual objects. Delete removes
+            selected objects from the map.
+          </p>
+          <button id="load-demo">Load demo formation</button>
         </div>
       </dialog>
     </div>
