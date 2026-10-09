@@ -63,6 +63,7 @@ import { formationWarehouse } from "./browser/formation-warehouse.js";
 import { formationResource } from "./browser/formation-resource.js";
 import { formationObjective } from "./browser/formation-objective.js";
 import { formationArrange } from "./browser/formation-arrange.js";
+import { formationBuildingSkin } from "./browser/formation-building-skin.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -169,6 +170,7 @@ try {
   await formationResource({ page, driveFiles });
   await formationObjective({ page, driveFiles });
   await formationArrange({ page, driveFiles });
+  await formationBuildingSkin({ page, driveFiles });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
