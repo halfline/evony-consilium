@@ -27,12 +27,20 @@ import { createFormationControls } from "./formation-controls.js";
 import { bindShellControls } from "./shell-controls.js";
 import { createDemoPlan } from "../domain/plan.js";
 
-export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { createWorkspace }) {
+export function createPlanner(
+  { catalog, avatarCatalog, terrainCatalog },
+  { createWorkspace },
+) {
   const store = new TeamStore(catalog);
   const toast = createNotifier($("toast"));
   const getPlan = () => store.plan;
   const terrainFor = (id) => terrainCatalog.get(id);
-  let workspace, entry, players, playerSubcities, navigation, opening = false;
+  let workspace,
+    entry,
+    players,
+    playerSubcities,
+    navigation,
+    opening = false;
   const selection = new PlacementSelection(getPlan);
   let mapInteraction, placementInspector, placementView;
   let screen = "project";
@@ -49,7 +57,17 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
     selected: () => players?.draft() || selection.selected || null,
   });
   function showScreen(next) {
-    if (!["project", "players", "player", "subcities", "maps", "formation"].includes(next)) return;
+    if (
+      ![
+        "project",
+        "players",
+        "player",
+        "subcities",
+        "maps",
+        "formation",
+      ].includes(next)
+    )
+      return;
     screens.show(next);
   }
   const screens = createPlannerScreens($("planner"), () => {
@@ -71,9 +89,18 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
       return;
     }
     placementView.reset();
-    if (!store.readOnly && screens.isPlayers() && !screens.isPlayer() && !getPlan().keeps.length)
+    if (
+      !store.readOnly &&
+      screens.isPlayers() &&
+      !screens.isPlayer() &&
+      !getPlan().keeps.length
+    )
       players.openAdd();
-    if (screens.isPlayers() && selection.selected && !("level" in selection.selected))
+    if (
+      screens.isPlayers() &&
+      selection.selected &&
+      !("level" in selection.selected)
+    )
       selection.id = null;
     const entity = selection.selected;
     if (!screens.isPlayers() && entity?.x === null) placementView.place(entity);
@@ -101,7 +128,9 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
     status: toast,
   });
   function locateSubcity(city) {
-    const map = getPlan().maps.find((map) => map.type === "server" || map.layout?.map === "server");
+    const map = getPlan().maps.find(
+      (map) => map.type === "server" || map.layout?.map === "server",
+    );
     if (!map) {
       toast("Add a Server map to locate subcities.", true);
       return;
@@ -165,10 +194,17 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
     },
   });
   mapViewControls = bindMapViewControls({
-    root: $("formation-screen"), toolbar: document.querySelector(".map-toolbar"), renderer, getPlan,
+    root: $("formation-screen"),
+    toolbar: document.querySelector(".map-toolbar"),
+    renderer,
+    getPlan,
     mutate: (change) => store.mutate(change),
-    selected: () => [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]
-      .find(({ id }) => id === selection.id),
+    selected: () =>
+      [
+        ...getPlan().keeps,
+        ...getPlan().structures,
+        ...getPlan().obstacles,
+      ].find(({ id }) => id === selection.id),
   });
   placementView = createPlacementView({
     root: $("formation-screen"),
@@ -183,8 +219,12 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
     placementView.select(id);
   }
   const formationList = createFormationList({
-    root: $("formation-screen"), assets: store.assets, getPlan,
-    getSelection: () => selection.id, group: selection.ids, select: selectKeep,
+    root: $("formation-screen"),
+    assets: store.assets,
+    getPlan,
+    getSelection: () => selection.id,
+    group: selection.ids,
+    select: selectKeep,
     canEdit: () => !store.readOnly,
     setRally: (id) => store.commit(setRallySetter(getPlan(), id)),
     place: (keep) => placementView.place(keep),
@@ -192,18 +232,28 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
   });
   placementInspector = createPlacementInspector({
     root: $("inspector"),
-    getPlan, catalog, assets: store.assets, browse: catalogBrowser.open,
+    getPlan,
+    catalog,
+    assets: store.assets,
+    browse: catalogBrowser.open,
     terrainFor: (id) => terrainCatalog?.get(id),
     canEdit: () => !store.readOnly,
     commit: (plan) => store.commit(plan),
     applied: () => placementView.reset(),
     status: toast,
-    selected: () => [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]
-      .find(({ id }) => id === selection.id),
+    selected: () =>
+      [
+        ...getPlan().keeps,
+        ...getPlan().structures,
+        ...getPlan().obstacles,
+      ].find(({ id }) => id === selection.id),
     close: () => selectKeep(null),
   });
   const formationControls = createFormationControls({
-    root: $("formation-screen"), toolbar: document.querySelector(".map-toolbar"), assets: store.assets, getPlan,
+    root: $("formation-screen"),
+    toolbar: document.querySelector(".map-toolbar"),
+    assets: store.assets,
+    getPlan,
     browse: catalogBrowser.open,
     terrainFor: (id) => terrainCatalog?.get(id),
     fit: () => renderer.fit(),
@@ -217,13 +267,16 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
     },
   });
   mapInteraction = bindMapInteraction({
-    canvas: $("map"), renderer, getPlan,
+    canvas: $("map"),
+    renderer,
+    getPlan,
     terrainFor: (id) => terrainCatalog?.get(id),
     getPending: () => selection.pending,
     resetPending: () => placementView.reset(),
     canEdit: () => !store.readOnly,
     mutate: (change) => store.mutate(change),
-    commit: (plan) => store.commit(plan), toast,
+    commit: (plan) => store.commit(plan),
+    toast,
     select: selectKeep,
     entities: () => selection.entities,
     selected: () => selection.selected,
@@ -243,7 +296,9 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
     subcities.render();
     mapsScreen.render();
     mapViewControls.render();
-    const activeMap = getPlan().maps.find(({ id }) => id === getPlan().activeMapId);
+    const activeMap = getPlan().maps.find(
+      ({ id }) => id === getPlan().activeMapId,
+    );
     $("formation-name").textContent = activeMap?.name || "";
     renderer.draw();
     formationList.render();
@@ -287,7 +342,10 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
   render();
   workspace = createWorkspace({
     getPlan,
-    getPlayer: () => screens.isPlayer() ? getPlan().keeps.find((player) => player.id === selection.id) : null,
+    getPlayer: () =>
+      screens.isPlayer()
+        ? getPlan().keeps.find((player) => player.id === selection.id)
+        : null,
     isEditingPlayer: () => $("player-form").contains(document.activeElement),
     commitPlan: (plan) => store.commit(plan),
     validatePlan: (plan) => validatePlan(plan, catalog),
@@ -364,7 +422,8 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
     context: () => workspace?.key(),
     status: toast,
   });
-  $("player-form").querySelector('[data-player-tab="subcities"]').hidden = false;
+  $("player-form").querySelector('[data-player-tab="subcities"]').hidden =
+    false;
   navigation = createNavigation({
     getRoute: () => ({
       team: workspace.sync.file?.id,
