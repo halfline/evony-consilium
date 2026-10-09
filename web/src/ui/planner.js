@@ -16,7 +16,7 @@ import { createPlayerSubcities } from "./player-subcities.js";
 import { removePlayer } from "../domain/players.js";
 import { createMapPlan, removeMapPlan } from "../domain/map-plans.js";
 
-export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
+export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorkspace }) {
   const store = new TeamStore(catalog);
   const toast = createNotifier($("toast"));
   const getPlan = () => store.plan;
@@ -118,6 +118,7 @@ export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
   let mapViewControls;
   const renderer = new MapRenderer($("map"), getPlan, {
     subcityTypes: catalog.subcityTypes || [],
+    terrainFor: (id) => terrain?.get(id),
     onDraw: (state) => mapViewControls?.render(state),
   });
   mapViewControls = bindMapViewControls({ root: $("formation-screen"), renderer });

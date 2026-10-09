@@ -1,14 +1,16 @@
 import { project, unproject } from "../domain/geometry.js";
 import { ImageCache } from "./image-cache.js";
 import { drawSubcities } from "./subcity-painter.js";
+import { drawTerrain } from "./terrain-painter.js";
 
 export class MapRenderer {
-  constructor(canvas, getPlan, { onDraw = () => {}, subcityTypes = [] } = {}) {
+  constructor(canvas, getPlan, { onDraw = () => {}, subcityTypes = [], terrainFor = () => undefined } = {}) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
     this.getPlan = getPlan;
     this.onDraw = onDraw;
     this.subcityTypes = subcityTypes;
+    this.terrainFor = terrainFor;
     this.subcityHits = [];
     this.images = new ImageCache(() => this.draw());
     this.camera = { x: 0, y: 0, zoom: 1 };
@@ -84,6 +86,21 @@ export class MapRenderer {
     const map = p.mapPresets.find(({ id }) => id === p.map);
     c.fillStyle = map?.color || "#647947";
     c.fillRect(0, 0, this.width, this.height);
+    const terrain = this.terrainFor(p.map);
+    if (terrain) {
+      const corners = [[0, 0], [this.width, 0], [0, this.height], [this.width, this.height]]
+        .map(([x, y]) => this.world(x, y));
+      const minX = Math.max(0, Math.floor(Math.min(...corners.map(({ x }) => x))));
+      const maxX = Math.min(terrain.extent, Math.ceil(Math.max(...corners.map(({ x }) => x))));
+      const minY = Math.max(0, Math.floor(Math.min(...corners.map(({ y }) => y))));
+      const maxY = Math.min(terrain.extent, Math.ceil(Math.max(...corners.map(({ y }) => y))));
+      c.save();
+      c.translate(this.width / 2 - this.camera.x * this.camera.zoom,
+        this.height / 2 - this.camera.y * this.camera.zoom);
+      c.scale(this.camera.zoom, this.camera.zoom);
+      drawTerrain(this, terrain, minX, minY, maxX, maxY, p.grid);
+      c.restore();
+    }
     if (p.showGrid) {
       const corners = [[0, 0], [this.width, 0], [0, this.height], [this.width, this.height]]
         .map(([x, y]) => this.world(x, y));
