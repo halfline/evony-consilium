@@ -52,11 +52,7 @@ export function createPlayerWorkflow({
       select(id);
       navigate("player");
     },
-    remove: (id) => {
-      remove(id);
-      if (selection.id === id) select(null);
-      list.render();
-    },
+    remove,
     add: dialog.open,
     fileState: (player) => getWorkspace()?.players.state(player),
   });
