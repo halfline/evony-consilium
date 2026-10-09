@@ -32,6 +32,7 @@ import { mapList } from "./browser/map-list.js";
 import { mapSwitch } from "./browser/map-switch.js";
 import { mapRemove } from "./browser/map-remove.js";
 import { mapZoom } from "./browser/map-zoom.js";
+import { mapToolbar } from "./browser/map-toolbar.js";
 import { subcityLocate } from "./browser/subcity-locate.js";
 import { mapTerrain } from "./browser/map-terrain.js";
 import { formationPlace } from "./browser/formation-place.js";
@@ -147,6 +148,7 @@ try {
   await mapList({ page, driveFiles });
   await mapSwitch({ page });
   await mapZoom({ page });
+  await mapToolbar({ page });
   await mapRemove({ page, driveFiles });
   await subcityLocate({ page });
   await mapTerrain({ page });
