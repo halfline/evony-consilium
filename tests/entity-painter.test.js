@@ -27,7 +27,7 @@ test("entity labels follow the map preference and mark the rally keep", () => {
     ctx: {
       drawImage() {},
       fillText: (label) => labels.push(label),
-      beginPath() {}, arc() {}, fill() {}, stroke() {},
+      beginPath() {}, arc() {}, ellipse() {}, fill() {}, stroke() {},
     },
     path() {},
     screen: (x, y) => ({ x, y }),
@@ -76,8 +76,11 @@ test("low zoom paints selectable dots with selected, rally, and obstacle emphasi
 
 test("selected, rally, locked, and blocked tiles have distinct footprints", () => {
   const painted = [];
+  const rings = [];
   const view = {
     ctx: {
+      beginPath() {},
+      ellipse: (...args) => rings.push(args),
       fill() { painted.push(["fill", this.fillStyle]); },
       stroke() { painted.push(["stroke", this.strokeStyle]); },
       drawImage() {},
@@ -98,9 +101,12 @@ test("selected, rally, locked, and blocked tiles have distinct footprints", () =
   assert.deepEqual(painted, [
     ["fill", "#e7d59728"], ["stroke", "#fff0b4"],
     ["fill", "#22372620"], ["stroke", "#e1c678"],
+    ["stroke", "#e6cf86"],
     ["fill", "#22372620"], ["stroke", "#b1d0ba"],
     ["fill", "#513e37aa"], ["stroke", "#e6b19788"],
   ]);
+  assert.equal(rings.length, 1);
+  assert.deepEqual(rings[0].slice(2, 4), [75, 18]);
 });
 
 test("formation renderer paints placed keeps and exposes their hit region", () => {
