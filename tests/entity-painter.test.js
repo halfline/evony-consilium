@@ -27,6 +27,7 @@ test("entity labels follow the map preference and mark the rally keep", () => {
     ctx: {
       drawImage() {},
       fillText: (label) => labels.push(label),
+      beginPath() {}, arc() {}, fill() {}, stroke() {},
     },
     screen: (x, y) => ({ x, y }),
     assets: new Map([["castle", { src: "castle.webp", width: 100, height: 80 }]]),
@@ -43,6 +44,33 @@ test("entity labels follow the map preference and mark the rally keep", () => {
   plan.labels = true;
   drawEntity(view, entity, plan, 0.1);
   assert.deepEqual(labels, ["★ Central Keep"]);
+});
+
+test("low zoom paints selectable dots with selected, rally, and obstacle emphasis", () => {
+  const circles = [];
+  const fills = [];
+  const view = {
+    ctx: {
+      beginPath() {},
+      arc: (_x, _y, radius) => circles.push(radius),
+      fill() { fills.push(this.fillStyle); },
+      stroke() {},
+      drawImage() { assert.fail("low zoom should not paint a sprite"); },
+    },
+    screen: (x, y) => ({ x, y }),
+    assets: new Map(), image: () => null, hits: [],
+    selectedIds: new Set(["selected"]),
+  };
+  const plan = {
+    grid: { ax: 48, ay: 24, bx: -48, by: 24 },
+    rallyId: "rally", obstacles: [{ id: "obstacle" }], labels: true,
+  };
+  for (const id of ["selected", "rally", "obstacle"])
+    drawEntity(view, { id, x: 10, y: 20, w: 1, h: 1 }, plan, 0.1);
+  assert.deepEqual(circles, [6, 5, 3]);
+  assert.deepEqual(fills, ["#e0e9ce", "#f4d386", "#e5a887"]);
+  assert.deepEqual(view.hits.map(({ id }) => id), ["selected", "rally", "obstacle"]);
+  assert.equal(view.hits[0].right - view.hits[0].left, 14);
 });
 
 test("formation renderer paints placed keeps and exposes their hit region", () => {
