@@ -87,12 +87,7 @@ export function createPlayerWorkflow({
     applied: (player) => {
       lastTag = player.allianceTag;
     },
-    unlock: (id) => getWorkspace().profiles.unlock(id),
-    remove: (id) => {
-      remove(id);
-      select(null);
-      navigate("players");
-    },
+    remove,
     status,
   });
   fileControls = createPlayerFileControls({
