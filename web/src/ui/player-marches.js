@@ -12,6 +12,9 @@ export function createPlayerMarches({ root, getSizes }) {
   function updateTotal() {
     const march = draft.current;
     $("player-reset-strategy").hidden = !march.generation.manual;
+    $("player-troops").querySelectorAll("[data-share]").forEach((input) => {
+      input.disabled = march.generation.manual;
+    });
     const total = marchTotals(march).total;
     const capacity = marchCapacity(march, getSizes());
     $("player-troop-summary").textContent =
@@ -32,7 +35,7 @@ export function createPlayerMarches({ root, getSizes }) {
       explicit: draft.explicit,
     });
     const tableRoot = $("player-troops");
-    const grid = table(["Tier", names[marchType(march)]]);
+    const grid = table(["Tier", "Share", names[marchType(march)]]);
     const typeSelect = element("select");
     typeSelect.id = "player-march-type";
     typeSelect.setAttribute("aria-label", "March troop type");
@@ -53,10 +56,21 @@ export function createPlayerMarches({ root, getSizes }) {
       draft.generate();
       renderMarch();
     };
-    grid.tHead.rows[0].cells[1].replaceChildren(typeSelect);
+    grid.tHead.rows[0].cells[2].replaceChildren(typeSelect);
     for (let tier = march.generation.highestTier; tier >= 10; tier--) {
       const row = grid.tBodies[0].insertRow();
       row.append(element("th", `T${tier}`));
+      const share = numberInput(march.generation.weights[tier], `T${tier} share (%)`, true);
+      share.max = "100";
+      share.dataset.share = tier;
+      share.disabled = march.generation.manual;
+      share.onchange = () => {
+        march.generation.weights[tier] = numeric(share) ?? 0;
+        draft.explicit.add(march.id);
+        draft.generate();
+        renderMarch();
+      };
+      row.insertCell().append(share);
       const value = march.layers.find((entry) => entry.tier === tier)?.[marchType(march)];
       const input = numberInput(value, `T${tier} ${names[marchType(march)]}`);
       input.dataset.count = marchType(march);
