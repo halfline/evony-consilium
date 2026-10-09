@@ -65,6 +65,9 @@ export class TeamEntry {
     });
   }
   show(screen) {
+    clearInterval(this.remoteTimer);
+    if (screen === "planner")
+      this.remoteTimer = setInterval(() => this.workspace.checkRemote(), 30000);
     clearTimeout(this.expiryTimer);
     if (screen === "projects" && !this.workspace.healthy()) screen = "login";
     if (screen === "login") {
@@ -113,18 +116,19 @@ export class TeamEntry {
     } finally {
       this.busy = false;
       finish();
+      if (!this.planner.hidden) this.workspace.checkRemote();
     }
   }
   async start() {
     this.show("login");
-    this.$("project-tab-open").hidden = false;
-    this.$("project-tab-create").hidden = false;
-    this.$("project-browse").hidden = false;
-    this.$("drive-save").hidden = false;
-    this.$("project-reload").hidden = true;
     this.$("google-login").onclick = () => this.signIn();
     this.$("google-grant-access").onclick = () =>
       this.signIn({ requestConsent: true });
+    window.addEventListener("focus", () => {
+      this.workspace.checkRemote();
+      if (!this.$("projects-screen").hidden && !this.workspace.healthy())
+        this.show("login");
+    });
     this.$("project-create").onsubmit = (e) => {
       e.preventDefault();
       this.run(() => this.create(), "Creating team…");
