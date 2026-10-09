@@ -159,11 +159,7 @@ function validateMapCollection(plan, catalog) {
     throw new Error("Choose an active map.");
 }
 
-// Validate the shared team envelope while preserving fields owned by later editors.
-export function validatePlan(input, catalog = { assets: [] }, validateMaps = true) {
-  if (!input || typeof input !== "object" || Array.isArray(input))
-    throw new Error("Invalid team document.");
-  const plan = migratePlan(input);
+function validateDocument(plan) {
   if (
     typeof plan.title !== "string" ||
     !plan.title.trim() ||
@@ -194,6 +190,14 @@ export function validatePlan(input, catalog = { assets: [] }, validateMaps = tru
   for (const key of ["ax", "ay", "bx", "by"])
     number(plan.grid?.[key], -200, 200, "grid", false);
   unproject(0, 0, plan.grid);
+}
+
+// Validate the shared team envelope while preserving fields owned by later editors.
+export function validatePlan(input, catalog = { assets: [] }, validateMaps = true) {
+  if (!input || typeof input !== "object" || Array.isArray(input))
+    throw new Error("Invalid team document.");
+  const plan = migratePlan(input);
+  validateDocument(plan);
   validateCustomAssets(plan);
   validateEntities(plan, catalog);
   validatePlacement(plan);
