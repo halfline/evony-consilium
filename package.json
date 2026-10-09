@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "node scripts/serve.js",
+    "build": "node scripts/build.js",
     "test": "node --test tests/*.test.js",
     "test:browser": "node tests/browser.js",
     "format": "prettier --write \"web/{app.js,index.html,style.css,src/**/*.js,styles/*.css}\" \"scripts/*.{js,cjs}\" \"tests/**/*.js\" \"docs/*.md\" README.md PRIVACY.md TERMS.md package.json",
