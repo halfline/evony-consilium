@@ -164,6 +164,29 @@ test("dragging a keep outside the canvas removes only its placement", () => {
   assert.equal(captures.size, 0);
 });
 
+test("a drag beyond world bounds unplaces the keep even inside the canvas", () => {
+  let plan = createEmptyPlan();
+  plan.keeps.push({ id: "keep", name: "Player", x: 10, y: 10, w: 2, h: 2, locked: false });
+  const captures = new Set();
+  const canvas = {
+    getBoundingClientRect: () => ({ left: 0, top: 0, right: 100, bottom: 100 }),
+    setPointerCapture: (id) => captures.add(id),
+    hasPointerCapture: (id) => captures.has(id),
+    releasePointerCapture: (id) => captures.delete(id),
+  };
+  const renderer = { hit: () => "keep", world: (x, y) => ({ x: x * 20, y }), draw() {} };
+  bindMapInteraction({
+    canvas, renderer, getPlan: () => plan, getPending: () => null,
+    commit: (next) => { plan = next; },
+  });
+  canvas.onpointerdown({ button: 0, pointerId: 2, clientX: 10, clientY: 10 });
+  canvas.onpointermove({ pointerId: 2, clientX: 80, clientY: 10 });
+  assert.ok(renderer.preview.x > plan.extent);
+  canvas.onpointerup({ pointerId: 2, clientX: 80, clientY: 10 });
+  assert.equal(plan.keeps[0].x, null);
+  assert.equal(captures.size, 0);
+});
+
 test("Escape clears pending placement and selection without editing plan", () => {
   const plan = createEmptyPlan();
   const canvas = {};
