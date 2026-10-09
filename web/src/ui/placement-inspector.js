@@ -10,18 +10,24 @@ export function createPlacementInspector({
 }) {
   const $ = view(root);
   $("close-inspector").onclick = close;
+  function applyAsset(id, asset) {
+    try {
+      const next = changeAppearance(getPlan(), id, asset,
+        terrainFor(getPlan().map));
+      validatePlan(next, catalog);
+      commit(next);
+    } catch (error) { status(error.message, true); }
+  }
   $("choose-building-skin").onclick = () => {
     if (!canEdit()) return;
     const entity = selected();
     const asset = assets.get(entity?.skin);
-    if (asset) browse(asset.kind, (chosen) => {
-      try {
-        const next = changeAppearance(getPlan(), entity.id, chosen,
-          terrainFor(getPlan().map));
-        validatePlan(next, catalog);
-        commit(next);
-      } catch (error) { status(error.message, true); }
-    });
+    if (asset) browse(asset.kind, (chosen) => applyAsset(entity.id, chosen));
+  };
+  $("game-footprint").onclick = () => {
+    if (!canEdit()) return;
+    const entity = selected();
+    if (entity) applyAsset(entity.id, assets.get(entity.skin));
   };
   $("entity-form").onsubmit = (event) => {
     event.preventDefault();
@@ -70,6 +76,11 @@ export function createPlacementInspector({
     $("entity-locked").checked = !!entity.locked;
     const obstacle = getPlan().obstacles.some(({ id }) => id === entity.id);
     const structureAsset = assets.get(entity.skin);
+    $("game-footprint").hidden = !structureAsset?.footprint ||
+      (entity.w === structureAsset.footprint && entity.h === structureAsset.footprint);
+    $("game-footprint").textContent = structureAsset?.footprint
+      ? `Use game size: ${structureAsset.footprint} × ${structureAsset.footprint}`
+      : "Use game size";
     $("choose-building-skin").hidden = obstacle || "level" in entity || !structureAsset;
     $("choose-building-skin").disabled = !canEdit();
     if (structureAsset) renderCastleButton($("choose-building-skin"), structureAsset);
