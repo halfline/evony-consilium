@@ -11,6 +11,7 @@ export function createPlayerMarches({ root, getSizes }) {
   let editing = false;
   function updateTotal() {
     const march = draft.current;
+    $("player-reset-strategy").hidden = !march.generation.manual;
     const total = marchTotals(march).total;
     const capacity = marchCapacity(march, getSizes());
     $("player-troop-summary").textContent =
@@ -20,7 +21,6 @@ export function createPlayerMarches({ root, getSizes }) {
     editing = true;
     $("player-march-list").hidden = true;
     $("player-march-editor").hidden = false;
-    $("player-reset-strategy").hidden = true;
     const march = draft.current;
     $("player-march-name").value = march.name;
     renderMarchSettings({
@@ -89,6 +89,11 @@ export function createPlayerMarches({ root, getSizes }) {
   $("player-march-name").oninput = () => {
     draft.current.name = $("player-march-name").value;
     draft.explicit.add(draft.current.id);
+  };
+  $("player-reset-strategy").onclick = () => {
+    draft.current.generation.manual = false;
+    draft.generate();
+    renderMarch();
   };
   $("player-remove-march").onclick = () => {
     draft.remove();
