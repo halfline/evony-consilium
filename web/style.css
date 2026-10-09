@@ -1011,3 +1011,22 @@ code {
 .player-profile-locked :is(#player-castle, #player-avatar) {
   pointer-events: none;
 }
+#player-inspector {
+  position: relative;
+}
+#player-unlock {
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: transparent;
+  border: 0;
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+}
+#player-screen .player-heading {
+  padding-right: 2.75rem;
+}
