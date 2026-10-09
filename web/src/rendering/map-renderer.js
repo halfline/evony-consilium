@@ -5,7 +5,8 @@ import { drawTerrain, drawMoatOverlay } from "./terrain-painter.js";
 import { drawEntity } from "./entity-painter.js";
 
 export class MapRenderer {
-  constructor(canvas, getPlan, { onDraw = () => {}, subcityTypes = [], terrainFor = () => undefined, assets = new Map() } = {}) {
+  constructor(canvas, getPlan, { onDraw = () => {}, subcityTypes = [], terrainFor = () => undefined,
+    assets = new Map(), selection = { id: null, ids: new Set() } } = {}) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
     this.getPlan = getPlan;
@@ -14,8 +15,7 @@ export class MapRenderer {
     this.terrainFor = terrainFor;
     this.assets = assets;
     this.hits = [];
-    this.selected = null;
-    this.selectedIds = new Set();
+    this.selection = selection;
     this.preview = null;
     this.previews = null;
     this.selectionBox = null;
@@ -27,6 +27,8 @@ export class MapRenderer {
     this.observer = new ResizeObserver(() => this.resize());
     this.observer.observe(canvas.parentElement);
   }
+  get selected() { return this.selection?.id; }
+  get selectedIds() { return this.selection?.ids; }
   resize() {
     const box = this.canvas.getBoundingClientRect();
     this.width = box.width;

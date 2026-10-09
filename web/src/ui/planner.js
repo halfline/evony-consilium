@@ -48,7 +48,6 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     if (next !== "formation") {
       mapInteraction?.cancel();
       selection.clear();
-      renderer.selected = null;
       formationList.render();
       placementInspector?.render();
     }
@@ -136,9 +135,9 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     assets: store.assets,
     subcityTypes: catalog.subcityTypes || [],
     terrainFor: (id) => terrain?.get(id),
+    selection,
     onDraw: (state) => mapViewControls?.render(state),
   });
-  renderer.selectedIds = selection.ids;
   mapViewControls = bindMapViewControls({
     root: $("formation-screen"), renderer, getPlan,
     mutate: (change) => store.mutate(change),
@@ -147,7 +146,6 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
   });
   function selectKeep(id) {
     selection.select(id);
-    renderer.selected = selection.id;
     formationList.render();
     placementInspector?.render();
     renderer.draw();
@@ -240,7 +238,6 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     if (["undo", "replace", "navigate"].includes(kind)) {
       mapInteraction?.cancel();
       selection.clear();
-      renderer.selected = null;
     }
     if (kind === "edit" || kind === "undo") workspace?.persist();
     render();
@@ -255,7 +252,6 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     if (store.readOnly) return;
     selection.clear();
     selection.pending = null;
-    renderer.selected = null;
     $("map-guide").textContent = "Choose an unplaced player, then click a free map tile.";
     store.commit(validatePlan(createDemoPlan(catalog), catalog));
     renderer.fit();
