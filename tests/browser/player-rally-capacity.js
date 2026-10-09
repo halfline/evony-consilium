@@ -15,4 +15,9 @@ export async function playerRallyCapacity({ page, driveFiles }) {
   assert.equal(playerFile.data.profile.details.rallyCapacity, 12345678);
   assert.equal(playerFile.data.profile.details.marchSizes.ground, 7936450);
   assert.equal(playerFile.data.profile.details.buffs.city.ground.attack, 3385);
+  await page.locator("#player-rally-capacity").fill("998877");
+  await page.locator('[data-screen="players"]').click();
+  await page.locator("#players .player-card").first().click();
+  assert.equal(await page.locator("#player-rally-capacity").inputValue(), "998877");
+  await page.locator("#player-rally-capacity").fill("12345678");
 }
