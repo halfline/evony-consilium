@@ -178,6 +178,7 @@ export function bindMapInteraction({
     renderer.draw();
   };
   canvas.onpointerup = (event) => {
+    if (!drag) return;
     if (drag?.band) {
       if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
       drag = null;
@@ -207,19 +208,14 @@ export function bindMapInteraction({
       }
       else if (drag.moved && renderer.preview)
         toast("Position blocked. The selection stayed at its original location.", true);
-      if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
-      drag = null;
-      renderer.preview = null;
-      renderer.previews = null;
-      if (canvas.style) canvas.style.cursor = "default";
-      renderer.draw();
-      return;
     }
-    if (drag?.pointerId === event.pointerId && canvas.hasPointerCapture(event.pointerId))
-      canvas.releasePointerCapture(event.pointerId);
     if (drag?.blocked && drag.moved)
       toast("Unlock this position before moving it.");
+    if (drag.pointerId === event.pointerId && canvas.hasPointerCapture(event.pointerId))
+      canvas.releasePointerCapture(event.pointerId);
     drag = null;
+    renderer.preview = null;
+    renderer.previews = null;
     if (canvas.style) canvas.style.cursor = "default";
     renderer.draw?.();
   };
