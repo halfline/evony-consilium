@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { saveSubcity, validateSubcities } from "../web/src/domain/subcities.js";
+import { saveSubcity, removeSubcity, validateSubcities } from "../web/src/domain/subcities.js";
 import { createEmptyPlan } from "../web/src/domain/plan.js";
 
 const values = { name: "", culture: "Japan", color: "gold", x: 0, y: 1199 };
@@ -36,4 +36,12 @@ test("city import rejects duplicate IDs and malformed coordinates", () => {
     assert.throws(() => validateSubcities([{ ...city, ...patch }]));
   assert.throws(() => validateSubcities([city, city]), /Duplicate/);
   assert.equal(saveSubcity({ ...createEmptyPlan(), subcities: [city] }, { ...values, x: null, y: null }, city.id).subcities[0].x, null);
+});
+
+test("removing a city leaves the source team unchanged", () => {
+  const plan = saveSubcity(createEmptyPlan(), values);
+  const id = plan.subcities[0].id;
+  const removed = removeSubcity(plan, id);
+  assert.equal(removed.subcities.length, 0);
+  assert.equal(plan.subcities[0].id, id);
 });
