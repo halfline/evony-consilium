@@ -158,4 +158,39 @@ export class PlayerFiles {
       }
     }
   }
+  async open(player = null, folder = null) {
+    return this.run(
+      player?.playerSource?.fileId || "picker",
+      async (current) => {
+        const source = player?.playerSource;
+        const [selected] = await this.picker.player(
+          source ? { id: source.fileId } : null,
+          folder,
+        );
+        current();
+        if (source && selected.id !== source.fileId)
+          throw new Error("Choose this player's linked file.");
+        selected.resourceKey ||= source?.resourceKey || "";
+        const loaded = await this.drive.loadPlayer(selected);
+        current();
+        if (folder) {
+          const members = loaded.file.parents;
+          if (
+            members
+              ? !members.includes(folder.id)
+              : !(await this.drive.children(folder)).some(
+                  (file) => file.id === loaded.file.id,
+                )
+          )
+            throw new Error("Open a player file from the central team folder.");
+          current();
+        }
+        loaded.draft = await this.readDraft(loaded.file.id);
+        current();
+        this.#files.set(loaded.file.id, loaded);
+        this.remember(loaded.file.id);
+        return loaded;
+      },
+    );
+  }
 }
