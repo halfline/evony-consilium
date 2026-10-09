@@ -695,6 +695,15 @@
                 <button id="close-inspector" type="button" aria-label="Close selection">×</button>
               </div>
               <p id="entity-location" class="muted"></p>
+              <form id="entity-form">
+                <div class="entity-fields">
+                  <label>X<input id="entity-x" type="number" min="0" /></label>
+                  <label>Y<input id="entity-y" type="number" min="0" /></label>
+                </div>
+                <div class="inspector-actions">
+                  <button class="primary apply-entity" type="submit">Apply</button>
+                </div>
+              </form>
             </section>
           </div>
         </section>

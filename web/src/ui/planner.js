@@ -158,6 +158,11 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
   });
   placementInspector = createPlacementInspector({
     root: $("inspector"),
+    getPlan, catalog,
+    terrainFor: (id) => terrain?.get(id),
+    canEdit: () => !store.readOnly,
+    commit: (plan) => store.commit(plan),
+    status: toast,
     selected: () => [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]
       .find(({ id }) => id === selection.id),
     close: () => selectKeep(null),

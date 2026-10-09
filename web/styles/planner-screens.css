@@ -788,6 +788,10 @@
 .inspector-heading { display: flex; justify-content: space-between; align-items: flex-start; }
 .inspector-heading h2 { margin: 3px 0 0; }
 #close-inspector { border: 0; background: transparent; font-size: 24px; }
+#entity-form .entity-fields { display: flex; gap: 10px; margin-top: 12px; }
+#entity-form .entity-fields label { flex: 1; }
+#entity-form .entity-fields input { width: 100%; }
+#entity-form .inspector-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
 #formation-screen .map-section { flex: 1; min-width: 0; min-height: min(75vh, 900px); }
 #formation-screen .map-surface { position: relative; width: 100%; min-height: min(75vh, 900px); }
 #formation-screen #map { display: block; width: 100%; height: min(75vh, 900px); }
