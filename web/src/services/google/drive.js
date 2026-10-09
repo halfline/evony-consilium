@@ -1,5 +1,6 @@
 import { readTeamDocument } from "../../domain/document-migrations.js";
 import {
+  playerDocument,
   readPlayerDocument,
 } from "../../domain/player-document.js";
 import { isTeamLogo } from "../../domain/team.js";
@@ -117,6 +118,18 @@ export class Drive {
     throw new DriveError(
       "This player changed while opening. Open it again.",
       409,
+    );
+  }
+  createPlayer(profile, folder) {
+    if (!folder?.id || !folder.capabilities?.canAddChildren)
+      throw new DriveError(
+        "Player files need a writable central team folder.",
+        403,
+      );
+    return this.createJSON(
+      `${profile.name}.player.consilium.json`,
+      playerDocument(profile),
+      folder,
     );
   }
   async createJSON(name, data, folder = null) {
