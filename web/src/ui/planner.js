@@ -266,7 +266,10 @@ export function createPlanner(
       commit: (plan) => store.commit(plan),
       place: (entity, message) => {
         selectKeep(entity.id);
-        placementView.place(entity, message);
+        placementView.place(
+          entity,
+          message || "Click a free tile to place " + entity.name,
+        );
       },
     });
   }
