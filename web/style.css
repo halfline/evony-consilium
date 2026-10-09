@@ -912,3 +912,33 @@ code {
   font-size: 24px;
   padding: 4px 8px;
 }
+
+.building-tools button[data-building] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: 0;
+  font-size: 12px;
+}
+.building-portrait {
+  display: flex;
+  width: 88px;
+  height: 88px;
+  padding: 8px;
+  border: 1px solid #cbb47760;
+  border-radius: 28%;
+  background: linear-gradient(145deg, #344739, #17261d);
+}
+.building-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.building-tools button:hover .building-portrait {
+  border-color: var(--gold, #cbb477);
+}
+#add-obstacle {
+  grid-column: 1 / -1;
+}
