@@ -670,6 +670,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
   flex: 1;
   width: 100%;
 }
@@ -683,11 +684,32 @@
 }
 .subcity-card { gap: 8px; }
 .subcity-portrait { border: 2px solid var(--subcity-color); margin-bottom: 8px; }
+.subcity-card:hover .subcity-portrait {
+  box-shadow: 0 0 0 2px var(--subcity-color), 0 8px 20px #0003;
+}
 .subcity-details, .subcity-coordinates { color: var(--muted); font-size: 0.8rem; }
-.add-subcity-icon { width: 44px; height: 44px; padding: 0; font-size: 26px; color: var(--gold); }
+.add-subcity-icon {
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--gold);
+  border-radius: 10px;
+}
 .subcity-art-placeholder { color: var(--muted); font-size: 2rem; }
+.subcity-filters {
+  display: flex;
+  width: min(100%, 720px);
+  gap: 12px;
+  margin-bottom: 40px;
+}
+.subcity-filters select { flex: 1 1 0; min-width: 0; }
 
 @media (max-width: 600px) {
+
+  .subcity-filters { flex-direction: column; margin-bottom: 28px; }
 
   .team-stats {
     gap: 8px;
