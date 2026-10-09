@@ -7,6 +7,8 @@ export function bindMapInteraction({
   mutate, commit, toast, select = () => {}, openSubcity = () => {},
   openPlayer = () => {},
   getSelection = () => null,
+  entities = () => [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles],
+  selected = () => entities().find((item) => item.id === getSelection()),
   undo = () => {},
   group = new Set(),
   groupChanged = () => {},
@@ -43,11 +45,11 @@ export function bindMapInteraction({
     const pt = point(event);
     if ((event.ctrlKey || event.metaKey) && !getPending()) {
       const id = renderer.hit(pt.x, pt.y);
-      const entity = [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]
+      const entity = entities()
         .find((item) => item.id === id);
       if (!entity || entity.locked || entity.x === null) return;
-      if (!group.size && getSelection() && getSelection() !== id)
-        group.add(getSelection());
+      if (!group.size && selected() && selected().id !== id)
+        group.add(selected().id);
       if (group.has(id)) group.delete(id);
       else group.add(id);
       select(null);
@@ -77,7 +79,7 @@ export function bindMapInteraction({
           canvas.setPointerCapture(event.pointerId);
           return;
         }
-        const entity = [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]
+        const entity = entities()
           .find((item) => item.id === id);
         if (canEdit() && entity?.locked) {
           blocked = { pt, pointerId: event.pointerId, moved: false };
@@ -86,7 +88,7 @@ export function bindMapInteraction({
         }
         if (canEdit() && entity && !entity.locked) {
           const members = group.has(id)
-            ? [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]
+            ? entities()
               .filter((item) => group.has(item.id) && !item.locked && item.x !== null)
             : [entity];
           drag = { pt, entity, members, pointerId: event.pointerId, moved: false };
@@ -101,7 +103,7 @@ export function bindMapInteraction({
     if (!canEdit()) return;
     const world = renderer.world(pt.x, pt.y);
     const x = Math.floor(world.x), y = Math.floor(world.y);
-    const entity = [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]
+    const entity = entities()
       .find((item) => item.id === getPending());
     if (!entity || !canPlace(entity, x, y, getPlan(), [], terrainFor(getPlan().map))) {
       toast("Choose a free tile within the map.", true);
@@ -128,7 +130,7 @@ export function bindMapInteraction({
       coordinates({ x: Math.floor(world.x), y: Math.floor(world.y) });
     }
     if (getPending() && canEdit()) {
-      const entity = [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]
+      const entity = entities()
         .find((item) => item.id === getPending());
       if (entity) {
         const pt = point(event), world = renderer.world(pt.x, pt.y);
@@ -152,7 +154,7 @@ export function bindMapInteraction({
       };
       renderer.selectionBox = box;
       group.clear();
-      for (const entity of [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]) {
+      for (const entity of entities()) {
         if (entity.x === null || entity.locked) continue;
         const center = renderer.screen(entity.x + entity.w / 2, entity.y + entity.h / 2);
         if (center.x >= box.x && center.x <= box.x + box.w &&
@@ -271,10 +273,9 @@ export function bindMapInteraction({
       ArrowLeft: [-1, 0], ArrowRight: [1, 0],
       ArrowUp: [0, -1], ArrowDown: [0, 1],
     }[event.key];
-    if (arrow && canEdit() && getSelection()) {
+    if (arrow && canEdit() && selected()) {
       event.preventDefault();
-      const entity = [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]
-        .find((item) => item.id === getSelection());
+      const entity = selected();
       if (!entity || entity.locked || entity.x === null) return;
       try {
         commit(movePlacements(getPlan(), [{ id: entity.id,
@@ -284,9 +285,9 @@ export function bindMapInteraction({
       return;
     }
     if (!["Delete", "Backspace"].includes(event.key) || !canEdit() ||
-        (!getSelection() && !group.size)) return;
+        (!selected() && !group.size)) return;
     event.preventDefault();
-    commit(removePlacements(getPlan(), group.size ? group : new Set([getSelection()])));
+    commit(removePlacements(getPlan(), group.size ? group : new Set([selected().id])));
     group.clear();
     select(null);
     groupChanged();
