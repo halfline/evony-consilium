@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { TerrainCatalog, terrainAllowsPlacement, terrainTileAt } from "../web/src/domain/terrain.js";
 import { loadTerrain } from "../web/src/services/terrain-loader.js";
-import { drawTerrain } from "../web/src/rendering/terrain-painter.js";
+import { drawTerrain, drawMoatOverlay } from "../web/src/rendering/terrain-painter.js";
 
 test("terrain catalogs remain independent across resource loads", () => {
   const manifest = {
@@ -90,6 +90,37 @@ test("terrain painter draws overview and decoded surface tile", () => {
   };
   drawTerrain(view, terrain, 0, 0, 1, 1, { ax: 48, ay: 24, bx: -48, by: 24 });
   assert.deepEqual(images, ["overview", "tile"]);
+});
+
+test("foreground terrain is clipped to its landmark and respects exclusions", () => {
+  const calls = [];
+  const ctx = Object.fromEntries(
+    ["save", "restore", "clip", "translate", "scale", "drawImage"]
+      .map((name) => [name, (...args) => calls.push([name, ...args])]),
+  );
+  const entity = { id: "tower", x: 0, y: 0, w: 1, h: 1, groundTile: 1 };
+  const terrain = {
+    width: 2, landmarks: [entity],
+    foregroundRegions: [{ x: 0, y: 0, w: 2, h: 2,
+      exclude: { x: 1, y: 1, w: 1, h: 1 } }],
+    layers: [{ name: "surface", tiles: Uint8Array.of(1, 1, 1, 1) }],
+    tiles: { 1: { src: "moat.webp", width: 256, height: 128 } },
+  };
+  const view = {
+    ctx, width: 400, height: 300, camera: { x: 0, y: 0 },
+    terrainFor: (map) => map === "server" ? terrain : undefined,
+    image: (src) => src,
+    path: () => calls.push(["path"]),
+  };
+  const plan = { map: "server", grid: { ax: 48, ay: 24, bx: -48, by: 24 } };
+  drawMoatOverlay(view, entity, plan, 1);
+  assert.deepEqual(calls.slice(0, 3).map(([name]) => name), ["save", "path", "clip"]);
+  assert.equal(calls.filter(([name]) => name === "drawImage").length, 3);
+  assert.equal(calls.at(-1)[0], "restore");
+  calls.length = 0;
+  drawMoatOverlay(view, entity, { ...plan, map: "blank" }, 1);
+  drawMoatOverlay(view, { ...entity, id: "other" }, plan, 1);
+  assert.deepEqual(calls, []);
 });
 
 test("terrain checks the whole footprint, map bounds, and fixed landmarks", () => {
