@@ -728,6 +728,23 @@
   opacity: 1;
   appearance: none;
 }
+.subcity-owner { color: var(--gold); font-size: 0.8rem; }
+#player-subcities { justify-content: flex-start; padding: 16px 0; }
+.subcity-owner-choice,
+.subcity-owner-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+.subcity-owner-choice { max-width: 140px; }
+#subcity-owner-name { overflow-wrap: anywhere; color: var(--gold); }
+.subcity-owner-card .avatar-choice { display: grid; place-items: center; }
+#subcity-owner span,
+.subcity-owner-card .avatar-choice span { font-size: 2rem; color: var(--gold); }
+#subcity-owner-clear { right: 0; top: 0; }
+#subcity-owner-clear:not([hidden]) { opacity: 1; pointer-events: auto; }
 .subcity-castle-choice {
   display: flex;
   flex-direction: column;
