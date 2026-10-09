@@ -16,17 +16,13 @@ export function bindMapInteraction({
   mutate,
   commit,
   toast,
-  select = () => {},
+  select,
   openSubcity = () => {},
-  openPlayer = () => {},
-  getSelection = () => null,
-  entities = () =>
-    getPlan
-      ? [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]
-      : [],
-  selected = () => entities().find((item) => item.id === getSelection()),
-  undo = () => {},
-  group = new Set(),
+  openPlayer,
+  entities,
+  selected,
+  undo,
+  group,
   groupChanged = () => {},
   coordinates = () => {},
 }) {
