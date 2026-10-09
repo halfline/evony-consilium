@@ -14,6 +14,7 @@ export function editPlayerDetails(plan, id, changes) {
     "marchSizes",
     "marches",
     "troops",
+    "subcities",
   ])
     if (Object.hasOwn(changes, key))
       details[key] = structuredClone(changes[key]);
