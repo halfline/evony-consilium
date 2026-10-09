@@ -3,6 +3,10 @@ import assert from "node:assert/strict";
 export async function formationRally({ page, driveFiles }) {
   const choice = page.locator("#formation-players .rally-star:not(.active)");
   assert.equal(await choice.count(), 1);
+  await page.mouse.move(0, 0);
+  assert.equal(await choice.evaluate((button) => getComputedStyle(button).opacity), "0");
+  await choice.locator("xpath=..").hover();
+  assert.equal(await choice.evaluate((button) => getComputedStyle(button).opacity), "1");
   const name = (await choice.getAttribute("aria-label")).replace(/^Make | rally setter$/g, "");
   await choice.click();
   assert.equal(await page.locator("#formation-players .rally-star.active").count(), 1);
