@@ -28,12 +28,10 @@ export function drawEntity(view, entity, plan, zoom, fixed = false) {
     });
     return;
   }
-  const width = (Math.abs(plan.grid.ax) + Math.abs(plan.grid.bx)) * entity.w * zoom;
-  const height = (Math.abs(plan.grid.ay) + Math.abs(plan.grid.by)) * entity.h * zoom;
   const asset = view.assets.get(entity.skin);
   const image = asset && view.image(asset.src);
-  let spriteWidth = width;
-  let spriteHeight = height;
+  let spriteWidth = 0;
+  let spriteHeight = 0;
   let spriteTop = center.y;
   const selected = view.selected === entity.id || view.selectedIds?.has(entity.id);
   const rally = entity.id === plan.rallyId;
@@ -53,7 +51,7 @@ export function drawEntity(view, entity, plan, zoom, fixed = false) {
     ctx.lineWidth = selected ? 2 : 1.2;
     ctx.stroke();
   }
-  if (image) {
+  if (asset) {
     spriteWidth = (Math.abs(plan.grid.ax) + Math.abs(plan.grid.bx)) *
       Math.max(entity.w, entity.h) * 0.87 * spriteZoom;
     spriteHeight = spriteWidth * asset.height / asset.width;
@@ -78,18 +76,13 @@ export function drawEntity(view, entity, plan, zoom, fixed = false) {
         spriteTop = center.y - anchor.pivotY * scale;
       }
     }
-    ctx.drawImage(image, spriteLeft, spriteTop, spriteWidth, spriteHeight);
-  } else if (asset) {
-    ctx.fillStyle = "#d1ba7c";
-    ctx.font = `${Math.max(14, 30 * zoom)}px serif`;
-    ctx.textAlign = "center";
-    ctx.fillText("♜", center.x, center.y);
-  } else if (!obstacle) {
-    view.path(entity);
-    ctx.fillStyle = "#d1ba7c";
-    ctx.fill();
-    ctx.strokeStyle = "#233529";
-    ctx.stroke();
+    if (image) ctx.drawImage(image, spriteLeft, spriteTop, spriteWidth, spriteHeight);
+    else {
+      ctx.fillStyle = "#d1ba7c";
+      ctx.font = `${Math.max(14, 30 * zoom)}px serif`;
+      ctx.textAlign = "center";
+      ctx.fillText("♜", center.x, center.y);
+    }
   }
   if (rally && !fixed) {
     ctx.strokeStyle = "#e6cf86";
