@@ -24,6 +24,7 @@ import { subcityRemove } from "./browser/subcity-remove.js";
 import { subcityCategory } from "./browser/subcity-category.js";
 import { subcityColor } from "./browser/subcity-color.js";
 import { subcityOwner } from "./browser/subcity-owner.js";
+import { playerSubcityOwnership } from "./browser/player-subcity-ownership.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -91,6 +92,7 @@ try {
   await subcityCategory({ page });
   await subcityColor({ page });
   await subcityOwner({ page, driveFiles });
+  await playerSubcityOwnership({ page, driveFiles });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
