@@ -1,4 +1,51 @@
-import { TROOP_TYPES, troopTotals } from "./troops.js";
+import { number, string } from "./constraints.js";
+import { TROOP_TYPES, troopTotals, validateTroops } from "./troops.js";
+import { validateGeneration } from "./march-generation.js";
+
+export function validateMarches(marches) {
+  if (!Array.isArray(marches) || marches.length > 50)
+    throw new Error("Maximum 50 attack marches.");
+  const ids = new Set();
+  for (const march of marches) {
+    if (!march || typeof march !== "object" || Array.isArray(march))
+      throw new Error("Invalid attack march.");
+    string(march.id, 120, "march ID");
+    if (!march.id || ids.has(march.id))
+      throw new Error("Invalid or duplicate march ID.");
+    ids.add(march.id);
+    string(march.name, 100, "march name");
+    if (march.troopType !== undefined && !TROOP_TYPES.includes(march.troopType))
+      throw new Error("Choose a march troop type.");
+    if (!march.name.trim()) throw new Error("Enter a march name.");
+    validateGeneration(march);
+    if (march.layers !== undefined) validateTroops(march.layers);
+    if (march.baseThrough != null)
+      number(march.baseThrough, 0, 100, "base layer tier");
+    if (march.bases !== undefined) {
+      if (
+        !march.bases ||
+        typeof march.bases !== "object" ||
+        Array.isArray(march.bases)
+      )
+        throw new Error("Invalid base layers.");
+      for (const type of TROOP_TYPES)
+        if (march.bases[type] != null)
+          number(
+            march.bases[type],
+            0,
+            Number.MAX_SAFE_INTEGER,
+            "base layer count",
+          );
+      if (
+        Object.values(march.bases).some((value) => value != null) &&
+        march.layers?.some((row) => row.tier <= (march.baseThrough ?? 9))
+      )
+        throw new Error("Base layers overlap an explicit troop tier.");
+    }
+    marchTotals(march);
+  }
+  return marches;
+}
 
 export function marchTotals(march) {
   const totals = troopTotals(march.layers || []);
