@@ -25,3 +25,31 @@ test("view-only team cannot replace its document without explicit force", () => 
   store.replace({ ...createEmptyPlan(), title: "Downloaded" }, { force: true });
   assert.equal(store.plan.title, "Downloaded");
 });
+
+test("team edits use immutable transactions and ignore no-op changes", () => {
+  const store = new TeamStore();
+  const events = [];
+  store.subscribe(({ kind }) => events.push(kind));
+  assert.equal(
+    store.mutate((plan) => {
+      plan.title = "Alliance Alpha";
+    }),
+    true,
+  );
+  assert.equal(store.plan.title, "Alliance Alpha");
+  assert.equal(
+    store.mutate((plan) => {
+      plan.title = "Alliance Alpha";
+    }),
+    false,
+  );
+  assert.deepEqual(events, ["edit"]);
+  store.readOnly = true;
+  assert.equal(
+    store.mutate((plan) => {
+      plan.title = "Blocked";
+    }),
+    false,
+  );
+  assert.equal(store.plan.title, "Alliance Alpha");
+});
