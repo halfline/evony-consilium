@@ -160,9 +160,13 @@ export class MapRenderer {
       c.stroke();
     }
     this.hits = [];
-    for (const entity of [...p.obstacles, ...p.structures, ...p.keeps])
-      if (entity.x !== null && entity.y !== null)
-        drawEntity(this, entity, p, this.camera.zoom);
+    const entities = [...p.obstacles, ...p.structures, ...p.keeps]
+      .filter((entity) => entity.x !== null && entity.y !== null)
+      .sort((a, b) =>
+        project(a.x + a.w, a.y + a.h, p.grid).y -
+        project(b.x + b.w, b.y + b.h, p.grid).y);
+    for (const entity of entities)
+      drawEntity(this, entity, p, this.camera.zoom);
     drawSubcities(this, p, this.subcityTypes);
     for (const preview of this.previews || (this.preview ? [this.preview] : [])) {
       this.path(preview);
