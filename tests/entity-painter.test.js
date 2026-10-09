@@ -48,6 +48,29 @@ test("map anchor metadata positions large and pixel-scale sprites", () => {
     assert.ok(Math.abs(images[1][index] - expected) < 1e-6);
 });
 
+test("fixed landmarks are inert and major ones stay visible at distant zoom", () => {
+  const images = [];
+  let outlines = 0;
+  const view = {
+    ctx: { drawImage: (...args) => images.push(args), stroke: () => outlines++ },
+    path: () => outlines++, screen: (x, y) => ({ x, y }),
+    assets: new Map([
+      ["map-kingdom", { src: "throne.webp", width: 200, height: 100 }],
+      ["minor", { src: "minor.webp", width: 200, height: 100 }],
+    ]), image: (src) => src, hits: [], selected: "throne",
+  };
+  const plan = {
+    grid: { ax: 48, ay: 24, bx: -48, by: 24 },
+    obstacles: [], rallyId: "throne", labels: false,
+  };
+  drawEntity(view, { id: "throne", skin: "map-kingdom", x: 10, y: 20, w: 5, h: 5 }, plan, 0.02, true);
+  drawEntity(view, { id: "minor", skin: "minor", x: 10, y: 20, w: 1, h: 1 }, plan, 0.02, true);
+  assert.equal(images.length, 1);
+  assert.ok(images[0][3] >= 60);
+  assert.equal(outlines, 0);
+  assert.deepEqual(view.hits, []);
+});
+
 test("entity labels follow the map preference and mark the rally keep", () => {
   const labels = [];
   const plates = [];
