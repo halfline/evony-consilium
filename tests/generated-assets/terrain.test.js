@@ -204,6 +204,48 @@ test("fixed building clearings replace trees with original dirt tiles", () => {
 });
 
 
+test("the moat is drawn after ground and before every building", async () => {
+  const { MapRenderer } = await import(
+    "../../web/src/rendering/map-renderer.js"
+  );
+  const calls = [];
+  const plan = { ...createEmptyPlan(), map: "server", showGrid: false };
+  const ctx = new Proxy(
+    {},
+    {
+      get: (_, name) =>
+        name === "createRadialGradient"
+          ? () => ({ addColorStop() {} })
+          : () => {},
+    },
+  );
+  const renderer = Object.assign(Object.create(MapRenderer.prototype), {
+    terrainFor: getTerrain,
+    ctx,
+    width: 1000,
+    height: 800,
+    camera: { x: 0, y: 0, zoom: 1 },
+    getPlan: () => plan,
+    onDraw: () => {},
+    drawTerrain: () => calls.push("ground"),
+    drawMoatOverlay: () => calls.push("moat"),
+    entity: () => calls.push("building"),
+  });
+  const previousPixelRatio = globalThis.devicePixelRatio;
+  globalThis.devicePixelRatio = 1;
+  try {
+    renderer.draw();
+  } finally {
+    globalThis.devicePixelRatio = previousPixelRatio;
+  }
+  assert.equal(calls[0], "ground");
+  const firstBuilding = calls.indexOf("building");
+  assert.ok(firstBuilding > 1);
+  assert.ok(calls.slice(1, firstBuilding).every((call) => call === "moat"));
+  assert.ok(calls.slice(firstBuilding).every((call) => call === "building"));
+});
+
+
 test("whole-map view fits all server corners on screen", async () => {
   const { MapRenderer } = await import(
     "../../web/src/rendering/map-renderer.js"
