@@ -177,9 +177,9 @@ export function bindMapInteraction({
     if (canvas.style) canvas.style.cursor = "grabbing";
     renderer.draw();
   };
-  const endPan = (event, canceled = false) => {
+  canvas.onpointerup = (event) => {
     if (drag?.blocked) {
-      if (!canceled && drag.moved)
+      if (drag.moved)
         toast("Unlock this position before moving it.");
       if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
       drag = null;
@@ -203,9 +203,9 @@ export function bindMapInteraction({
       const beyondMap = preview &&
         (preview.x + preview.w <= 0 || preview.y + preview.h <= 0 ||
           preview.x > getPlan().extent || preview.y > getPlan().extent);
-      if (!canceled && drag.moved && (outside || beyondMap)) {
+      if (drag.moved && (outside || beyondMap)) {
         removeObjects(new Set(drag.members.map((item) => item.id)));
-      } else if (!canceled && drag.moved && renderer.preview?.valid) {
+      } else if (drag.moved && renderer.preview?.valid) {
         try {
           commit(movePlacements(getPlan(), renderer.previews || [renderer.preview],
             terrainFor(getPlan().map)));
@@ -213,7 +213,7 @@ export function bindMapInteraction({
           toast(error.message, true);
         }
       }
-      else if (!canceled && drag.moved && renderer.preview)
+      else if (drag.moved && renderer.preview)
         toast("Position blocked. The selection stayed at its original location.", true);
       if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
       drag = null;
@@ -228,7 +228,6 @@ export function bindMapInteraction({
     drag = null;
     if (canvas.style) canvas.style.cursor = "default";
   };
-  canvas.onpointerup = (event) => endPan(event);
   canvas.onpointercancel = () => {
     group.clear();
     groupChanged();
