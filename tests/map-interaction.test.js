@@ -204,3 +204,25 @@ test("arrow keys nudge selected keep by one tile", () => {
   assert.equal(prevented, true);
   assert.deepEqual([plan.keeps[0].x, plan.keeps[0].y], [11, 10]);
 });
+
+test("modifier clicks toggle multiple placed entities", () => {
+  const plan = createEmptyPlan();
+  plan.keeps.push(
+    { id: "a", x: 10, y: 10, w: 2, h: 2 },
+    { id: "b", x: 20, y: 20, w: 2, h: 2 },
+  );
+  const group = new Set(), canvas = {
+    getBoundingClientRect: () => ({ left: 0, top: 0 }),
+  };
+  let selected = "a";
+  bindMapInteraction({
+    canvas, group, getPlan: () => plan, getPending: () => null,
+    getSelection: () => selected, select: (id) => { selected = id; },
+    renderer: { hit: (x) => x < 50 ? "a" : "b", draw() {} },
+  });
+  canvas.onpointerdown({ button: 0, ctrlKey: true, clientX: 80, clientY: 0 });
+  assert.deepEqual([...group], ["a", "b"]);
+  assert.equal(selected, null);
+  canvas.onpointerdown({ button: 0, ctrlKey: true, clientX: 10, clientY: 0 });
+  assert.deepEqual([...group], ["b"]);
+});
