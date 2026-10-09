@@ -1,4 +1,6 @@
+import { OperationCancelled } from "./cancellation.js";
 import { addPlayer } from "../domain/players.js";
+import { applyPlayerProfile } from "../domain/player-document.js";
 
 // Coordinates authoritative profile files and their read-only team cache.
 // Views supply only presentation decisions; plan mutations use injected transactions.
@@ -97,5 +99,16 @@ export class PlayerProfiles {
         );
       this.replaceCached(this.workspace.players.cachedPlayer(cached));
     }
+  }
+  async collectCache(player) {
+    if (!this.canEditTeam() || this.isEditing()) throw new OperationCancelled();
+    return this.workspace.players.refreshCache(player, (profile) => {
+      if (this.isEditing()) throw new OperationCancelled();
+      const next = structuredClone(this.getPlan());
+      const index = next.keeps.findIndex((item) => item.id === player.id);
+      if (index === -1) throw new OperationCancelled();
+      next.keeps[index] = applyPlayerProfile(next.keeps[index], profile);
+      this.validatePlan(next);
+    });
   }
 }
