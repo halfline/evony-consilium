@@ -1,3 +1,4 @@
+import { teamDashboard } from "./browser/team-dashboard.js";
 import { mapEditing } from "./browser/map-editing.js";
 import { playerAppearance } from "./browser/player-appearance.js";
 import { mapSelection } from "./browser/maps.js";
@@ -71,6 +72,7 @@ try {
     driveFiles,
     projectLogo,
   });
+  await teamDashboard({ page, driveFiles, projectLogo });
   await playerSharing({ browser });
   await subcities({ browser });
   await subcityOwnership({ browser });
