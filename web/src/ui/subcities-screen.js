@@ -17,7 +17,7 @@ export function createSubcitiesScreen({
     dialog, getPlan, types, browse: chooser.open,
     closeBrowser: chooser.close, canEdit, commit, context,
   });
-  $("subcities-type").hidden = true;
+  $("subcities-type").oninput = render;
   $("subcities-color").hidden = true;
   bindTileActions(grid, {
     tileSelector: ".subcity-tile",
@@ -42,8 +42,12 @@ export function createSubcitiesScreen({
     editor.refreshAccess();
     addButton.hidden = !canEdit();
     const query = search.value.trim().toLowerCase();
-    const cities = (getPlan().subcities || []).filter((city) =>
-      `${city.name} ${city.culture} ${city.color}`.toLowerCase().includes(query));
+    const cities = (getPlan().subcities || []).filter((city) => {
+      const type = types().find((type) => type.id === city.cityType);
+      const category = city.cityType ? type?.category : city.culture ? "culture" : "";
+      return `${city.name} ${city.culture} ${city.color}`.toLowerCase().includes(query) &&
+        (!$("subcities-type").value || category === $("subcities-type").value);
+    });
     $("subcities-empty").hidden = cities.length > 0;
     grid.replaceChildren(...cities.map(tile), addButton);
   }
