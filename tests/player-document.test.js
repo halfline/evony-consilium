@@ -63,3 +63,29 @@ test("linking keeps placements and caches the entire profile with a baseline", (
   plan.keeps[0].playerSource.fileId = "../bad";
   assert.throws(() => validatePlan(plan, catalog), /player file link/);
 });
+test("synchronization merges independent edits and removes deleted profile fields", () => {
+  const base = playerProfile(player());
+  const local = { ...base, name: "Team edit" };
+  const remote = { ...base, details: { rallyCapacity: 200 } };
+  assert.deepEqual(mergePlayerProfiles(base, local, remote), {
+    profile: { ...local, details: remote.details },
+    conflicts: [],
+  });
+  delete remote.details;
+  const result = mergePlayerProfiles(base, base, remote);
+  assert.equal(
+    Object.hasOwn(linkedPlayer(player(), result.profile, file), "details"),
+    false,
+  );
+});
+test("conflicts are explicit and resolution preserves unrelated edits", () => {
+  const base = playerProfile(player());
+  const local = { ...base, name: "Team", level: 50 };
+  const remote = { ...base, name: "Player", accountId: "00123" };
+  const unresolved = mergePlayerProfiles(base, local, remote);
+  assert.deepEqual(unresolved.conflicts, ["name"]);
+  assert.deepEqual(mergePlayerProfiles(base, local, remote, "player").profile, {
+    ...remote,
+    level: 50,
+  });
+});
