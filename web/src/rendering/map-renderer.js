@@ -138,6 +138,20 @@ export class MapRenderer {
       drawTerrain(this, terrain, minX, minY, maxX, maxY, p.grid);
       c.restore();
     }
+    const background = p.backgrounds[p.map];
+    if (background) {
+      const image = this.image(background.src);
+      if (image) {
+        const anchor = project(background.x, background.y, p.grid);
+        c.save();
+        c.translate(this.width / 2 - this.camera.x * this.camera.zoom,
+          this.height / 2 - this.camera.y * this.camera.zoom);
+        c.scale(this.camera.zoom, this.camera.zoom);
+        c.globalAlpha = background.opacity;
+        c.drawImage(image, anchor.x, anchor.y, background.width, background.height);
+        c.restore();
+      }
+    }
     if (p.showGrid) {
       const corners = [[0, 0], [this.width, 0], [0, this.height], [this.width, this.height]]
         .map(([x, y]) => this.world(x, y));
