@@ -69,12 +69,12 @@ export function bindMapInteraction({
       resetPending();
       return;
     }
-    if ((event.ctrlKey || event.metaKey) && !getPending()) {
+    if (event.ctrlKey || event.metaKey) {
       const id = renderer.hit(pt.x, pt.y);
       const entity = entities()
         .find((item) => item.id === id);
       if (!entity || entity.locked || entity.x === null) return;
-      if (!group.size && selected() && selected().id !== id)
+      if (!group.size && selected() && !selected().locked && selected().x !== null)
         group.add(selected().id);
       if (group.has(id)) group.delete(id);
       else group.add(id);
