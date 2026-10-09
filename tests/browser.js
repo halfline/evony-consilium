@@ -1,3 +1,4 @@
+import { playerSharing } from "./browser/player-sharing.js";
 import { teamImprovements } from "./browser/team-improvements.js";
 import { entryWorkflow } from "./browser/entry.js";
 import { playerRoster } from "./browser/player-roster.js";
@@ -195,6 +196,7 @@ try {
   await mapGrid({ page, driveFiles });
   await mapLabels({ page, driveFiles });
   await teamImprovements({ browser });
+  await playerSharing({ browser });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(

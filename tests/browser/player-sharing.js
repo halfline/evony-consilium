@@ -1,0 +1,188 @@
+import assert from "node:assert/strict";
+import { mockGoogleDrive } from "../drive-mock.js";
+
+export async function playerSharing({ browser }) {
+  const admin = await browser.newContext({
+    viewport: { width: 1440, height: 1000 },
+  });
+  const member = await browser.newContext({
+    viewport: { width: 1440, height: 1000 },
+  });
+  try {
+    const files = await mockGoogleDrive(admin);
+    const a = await admin.newPage();
+    await a.goto("http://127.0.0.1:4174");
+    await a.locator("#google-login:not([disabled])").click();
+    await a.locator("#project-tab-create").click();
+    await a.locator("#project-name").fill("Delegation test");
+    await a.locator("[form=project-create]").click();
+    await a.locator("#planner").waitFor({ state: "visible" });
+    await a.locator('[data-screen="players"]').click();
+    for (const name of ["Managed account", "Other account"]) {
+      if (!(await a.locator("#add-player-dialog").isVisible()))
+        await a.locator("#add-player").click();
+      await a.locator("#new-player-name").fill(name);
+      await a.locator("#new-player-form [type=submit]").click();
+      await a.locator("#add-player-dialog").waitFor({ state: "hidden" });
+      await a.locator('[data-screen="players"]').click();
+    }
+    await a.locator("#drive-save").click();
+    await a.waitForFunction(
+      () =>
+        document.getElementById("drive-save").disabled &&
+        document.getElementById("drive-save").getAttribute("aria-busy") ===
+          "false",
+    );
+    const team = [...files.values()].find(
+      (record) => record.data?.format === "evony-consilium-team",
+    );
+    const sources = team.data.plan.keeps.map((player) =>
+      files.get(player.playerSource.fileId),
+    );
+    assert.equal(sources.length, 2);
+    assert.ok(
+      sources.every((source) =>
+        source.file.parents.includes(team.file.parents[0]),
+      ),
+    );
+    team.file.capabilities.canEdit = false;
+    sources[1].file.capabilities.canEdit = false;
+    const grants = new Set();
+    await mockGoogleDrive(member, { files, grants });
+    const p = await member.newPage();
+    await p.goto("http://127.0.0.1:4174");
+    await p.locator("#google-login:not([disabled])").click();
+    await p
+      .locator("#project-url")
+      .fill(`https://drive.google.com/file/d/${team.file.id}/view`);
+    await p.locator("[form=project-join]").click();
+    await p.locator("#planner").waitFor({ state: "visible" });
+    assert.deepEqual([...grants], [team.file.id]);
+    await p.locator('[data-screen="players"]').click();
+    await p.locator("#players .player-card").first().click();
+    assert.equal(await p.locator("#player-name").getAttribute("readonly"), "");
+    assert.equal(await p.locator("#player-unlock").isVisible(), true);
+    await p.locator("#player-unlock").click();
+    await p.waitForFunction(
+      () => !document.getElementById("player-name").readOnly,
+    );
+    assert.equal(grants.has(sources[0].file.id), true);
+    assert.equal(grants.has(sources[1].file.id), false);
+    const cachedName = team.data.plan.keeps[0].name;
+    await p.locator("#player-name").fill("Player changed their profile");
+    await p.locator("#player-form [type=submit]").click();
+    await p.waitForFunction(
+      () =>
+        document.getElementById("player-title").textContent ===
+        "Player changed their profile",
+    );
+    assert.equal(sources[0].data.profile.name, "Player changed their profile");
+    assert.equal(team.data.plan.keeps[0].name, cachedName);
+    assert.equal(await p.locator("#drive-save").isDisabled(), true);
+    await p.locator('[data-screen="project"]').click();
+    await p.locator("#team-unlock").click();
+    await p.waitForFunction(() =>
+      document.getElementById("toast").textContent.includes("still read-only"),
+    );
+    assert.equal(
+      await p.locator("#edit-project-name").getAttribute("readonly"),
+      "",
+    );
+    team.file.capabilities.canEdit = true;
+    await p.locator("#team-unlock").click();
+    await p.waitForFunction(
+      () => !document.getElementById("edit-project-name").readOnly,
+    );
+    await p.locator('[data-screen="players"]').click();
+    await p.locator("#players .player-card").last().click();
+    assert.equal(await p.locator("#player-name").getAttribute("readonly"), "");
+    await p.locator("#player-unlock").click();
+    await p.waitForFunction(() =>
+      document.getElementById("toast").textContent.includes("still read-only"),
+    );
+    assert.equal(await p.locator("#player-name").getAttribute("readonly"), "");
+    sources[1].file.capabilities.canEdit = true;
+    const pickerCalls = await p.evaluate(() => window.__pickerCalls.length);
+    await p.evaluate(() => window.dispatchEvent(new Event("focus")));
+    await p.waitForFunction(
+      () => !document.getElementById("player-name").readOnly,
+    );
+    assert.equal(
+      await p.evaluate(() => window.__pickerCalls.length),
+      pickerCalls,
+    );
+    await p.waitForFunction(
+      () =>
+        document.getElementById("drive-save").disabled &&
+        document.getElementById("drive-save").getAttribute("aria-busy") ===
+          "false",
+    );
+    await p.locator("#player-name").fill("Admin cached edit");
+    await p.locator("#player-form [type=submit]").click();
+    await p.waitForFunction(
+      () =>
+        document.getElementById("player-title").textContent ===
+        "Admin cached edit",
+    );
+    await p.locator("#drive-save").click();
+    await p.waitForFunction(
+      () =>
+        document.getElementById("drive-save").disabled &&
+        document.getElementById("drive-save").getAttribute("aria-busy") ===
+          "false",
+    );
+    assert.equal(team.data.plan.keeps[1].name, "Admin cached edit");
+    assert.equal(sources[1].data.profile.name, "Admin cached edit");
+    sources[1].data.profile.name = "Concurrent player edit";
+    sources[1].file.version = String(Number(sources[1].file.version) + 1);
+    await p.evaluate(() => window.dispatchEvent(new Event("focus")));
+    await p.waitForFunction(
+      () =>
+        document.getElementById("player-name").value ===
+        "Concurrent player edit",
+    );
+    await p.waitForFunction(
+      () =>
+        document.getElementById("drive-save").disabled &&
+        document.getElementById("drive-save").getAttribute("aria-busy") ===
+          "false",
+    );
+    assert.equal(await p.locator("#player-sync-dialog").isVisible(), false);
+    assert.equal(team.data.plan.keeps[1].name, "Concurrent player edit");
+    // A freshly signed-in user whose Drive/app grants already permit the file
+    // gets editing automatically, without a local remembered grant or Picker.
+    const automatic = await browser.newContext({
+      viewport: { width: 1440, height: 1000 },
+    });
+    try {
+      team.file.capabilities.canEdit = false;
+      await mockGoogleDrive(automatic, {
+        files,
+        grants: new Set([team.file.id, sources[0].file.id]),
+      });
+      const auto = await automatic.newPage();
+      await auto.goto("http://127.0.0.1:4174");
+      await auto.locator("#google-login:not([disabled])").click();
+      await auto
+        .locator("#project-url")
+        .fill(`https://drive.google.com/file/d/${team.file.id}/view`);
+      await auto.locator("[form=project-join]").click();
+      await auto.locator("#planner").waitFor({ state: "visible" });
+      await auto.locator('[data-screen="players"]').click();
+      await auto.locator("#players .player-card").first().click();
+      await auto.waitForFunction(
+        () => !document.getElementById("player-name").readOnly,
+      );
+      assert.equal(await auto.locator("#player-unlock").isVisible(), false);
+      assert.equal(
+        await auto.evaluate(() => (window.__pickerCalls || []).length),
+        0,
+      );
+    } finally {
+      await automatic.close();
+    }
+  } finally {
+    await member.close();
+    await admin.close();
+  }
+}
