@@ -171,7 +171,11 @@ export function bindMapInteraction({
       const box = canvas.getBoundingClientRect();
       const outside = event.clientX < box.left || event.clientX > box.right ||
         event.clientY < box.top || event.clientY > box.bottom;
-      if (!canceled && drag.moved && outside) {
+      const preview = renderer.preview;
+      const beyondMap = preview &&
+        (preview.x + preview.w <= 0 || preview.y + preview.h <= 0 ||
+          preview.x > getPlan().extent || preview.y > getPlan().extent);
+      if (!canceled && drag.moved && (outside || beyondMap)) {
         commit(removePlacements(getPlan(), new Set(drag.members.map((item) => item.id))));
         group.clear();
         groupChanged();
