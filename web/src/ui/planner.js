@@ -46,7 +46,7 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
     variantDialog: $("variant-dialog"),
     assets: store.assets,
     getCatalog: () => catalog,
-    selected: () => players?.selected() || null,
+    selected: () => players?.draft() || selection.selected || null,
   });
   function showScreen(next) {
     if (!["project", "players", "player", "subcities", "maps", "formation"].includes(next)) return;
