@@ -293,6 +293,60 @@ test("the throne base aligns with the front of its footprint", async () => {
 });
 
 
+test("temple ground bases fill and align with their occupied footprints", async () => {
+  const { MapRenderer } = await import(
+    "../../web/src/rendering/map-renderer.js"
+  );
+  const catalog = JSON.parse(readFileSync(assetURL("assets/catalog.json")));
+  const plan = { ...createEmptyPlan(), labels: false };
+  for (const temple of getTerrain("server").landmarks.filter((landmark) =>
+    landmark.skin.endsWith("shrin"),
+  )) {
+    const asset = catalog.assets.find((asset) => asset.id === temple.skin);
+    let bounds;
+    const ctx = new Proxy(
+      {},
+      {
+        get: (_, name) =>
+          name === "drawImage"
+            ? (_, left, top, width, height) => {
+                bounds = { left, top, width, height };
+              }
+            : () => {},
+      },
+    );
+    const renderer = Object.assign(Object.create(MapRenderer.prototype), {
+      terrainFor: getTerrain,
+      ctx,
+      width: 1000,
+      height: 800,
+      camera: {
+        x: (temple.x - temple.y) * 48,
+        y: (temple.x + temple.y + temple.w) * 24,
+        zoom: 1,
+      },
+      hits: [],
+      assets: new Map([[asset.id, asset]]),
+      getPlan: () => plan,
+      image: () => ({}),
+    });
+    renderer.entity(temple, plan, 1, true);
+    const scale = bounds.width / asset.width;
+    const front = renderer.screen(temple.x + temple.w, temple.y + temple.h);
+    assert.ok(
+      Math.abs(bounds.left + asset.mapAnchor.pivotX * scale - front.x) < 0.001,
+    );
+    assert.ok(
+      Math.abs(bounds.top + asset.mapAnchor.groundPivotY * scale - front.y) <
+        0.001,
+    );
+    assert.ok(
+      Math.abs(asset.mapAnchor.footprintWidth * scale - 384 * 0.98) < 0.001,
+    );
+  }
+});
+
+
 test("whole-map view fits all server corners on screen", async () => {
   const { MapRenderer } = await import(
     "../../web/src/rendering/map-renderer.js"
