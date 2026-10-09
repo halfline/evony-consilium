@@ -11,6 +11,7 @@ import { playerMarchManual } from "./browser/player-march-manual.js";
 import { playerMarchSettings } from "./browser/player-march-settings.js";
 import { playerMarchReset } from "./browser/player-march-reset.js";
 import { playerMarchType } from "./browser/player-march-type.js";
+import { playerMarchShares } from "./browser/player-march-shares.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -65,6 +66,7 @@ try {
   await playerMarchSettings({ page, driveFiles });
   await playerMarchReset({ page, driveFiles });
   await playerMarchType({ page, driveFiles });
+  await playerMarchShares({ page, driveFiles });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
