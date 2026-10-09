@@ -1,11 +1,12 @@
 import { canPlace } from "../domain/placement.js";
-import { previewPlacementMove, movePlacements } from "../domain/placement-commands.js";
+import { previewPlacementMove, movePlacements, removePlacements } from "../domain/placement-commands.js";
 
 export function bindMapInteraction({
   canvas, renderer, getPlan, terrainFor = () => null,
   getPending, resetPending, canEdit = () => true,
   mutate, commit, toast, select = () => {}, openSubcity = () => {},
   openPlayer = () => {},
+  getSelection = () => null,
 }) {
   let pan = null;
   let drag = null;
@@ -23,6 +24,7 @@ export function bindMapInteraction({
   };
   canvas.onpointerdown = (event) => {
     if (event.button !== 0) return;
+    canvas.focus?.();
     const pt = point(event);
     const cityId = renderer.hitSubcity?.(pt.x, pt.y);
     if (cityId && !getPending()) {
@@ -99,5 +101,11 @@ export function bindMapInteraction({
     event.preventDefault();
     const pt = point(event);
     renderer.zoom(Math.exp(-event.deltaY * 0.001), pt.x, pt.y);
+  };
+  canvas.onkeydown = (event) => {
+    if (event.key !== "Delete" || !canEdit() || !getSelection()) return;
+    event.preventDefault();
+    commit(removePlacements(getPlan(), new Set([getSelection()])));
+    select(null);
   };
 }

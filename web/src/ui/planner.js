@@ -156,6 +156,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     mutate: (change) => store.mutate(change),
     commit: (plan) => store.commit(plan), toast,
     select: selectKeep,
+    getSelection: () => selectedKeep,
     openSubcity: (id) => subcities.open(id),
     openPlayer: (id) => players.open(id),
   });
