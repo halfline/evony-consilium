@@ -1,5 +1,8 @@
 """Read Spine atlas regions and run the geometry adapter."""
 
+import json
+import subprocess
+
 
 def atlas_regions(text, pages):
     regions = []
@@ -43,3 +46,20 @@ def atlas_regions(text, pages):
             v2=(y + (w if r["rotate"] else h)) / page["height"],
         )
     return regions
+
+
+def spine_geometry(cache, jobs, renderer):
+    (cache / "spine-jobs.json").write_text(json.dumps(jobs))
+    subprocess.run(
+        [
+            "node",
+            str(renderer),
+            str(cache / "spine-jobs.json"),
+            str(cache / "spine-result.json"),
+        ],
+        check=True,
+    )
+    return {
+        record["id"]: record
+        for record in json.loads((cache / "spine-result.json").read_text())
+    }
