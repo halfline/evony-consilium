@@ -150,3 +150,27 @@ test("map vignette shades the canvas edge after painting", () => {
     globalThis.devicePixelRatio = previousDpr;
   }
 });
+
+test("terrain viewport includes a two-tile painting margin", () => {
+  const previousDpr = globalThis.devicePixelRatio;
+  globalThis.devicePixelRatio = 1;
+  try {
+    const plan = createEmptyPlan();
+    plan.showGrid = false;
+    const ctx = new Proxy({}, { get: (_target, key) => key === "createRadialGradient"
+      ? () => ({ addColorStop() {} }) : () => {} });
+    const viewport = [];
+    const terrain = { extent: 50, landmarks: [] };
+    const renderer = Object.assign(Object.create(MapRenderer.prototype), {
+      ctx, width: 100, height: 100,
+      camera: { x: 0, y: 0, zoom: 1 },
+      getPlan: () => plan, terrainFor: () => terrain, onDraw() {},
+      world: (x, y) => ({ x: x / 10 + 10.2, y: y / 10 + 20.4 }),
+      drawTerrain: (_terrain, ...bounds) => viewport.push(bounds),
+    });
+    renderer.draw();
+    assert.deepEqual(viewport, [[8, 18, 23, 33, plan.grid]]);
+  } finally {
+    globalThis.devicePixelRatio = previousDpr;
+  }
+});
