@@ -380,6 +380,30 @@
           </div>
         </form>
       </dialog>
+      <dialog id="catalog-dialog" class="catalog-dialog">
+        <div class="dialog-heading">
+          <div>
+            <span class="eyebrow">ORIGINAL GAME GRAPHICS</span>
+            <h2 id="catalog-title">Choose a castle</h2>
+          </div>
+          <button data-close="catalog-dialog" aria-label="Close castle browser">×</button>
+        </div>
+        <p class="muted">Choose a castle, then its tier. Castles that grow with keep level update their appearance automatically.</p>
+        <div class="catalog-filters">
+          <input id="catalog-search" type="search" placeholder="Search castles, cultures, tiers…" aria-label="Search castles" />
+          <select id="catalog-category" aria-label="Filter castle category">
+            <option value="">All castles</option>
+          </select>
+        </div>
+        <div id="catalog-grid" class="catalog-grid"></div>
+      </dialog>
+      <dialog id="variant-dialog" class="catalog-dialog">
+        <div class="dialog-heading">
+          <h2 id="variant-title">Choose a tier</h2>
+          <button data-close="variant-dialog" aria-label="Back to castle types">×</button>
+        </div>
+        <div id="variant-grid" class="catalog-grid"></div>
+      </dialog>
     </div>
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
     <script type="module" src="app.js"></script>
