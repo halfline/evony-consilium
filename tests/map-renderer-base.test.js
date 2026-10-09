@@ -65,3 +65,29 @@ test("Server maps expose painted subcity marker hit regions", () => {
     globalThis.devicePixelRatio = previousDpr;
   }
 });
+
+test("fit frames placed formation more closely than the whole map", () => {
+  const previousObserver = globalThis.ResizeObserver;
+  const previousDpr = globalThis.devicePixelRatio;
+  globalThis.ResizeObserver = class { observe() {} };
+  globalThis.devicePixelRatio = 1;
+  try {
+    const ctx = new Proxy({}, { get: (_target, key) => key === "measureText"
+      ? () => ({ width: 10 }) : () => {} });
+    const canvas = { parentElement: {}, getContext: () => ctx,
+      getBoundingClientRect: () => ({ width: 800, height: 600 }) };
+    const plan = createEmptyPlan();
+    plan.keeps.push({ id: "a", name: "A", skin: "missing", x: 600, y: 600,
+      w: 2, h: 2, locked: false });
+    const renderer = new MapRenderer(canvas, () => plan);
+    renderer.resize();
+    renderer.fit(true);
+    const wholeZoom = renderer.camera.zoom;
+    renderer.fit();
+    assert.ok(renderer.camera.zoom > wholeZoom);
+    assert.ok(renderer.camera.zoom <= 1.1);
+  } finally {
+    globalThis.ResizeObserver = previousObserver;
+    globalThis.devicePixelRatio = previousDpr;
+  }
+});
