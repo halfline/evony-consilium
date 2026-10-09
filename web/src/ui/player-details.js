@@ -6,6 +6,7 @@ import { createPlayerMarchSizes } from "./player-march-sizes.js";
 
 export function createPlayerDetails({ root, getPlayer }) {
   const $ = view(root);
+  let original = {};
   const buffs = createPlayerBuffs({ root });
   const marchSizes = createPlayerMarchSizes({ root });
   const marches = createPlayerMarches({
@@ -29,18 +30,29 @@ export function createPlayerDetails({ root, getPlayer }) {
   $("player-form").querySelector('[data-player-tab="rally-capacity"]').hidden = false;
   $("player-form").querySelector('[data-player-tab="troops"]').hidden = false;
   function read() {
-    return {
+    marches.syncSizes();
+    const result = {
+      rallyCapacity: numeric($("player-rally-capacity")),
       ...buffs.read(),
       ...marchSizes.read(),
       marches: marches.read(),
-      rallyCapacity: numeric($("player-rally-capacity")),
     };
+    if (
+      !Object.keys(original).length &&
+      result.rallyCapacity === null &&
+      !buffs.hasValues() &&
+      !marchSizes.hasValues() &&
+      !result.marches.length
+    )
+      return undefined;
+    return result;
   }
   function render(player) {
-    buffs.render(player.details || {});
-    marchSizes.render(player.details || {});
-    marches.render(player.details || {}, player.level);
-    $("player-rally-capacity").value = player.details?.rallyCapacity ?? "";
+    original = structuredClone(player.details || {});
+    buffs.render(original);
+    marchSizes.render(original);
+    marches.render(original, player.level);
+    $("player-rally-capacity").value = original.rallyCapacity ?? "";
   }
   return { read, render };
 }
