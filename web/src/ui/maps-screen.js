@@ -1,14 +1,22 @@
+import { bindTileActions } from "./tile-actions.js";
 import { MAP_ICONS } from "../domain/maps.js";
 import { view, option } from "./dom.js";
 import { defaultFormationName } from "../domain/map-plans.js";
-import { bindTileActions } from "./tile-actions.js";
-export function createMapsScreen({ root, getPlan, open, remove, status, dialog, add, canEdit = () => true }) {
+export function createMapsScreen({
+  root,
+  dialog,
+  getPlan,
+  add,
+  open,
+  remove,
+  status,
+  canEdit = () => true,
+}) {
   const $ = view(root, dialog);
   bindTileActions($("maps-list"), {
     tileSelector: ".map-list-row",
     triggerSelector: ".map-row",
     className: "map-actions-open",
-    enabled: canEdit,
   });
   function presets(select) {
     select.replaceChildren(
@@ -53,7 +61,6 @@ export function createMapsScreen({ root, getPlan, open, remove, status, dialog, 
   function render() {
     const plan = getPlan();
     const addButton = $("add-map");
-    addButton.hidden = !canEdit();
     $("maps-list").replaceChildren(
       ...(plan.maps || []).map((map) => {
         const row = document.createElement("div");
@@ -80,24 +87,29 @@ export function createMapsScreen({ root, getPlan, open, remove, status, dialog, 
         caption.append(name, arrow);
         button.append(portrait, caption);
         button.onclick = () => openMap(map.id);
-        row.append(button);
-        if (canEdit()) {
-          const forget = document.createElement("button");
-          forget.type = "button";
-          forget.className = "map-forget";
-          forget.textContent = "×";
-          forget.title = `Forget ${map.name}`;
-          forget.setAttribute("aria-label", forget.title);
-          forget.onclick = () => {
-            try { remove(map.id); }
-            catch (error) { status(error.message, true); }
-          };
-          row.append(forget);
-        }
+        const forget = document.createElement("button");
+        forget.className = "map-forget";
+        forget.textContent = "×";
+        forget.title = `Forget ${map.name}`;
+        forget.setAttribute("aria-label", `Forget ${map.name}`);
+        forget.onclick = () => {
+          try {
+            remove(map.id);
+          } catch (error) {
+            status(error.message, true);
+          }
+        };
+        row.append(button, forget);
         return row;
       }),
       addButton,
     );
   }
-  return { render, enter() { render(); if (canEdit() && !getPlan().maps?.length && !dialog.open) newMap(); } };
+  return {
+    render,
+    enter() {
+      render();
+      if (canEdit() && !getPlan().maps?.length && !dialog.open) newMap();
+    },
+  };
 }
