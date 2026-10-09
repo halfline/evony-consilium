@@ -117,6 +117,86 @@ test("creation puts team name and logo in the authoritative document", async () 
   assert.equal(f.getPlan().projectLogo, "data:image/webp;base64,AAAA");
 });
 
+test("sign-out cancels a download before it can open or remember a team", async () => {
+  const f = fixture();
+  await f.workspace.signIn();
+  let release;
+  let downloading;
+  const started = new Promise((resolve) => {
+    downloading = resolve;
+  });
+  f.drive.load = async () => {
+    downloading();
+    await new Promise((resolve) => {
+      release = resolve;
+    });
+    return { file: f.file, plan: f.shared };
+  };
+  const opening = f.workspace.open({ id: "folder" });
+  await started;
+  f.workspace.clear();
+  release();
+  await assert.rejects(opening, {
+    name: "Error",
+    message: "Operation cancelled.",
+  });
+  assert.equal(f.workspace.account, null);
+  assert.equal(f.workspace.project, null);
+  assert.equal(f.events.length, 0);
+});
+
+test("a slower earlier navigation cannot replace the team opened afterward", async () => {
+  const f = fixture();
+  await f.workspace.signIn();
+  let release;
+  let loading;
+  const started = new Promise((resolve) => {
+    loading = resolve;
+  });
+  let calls = 0;
+  f.drive.load = async () => {
+    if (++calls === 1) {
+      loading();
+      await new Promise((resolve) => {
+        release = resolve;
+      });
+      return { file: f.file, plan: { ...f.shared, title: "Late result" } };
+    }
+    return { file: f.file, plan: { ...f.shared, title: "Current team" } };
+  };
+  const first = f.workspace.open({ id: "folder" });
+  await started;
+  await f.workspace.open({ id: "folder" });
+  release();
+  await assert.rejects(first, { message: "Operation cancelled." });
+  assert.equal(f.getPlan().title, "Current team");
+  assert.equal(f.workspace.list()[0].name, "Current team");
+});
+
+test("a rejected document leaves the current team's access state and identity intact", async () => {
+  const f = fixture({ canEdit: false });
+  await f.workspace.signIn();
+  await f.workspace.open({ id: "folder" });
+  const previous = f.workspace.project;
+  const key = f.workspace.key();
+  f.events.length = 0;
+  f.drive.load = async () => ({
+    file: { ...f.file, capabilities: { canEdit: true } },
+    plan: f.shared,
+  });
+  f.workspace.openPlan = () => {
+    throw new Error("Invalid team document");
+  };
+  await assert.rejects(
+    f.workspace.open({ id: "other" }),
+    /Invalid team document/,
+  );
+  assert.deepEqual(f.events, []);
+  assert.equal(f.workspace.project, previous);
+  assert.equal(f.workspace.key(), key);
+  assert.equal(f.workspace.sync.file.capabilities.canEdit, false);
+});
+
 
 test("joining a team link preserves its file ID and resource key", async () => {
   const f = fixture();
