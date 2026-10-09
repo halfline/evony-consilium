@@ -4,6 +4,7 @@ import { validatePlan } from "../domain/validation.js";
 import { renderAvatarButton } from "./avatar-browser.js";
 import { view } from "./dom.js";
 import { createPlayerBuffs } from "./player-buffs.js";
+import { createPlayerMarchSizes } from "./player-march-sizes.js";
 
 // The first profile screen edits the linked player's identity fields.
 export function createPlayerScreen({
@@ -20,6 +21,7 @@ export function createPlayerScreen({
 }) {
   const $ = view(root);
   const buffs = createPlayerBuffs({ root });
+  const marchSizes = createPlayerMarchSizes({ root });
   function showTab(tab) {
     for (const button of root.querySelectorAll("[data-player-tab]")) {
       const active = button.dataset.playerTab === tab;
@@ -32,6 +34,7 @@ export function createPlayerScreen({
   for (const button of root.querySelectorAll("[data-player-tab]"))
     button.onclick = () => showTab(button.dataset.playerTab);
   $("player-form").querySelector('[data-player-tab="buffs"]').hidden = false;
+  $("player-form").querySelector('[data-player-tab="march-size"]').hidden = false;
   async function saveProfile(id, changes, detailChanges = null) {
     if (!canEdit()) throw new Error("Unlock this player before editing.");
     let next = editPlayerProfile(getPlan(), id, changes);
@@ -50,7 +53,7 @@ export function createPlayerScreen({
         accountId: $("player-account").value.trim(),
         allianceTag: $("player-tag").value.trim(),
         level: Number($("player-level").value),
-      }, buffs.read());
+      }, { ...buffs.read(), ...marchSizes.read() });
       status("Player saved.");
     } catch (error) {
       status(error.message, true);
@@ -81,6 +84,7 @@ export function createPlayerScreen({
     $("player-remove").hidden = false;
     $("player-remove").setAttribute("aria-label", `Remove ${player.name}`);
     buffs.render(player.details || {});
+    marchSizes.render(player.details || {});
     for (const [field, id] of Object.entries({
       name: "player-name",
       accountId: "player-account",
