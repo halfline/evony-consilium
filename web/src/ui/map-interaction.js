@@ -109,6 +109,14 @@ export function bindMapInteraction({
     renderer.zoom(Math.exp(-event.deltaY * 0.001), pt.x, pt.y);
   };
   canvas.onkeydown = (event) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      resetPending();
+      select(null);
+      renderer.preview = null;
+      renderer.draw();
+      return;
+    }
     if (event.key !== "Delete" || !canEdit() || !getSelection()) return;
     event.preventDefault();
     commit(removePlacements(getPlan(), new Set([getSelection()])));
