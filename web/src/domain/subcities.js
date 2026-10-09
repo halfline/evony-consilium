@@ -95,3 +95,13 @@ export function removeSubcity(plan, id) {
   next.subcities = (next.subcities || []).filter((city) => city.id !== id);
   return next;
 }
+
+export function assignSubcityOwner(plan, id, ownerId) {
+  if (ownerId !== null && !plan.keeps.some((player) => player.id === ownerId))
+    throw new Error("Choose a player on this team as the subcity owner.");
+  const next = structuredClone(plan);
+  const city = (next.subcities || []).find((city) => city.id === id);
+  if (!city) throw new Error("Subcity not found.");
+  city.ownerId = ownerId;
+  return next;
+}
