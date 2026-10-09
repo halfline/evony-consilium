@@ -28,8 +28,6 @@ export function createEmptyPlan() {
   return {
     version: 1,
     title: "Alliance formation",
-    projectLogo: "",
-    discordUrl: "",
     maps: [],
     activeMapId: null,
     ...layout,
