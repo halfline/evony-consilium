@@ -42,7 +42,11 @@ export function createPlanner(
     navigation,
     opening = false;
   const selection = new PlacementSelection(getPlan);
-  let mapInteraction, placementInspector, placementView;
+  let mapInteraction,
+    placementInspector,
+    placementView,
+    formationList,
+    formationControls;
   let screen = "project";
   const access = createReadOnlyView(
     $("planner"),
@@ -224,54 +228,58 @@ export function createPlanner(
   function selectKeep(id) {
     placementView.select(id);
   }
-  const formationList = createFormationList({
-    root: $("formation-screen"),
-    assets: store.assets,
-    getPlan,
-    getSelection: () => selection.id,
-    group: selection.ids,
-    select: selectKeep,
-    canEdit: () => !store.readOnly,
-    setRally: (id) => store.commit(setRallySetter(getPlan(), id)),
-    place: (keep) => placementView.place(keep),
-    center: (keep) => renderer.center(keep.x + keep.w / 2, keep.y + keep.h / 2),
-  });
-  placementInspector = createPlacementInspector({
-    root: $("inspector"),
-    getPlan,
-    catalog,
-    assets: store.assets,
-    browse: catalogBrowser.open,
-    terrainFor: (id) => terrainCatalog?.get(id),
-    canEdit: () => !store.readOnly,
-    commit: (plan) => store.commit(plan),
-    applied: () => placementView.reset(),
-    status: toast,
-    selected: () =>
-      [
-        ...getPlan().keeps,
-        ...getPlan().structures,
-        ...getPlan().obstacles,
-      ].find(({ id }) => id === selection.id),
-    close: () => selectKeep(null),
-  });
-  const formationControls = createFormationControls({
-    root: $("formation-screen"),
-    toolbar: document.querySelector(".map-toolbar"),
-    assets: store.assets,
-    getPlan,
-    browse: catalogBrowser.open,
-    terrainFor: (id) => terrainCatalog?.get(id),
-    fit: () => renderer.fit(),
-    resetPlacement: () => placementView.reset(),
-    status: toast,
-    canEdit: () => !store.readOnly,
-    commit: (plan) => store.commit(plan),
-    place: (entity, message) => {
-      selectKeep(entity.id);
-      placementView.place(entity, message);
-    },
-  });
+  wireFormationScreen();
+  function wireFormationScreen() {
+    formationList = createFormationList({
+      root: $("formation-screen"),
+      assets: store.assets,
+      getPlan,
+      getSelection: () => selection.id,
+      group: selection.ids,
+      select: selectKeep,
+      canEdit: () => !store.readOnly,
+      setRally: (id) => store.commit(setRallySetter(getPlan(), id)),
+      place: (keep) => placementView.place(keep),
+      center: (keep) =>
+        renderer.center(keep.x + keep.w / 2, keep.y + keep.h / 2),
+    });
+    placementInspector = createPlacementInspector({
+      root: $("inspector"),
+      getPlan,
+      catalog,
+      assets: store.assets,
+      browse: catalogBrowser.open,
+      terrainFor: (id) => terrainCatalog?.get(id),
+      canEdit: () => !store.readOnly,
+      commit: (plan) => store.commit(plan),
+      applied: () => placementView.reset(),
+      status: toast,
+      selected: () =>
+        [
+          ...getPlan().keeps,
+          ...getPlan().structures,
+          ...getPlan().obstacles,
+        ].find(({ id }) => id === selection.id),
+      close: () => selectKeep(null),
+    });
+    formationControls = createFormationControls({
+      root: $("formation-screen"),
+      toolbar: document.querySelector(".map-toolbar"),
+      assets: store.assets,
+      getPlan,
+      browse: catalogBrowser.open,
+      terrainFor: (id) => terrainCatalog?.get(id),
+      fit: () => renderer.fit(),
+      resetPlacement: () => placementView.reset(),
+      status: toast,
+      canEdit: () => !store.readOnly,
+      commit: (plan) => store.commit(plan),
+      place: (entity, message) => {
+        selectKeep(entity.id);
+        placementView.place(entity, message);
+      },
+    });
+  }
   mapInteraction = bindMapInteraction({
     canvas: $("map"),
     renderer,
