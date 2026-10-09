@@ -130,6 +130,58 @@ test("fixed server landmarks preserve confirmed coordinates and footprints", () 
   assert.equal(getTerrain("blank"), undefined);
 });
 
+test("moat overlay stays clipped to a landmark ground footprint", async () => {
+  const { MapRenderer } = await import(
+    "../../web/src/rendering/map-renderer.js"
+  );
+  const calls = [];
+  const ctx = Object.fromEntries(
+    [
+      "save",
+      "restore",
+      "beginPath",
+      "moveTo",
+      "lineTo",
+      "closePath",
+      "clip",
+      "translate",
+      "scale",
+      "drawImage",
+    ].map((name) => [name, (...args) => calls.push([name, ...args])]),
+  );
+  const plan = createEmptyPlan();
+  plan.map = "server";
+  const renderer = Object.assign(Object.create(MapRenderer.prototype), {
+    terrainFor: getTerrain,
+    ctx,
+    width: 1000,
+    height: 800,
+    camera: { x: 0, y: 0, zoom: 1 },
+    getPlan: () => plan,
+    image: (src) => ({ src }),
+  });
+  const tower = getTerrain("server").landmarks.find(
+    (l) => l.name === "Magic Tower",
+  );
+  renderer.drawMoatOverlay(tower, plan, 1);
+  assert.ok(calls.some(([name]) => name === "drawImage"));
+  assert.ok(
+    calls.findIndex(([name]) => name === "clip") <
+      calls.findIndex(([name]) => name === "drawImage"),
+  );
+  const corners = calls.filter(
+    ([name]) => name === "moveTo" || name === "lineTo",
+  );
+  assert.equal(corners.length, 4);
+  assert.equal(calls.at(-1)[0], "restore");
+  calls.length = 0;
+  renderer.drawMoatOverlay(tower, { ...plan, map: "blank" }, 1);
+  assert.equal(calls.length, 0);
+  renderer.drawMoatOverlay({ ...tower, id: "player" }, plan, 1);
+  assert.equal(calls.length, 0);
+});
+
+
 test("fixed building clearings replace trees with original dirt tiles", () => {
   const terrain = getTerrain("server");
   const surface = terrain.layers.find((layer) => layer.name === "surface");
