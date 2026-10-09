@@ -10,6 +10,7 @@ export function createPlayerScreen({
   getPlayer,
   getAvatars,
   catalog,
+  browseAvatar,
   commit,
   canEdit,
   status,
@@ -38,12 +39,23 @@ export function createPlayerScreen({
       status(error.message, true);
     }
   };
+  $("player-avatar").onclick = () => {
+    const player = getPlayer();
+    if (!player || !canEdit()) return;
+    browseAvatar(player.avatarId, async (avatar) => {
+      try {
+        await saveProfile(player.id, { avatarId: avatar.id });
+      } catch (error) {
+        status(error.message, true);
+      }
+    });
+  };
   function render() {
     const player = getPlayer();
     $("player-inspector").hidden = !player;
     if (!player) return;
     $("player-title").textContent = player.name;
-    $("player-avatar").disabled = true;
+    $("player-avatar").disabled = !canEdit();
     $("player-unlock").hidden = true;
     $("player-remove").hidden = true;
     for (const [field, id] of Object.entries({
