@@ -80,6 +80,16 @@
             >
               Open team
             </button>
+            <button
+              id="project-tab-create"
+              type="button"
+              role="tab"
+              aria-selected="false"
+              aria-controls="project-panel-create"
+              tabindex="-1"
+            >
+              Create team
+            </button>
           </div>
           <section
             id="project-panel-open"
@@ -109,6 +119,28 @@
             <div class="project-actions">
               <button type="submit" form="project-join" class="primary">
                 Open team
+              </button>
+            </div>
+          </section>
+          <section
+            id="project-panel-create"
+            role="tabpanel"
+            aria-labelledby="project-tab-create"
+            hidden
+          >
+            <form id="project-create">
+              <div id="project-logo" class="project-logo-field"></div>
+              <input
+                id="project-name"
+                aria-label="New team name"
+                required
+                maxlength="120"
+                placeholder="New team name"
+              />
+            </form>
+            <div class="project-actions">
+              <button type="submit" form="project-create" class="primary">
+                Create team
               </button>
             </div>
           </section>

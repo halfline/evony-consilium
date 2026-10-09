@@ -71,8 +71,21 @@
   padding: 8px 0;
 }
 #project-panel-open,
+#project-panel-create {
+  display: flex;
+  flex-direction: column;
+}
 #project-panel-open .project-actions,
+#project-panel-create .project-actions {
+  margin-top: 24px;
+  padding-top: 0;
+}
 #project-panel-open > form,
+#project-panel-create > form {
+  border-top: 0;
+  margin-top: 20px;
+  padding-top: 0;
+}
 .account-menu {
   position: relative;
   flex-shrink: 0;
@@ -166,4 +179,79 @@
 .google-sign-in:hover {
   background: #f8faff;
   color: #3c4043;
+}
+.project-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 25%;
+}
+.project-logo-field {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 24px;
+  color: var(--muted);
+}
+.project-logo-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+#project-create [data-logo="upload"],
+.project-settings [data-logo="upload"] {
+  width: 80px;
+  height: 80px;
+  padding: 0;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+}
+#project-create [data-logo="preview"],
+.project-settings [data-logo="preview"] {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+#project-panel-create {
+  min-height: clamp(360px, calc(100dvh - 340px), 640px);
+}
+#project-panel-create > form {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 28px;
+  margin: 0;
+  padding: 28px 0;
+}
+#project-create .project-logo-field {
+  margin: 0;
+}
+#project-create .project-logo-controls {
+  flex-direction: column;
+}
+#project-create [data-logo="upload"] {
+  width: 176px;
+  height: 176px;
+  padding: 6px;
+  border-radius: 28%;
+  border: 1px solid #cbb47760;
+  background: linear-gradient(145deg, #344739, #17261d);
+  box-shadow: 0 8px 20px #0003;
+  color: var(--gold);
+  font-size: 48px;
+}
+#project-create [data-logo="upload"]:hover {
+  border-color: var(--gold);
+}
+#project-create [data-logo="preview"] {
+  border-radius: 25%;
+}
+#project-name {
+  max-width: 520px;
+  margin: 0;
+  text-align: center;
+  font-size: 20px;
 }
