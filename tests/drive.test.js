@@ -377,3 +377,33 @@ test("missing parent metadata cannot bypass linked-folder verification", async (
   );
 });
 
+test("player files require central storage and use a distinct document format", async () => {
+  const { newPlayer } = await import("../web/src/domain/players.js");
+  const { catalog } = await import("./fixtures/catalog.js");
+  const player = {
+    ...newPlayer(new Map(catalog.assets.map((asset) => [asset.id, asset]))),
+    name: "Main account",
+  };
+  const uploads = [];
+  const drive = new Drive(
+    () => "token",
+    async (_, options) => {
+      uploads.push(
+        options.body
+          .split("\r\n")
+          .filter((line) => line.startsWith("{"))
+          .map(JSON.parse),
+      );
+      return json({ id: "player-file", version: "1" });
+    },
+  );
+  assert.throws(() => drive.createPlayer(player), /central team folder/);
+  await drive.createPlayer(player, {
+    id: "team-folder",
+    capabilities: { canAddChildren: true },
+  });
+  assert.deepEqual(uploads[0][0].parents, ["team-folder"]);
+  assert.equal(uploads[0][1].format, "evony-consilium-player");
+  assert.equal(Object.hasOwn(uploads[0][1].profile, "x"), false);
+});
+
