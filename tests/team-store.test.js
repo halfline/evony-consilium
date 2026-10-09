@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { TeamStore } from "../web/src/application/team-store.js";
 import { createEmptyPlan } from "../web/src/domain/plan.js";
+import { catalog } from "./fixtures/catalog.js";
 
 test("team store validates and freezes opened documents", () => {
   const store = new TeamStore();
@@ -72,4 +73,20 @@ test("Undo restores the previous team edit and respects read-only access", () =>
   assert.equal(store.undo(), true);
   assert.equal(store.plan.title, "Alliance formation");
   assert.equal(store.undo(), false);
+});
+
+test("player transactions update castle growth and keep the asset lookup current", () => {
+  const store = new TeamStore(catalog);
+  const plan = createEmptyPlan();
+  plan.keeps.push({
+    id: "one", name: "Player", accountId: "", allianceTag: "", level: 42,
+    skin: "map-evony3-castle_lv1", w: 2, h: 2, x: null, y: null, locked: false,
+  });
+  store.replace(plan);
+  assert.equal(store.plan.keeps[0].skin, "map-evony3-castle_lv8");
+  assert.equal(store.assets.get(store.plan.keeps[0].skin).minKeepLevel, 40);
+  store.mutate((draft) => { draft.keeps[0].level = 1; });
+  assert.equal(store.plan.keeps[0].skin, "map-evony3-castle_lv1");
+  store.undo();
+  assert.equal(store.plan.keeps[0].skin, "map-evony3-castle_lv8");
 });
