@@ -18,3 +18,15 @@ test("new players default to K42 Japan, reuse a tag, and have no map placement",
   plan.keeps.push(player);
   assert.equal(validatePlan(plan, catalog).keeps[0].allianceTag, "TEAM");
 });
+test("legacy project tags become player tags without overriding individual tags", () => {
+  const plan = createDemoPlan(catalog);
+  plan.allianceTag = "OLD";
+  plan.keeps[0].allianceTag = "OTHER";
+  const validated = validatePlan(plan, catalog);
+  assert.equal(validated.keeps[0].allianceTag, "OTHER");
+  assert.equal(validated.keeps[1].allianceTag, "OLD");
+  assert.equal("allianceTag" in validated, false);
+  validated.keeps[0].allianceTag = "a".repeat(17);
+  assert.throws(() => validatePlan(validated, catalog), /alliance tag/);
+});
+
