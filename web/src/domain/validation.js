@@ -7,7 +7,7 @@ import { MAPS } from "./maps.js";
 import { captureLayout } from "./layout.js";
 import { defaultFormationName } from "./map-plans.js";
 import { migratePlan } from "./document-migrations.js";
-import { unproject } from "./geometry.js";
+import { overlap, unproject } from "./geometry.js";
 import { MAX_ENTITIES, ENTITY_COLLECTIONS } from "./entities.js";
 
 function validateMapPresets(plan) {
@@ -86,6 +86,18 @@ function validateEntities(plan, catalog) {
   }
 }
 
+function validatePlacement(plan) {
+  if (plan.rallyId !== null && !plan.keeps.some((keep) => keep.id === plan.rallyId))
+    throw new Error("Unknown rally setter.");
+  const placed = [...plan.keeps, ...plan.structures, ...plan.obstacles].filter(
+    (entity) => entity.x !== null,
+  );
+  for (let i = 0; i < placed.length; i++)
+    for (let j = i + 1; j < placed.length; j++)
+      if (overlap(placed[i], placed[j]))
+        throw new Error("Overlapping tiles in imported plan.");
+}
+
 function validateMapCollection(plan) {
   if (plan.maps === undefined) {
     const id = crypto.randomUUID();
@@ -158,6 +170,7 @@ export function validatePlan(input, catalog = { assets: [] }) {
   unproject(0, 0, plan.grid);
   validateCustomAssets(plan);
   validateEntities(plan, catalog);
+  validatePlacement(plan);
   delete plan.allianceTag;
   plan.subcities ||= [];
   validateSubcities(plan.subcities, catalog.subcityTypes || null, plan.keeps);
