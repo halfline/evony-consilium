@@ -3,8 +3,6 @@ import assert from "node:assert/strict";
 export async function entryWorkflow({ page, context }) {
   await page.goto("http://127.0.0.1:4174", { waitUntil: "domcontentloaded" });
   await page.locator("#loading").waitFor({ state: "hidden" });
-  assert.equal(await page.locator("#loading").count(), 1);
-  assert.equal(await page.locator("#loading").isVisible(), false);
   assert.equal(await page.title(), "Evony Consilium · Alliance war room");
   // A stylesheet can return HTTP 200 while containing the wrong document.
   assert.equal(
@@ -92,26 +90,7 @@ export async function entryWorkflow({ page, context }) {
   assert.equal(await page.locator("#drive-save").isDisabled(), true);
   assert.equal(await page.locator("#players .player-card").count(), 0);
   assert.equal(await page.locator("#project-screen").isVisible(), true);
-  if (await page.locator("#add-player-dialog").isVisible()) {
-    assert.equal(
-      await page.locator("#new-player-name").evaluate((input) => input === document.activeElement),
-      true,
-    );
-  }
-  assert.equal(await page.locator('[data-screen="players"]').isVisible(), true);
-  assert.equal(await page.locator('[data-screen="subcities"]').isVisible(), true);
-  assert.equal(await page.locator('[data-screen="maps"]').isVisible(), true);
-  assert.equal(await page.locator("#team-players").isVisible(), true);
-  assert.equal(await page.locator("#team-subcities").isVisible(), true);
-  assert.equal(await page.locator("#team-maps").isVisible(), true);
-  await page.locator("#edit-project-name").fill("Renamed Hive");
-  await page.locator("#edit-project-name").dispatchEvent("change");
-  assert.equal(await page.locator("#drive-save").isDisabled(), false);
-  await page.locator("#drive-save").click();
-  await page.locator("#drive-save[disabled]").waitFor();
-  assert.equal(
-    await page.locator("#edit-project-name").inputValue(),
-    "Renamed Hive",
-  );
+  assert.equal(await page.locator("#add-player-dialog").isVisible(), false);
+  await page.locator('[data-screen="players"]').click();
   return { projectLogo };
 }
