@@ -9,6 +9,9 @@ import { syncMapLayouts, defaultFormationName, createMapPlan, selectMapPlan, rem
 test("new teams expose verified named map choices and a blank canvas", () => {
   const plan = createEmptyPlan();
   assert.deepEqual(plan.maps, []);
+  assert.equal(plan.map, "server");
+  assert.equal(plan.extent, 1200);
+  assert.equal(Object.hasOwn(plan, "positions"), false);
   assert.equal(plan.activeMapId, null);
   assert.deepEqual(plan.mapPresets.map(({ id }) => id), MAPS.map(({ id }) => id));
   assert.equal(plan.mapPresets.find(({ id }) => id === "blank").verified, false);
