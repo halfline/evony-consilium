@@ -70,6 +70,7 @@ import { mapCoordinates } from "./browser/map-coordinates.js";
 import { mapResetView } from "./browser/map-reset-view.js";
 import { mapFit } from "./browser/map-fit.js";
 import { mapOverview } from "./browser/map-overview.js";
+import { mapGrid } from "./browser/map-grid.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -183,6 +184,7 @@ try {
   await mapResetView({ page, driveFiles });
   await mapFit({ page });
   await mapOverview({ page });
+  await mapGrid({ page, driveFiles });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
