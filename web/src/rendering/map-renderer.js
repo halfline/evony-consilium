@@ -207,6 +207,14 @@ export class MapRenderer {
       c.lineWidth = 2;
       c.stroke();
     }
+    const vignette = c.createRadialGradient(
+      this.width / 2, this.height / 2, 50,
+      this.width / 2, this.height / 2,
+      Math.max(this.width, this.height) * 0.65);
+    vignette.addColorStop(0, "#16271a00");
+    vignette.addColorStop(1, "#14241b55");
+    c.fillStyle = vignette;
+    c.fillRect(0, 0, this.width, this.height);
     if (this.selectionBox) {
       const box = this.selectionBox;
       c.fillStyle = "#cfe3a922";
