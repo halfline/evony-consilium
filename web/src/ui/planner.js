@@ -20,6 +20,7 @@ import { removePlayer } from "../domain/players.js";
 import { createMapPlan, removeMapPlan } from "../domain/map-plans.js";
 import { setRallySetter } from "../domain/rally.js";
 import { createPlacementInspector } from "./placement-inspector.js";
+import { createFormationControls } from "./formation-controls.js";
 
 export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorkspace }) {
   const store = new TeamStore(catalog);
@@ -167,6 +168,16 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
       .find(({ id }) => id === selection.id),
     close: () => selectKeep(null),
   });
+  const formationControls = createFormationControls({
+    root: $("formation-screen"), getPlan,
+    canEdit: () => !store.readOnly,
+    commit: (plan) => store.commit(plan),
+    place: (entity, message) => {
+      selectKeep(entity.id);
+      selection.pending = entity.id;
+      $("map-guide").textContent = message;
+    },
+  });
   mapInteraction = bindMapInteraction({
     canvas: $("map"), renderer, getPlan,
     terrainFor: (id) => terrain?.get(id),
@@ -197,6 +208,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     renderer.draw();
     formationList.render();
     placementInspector.render();
+    formationControls.render();
     players?.renderList();
     if (screen === "player") players?.renderProfile();
     if (screen === "player") playerSubcities?.render();

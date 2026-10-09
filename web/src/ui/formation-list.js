@@ -31,6 +31,23 @@ export function createFormationList({ root, getPlan, getSelection, group, select
         return row;
       }),
     );
+    $("structure-list").replaceChildren(
+      ...[...getPlan().structures, ...getPlan().obstacles].map((entity) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "players-row" +
+          (getSelection() === entity.id || group.has(entity.id) ? " selected" : "");
+        button.textContent = `${entity.name} · ${entity.x === null
+          ? "Unplaced · click to position" : `X ${entity.x} · Y ${entity.y}`}`;
+        button.disabled = entity.x === null && !canEdit();
+        button.onclick = () => {
+          select(entity.id);
+          if (entity.x === null) place(entity);
+          else center(entity);
+        };
+        return button;
+      }),
+    );
   }
   return { render };
 }

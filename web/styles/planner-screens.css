@@ -792,6 +792,9 @@
 #entity-form .entity-fields label { flex: 1; }
 #entity-form .entity-fields input { width: 100%; }
 #entity-form .inspector-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
+.formation-obstacles { margin-top: 18px; border-top: 1px solid #344338; padding-top: 12px; }
+.formation-obstacles h2 { margin: 0 0 8px; }
+.formation-obstacles #add-obstacle { width: 100%; }
 #formation-screen .map-section { flex: 1; min-width: 0; min-height: min(75vh, 900px); }
 #formation-screen .map-surface { position: relative; width: 100%; min-height: min(75vh, 900px); }
 #formation-screen #map { display: block; width: 100%; height: min(75vh, 900px); }
