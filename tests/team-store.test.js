@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { TeamStore } from "../web/src/application/team-store.js";
 import { createEmptyPlan } from "../web/src/domain/plan.js";
+import { createMapPlan } from "../web/src/domain/map-plans.js";
 import { catalog } from "./fixtures/catalog.js";
 
 test("team store validates and freezes opened documents", () => {
@@ -89,4 +90,20 @@ test("player transactions update castle growth and keep the asset lookup current
   assert.equal(store.plan.keeps[0].skin, "map-evony3-castle_lv1");
   store.undo();
   assert.equal(store.plan.keeps[0].skin, "map-evony3-castle_lv8");
+});
+
+test("opening a map emits navigation without adding an Undo step", () => {
+  const store = new TeamStore();
+  const events = [];
+  store.subscribe(({ kind }) => events.push(kind));
+  store.commit(createMapPlan(store.plan, "server", "Hive"));
+  const first = store.plan.activeMapId;
+  store.commit(createMapPlan(store.plan, "boc", "Battle"));
+  const before = events.length;
+  store.openMap(first);
+  assert.equal(store.plan.activeMapId, first);
+  assert.deepEqual(events.slice(before), ["navigate"]);
+  assert.equal(store.canUndo, true);
+  assert.equal(store.undo(), true);
+  assert.equal(store.plan.maps.length, 1);
 });
