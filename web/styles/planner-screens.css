@@ -98,6 +98,7 @@
   background: transparent;
   text-align: center;
 }
+.march-card:hover .map-portrait { border-color: var(--gold); }
 .march-add {
   width: 44px;
   height: 44px;
@@ -152,6 +153,10 @@
 }
 .march-capacity-field { display: flex; gap: 6px; }
 .march-capacity-field input { min-width: 0; width: 100%; }
+.march-capacity-field button { padding: 0 10px; }
+.player-layer-table th:nth-child(2) { width: 80px; }
+#player-troops details { margin-top: 20px; }
+#player-reset-strategy { font-size: 12px; }
 .player-boost {
   display: grid;
   gap: 8px;
