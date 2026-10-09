@@ -49,10 +49,9 @@ export function bindMapInteraction({
     const r = canvas.getBoundingClientRect();
     return { x: ev.clientX - r.left, y: ev.clientY - r.top };
   };
-  canvas.ondblclick = (event) => {
-    if (getPending() || event.ctrlKey || event.metaKey || event.shiftKey)
-      return;
-    const pt = point(event);
+  canvas.ondblclick = (ev) => {
+    if (getPending() || ev.ctrlKey || ev.metaKey || ev.shiftKey) return;
+    const pt = point(ev);
     const id = renderer.hit(pt.x, pt.y);
     if (!getPlan().keeps.some((keep) => keep.id === id)) return;
     drag = null;
@@ -61,92 +60,77 @@ export function bindMapInteraction({
     resetPending();
     openPlayer(id);
   };
-  canvas.onpointerdown = (event) => {
-    if (event.button !== 0) return;
+  canvas.onpointerdown = (ev) => {
+    if (ev.button !== 0) return;
     canvas.focus();
-    const pt = point(event);
+    const pt = point(ev);
     const cityId = renderer.hitSubcity?.(pt.x, pt.y);
-    if (
-      cityId &&
-      !getPending() &&
-      !event.ctrlKey &&
-      !event.metaKey &&
-      !event.shiftKey
-    ) {
+    if (cityId && !getPending() && !ev.ctrlKey && !ev.metaKey && !ev.shiftKey) {
       openSubcity(cityId);
       return;
     }
     if (getPending() && canEdit()) {
-      const world = renderer.world(pt.x, pt.y);
-      const x = Math.floor(world.x),
-        y = Math.floor(world.y);
-      const entity = entities().find((item) => item.id === getPending());
-      if (
-        !entity ||
-        !canPlace(entity, x, y, getPlan(), [], terrainFor(getPlan().map))
-      ) {
-        toast("Choose a free tile within the map.", true);
-        return;
-      }
-      mutate((plan) => {
-        const target = [
-          ...plan.keeps,
-          ...plan.structures,
-          ...plan.obstacles,
-        ].find((item) => item.id === entity.id);
-        target.x = x;
-        target.y = y;
-      });
-      resetPending();
+      const e = entities().find((e) => e.id === getPending());
+      const w = renderer.world(pt.x, pt.y);
+      const x = Math.floor(w.x),
+        y = Math.floor(w.y);
+      if (e && canPlace(e, x, y, getPlan(), [], terrainFor(getPlan().map))) {
+        mutate((p) => {
+          const target = [...p.keeps, ...p.structures, ...p.obstacles].find(
+            (k) => k.id === getPending(),
+          );
+          target.x = x;
+          target.y = y;
+        });
+        resetPending();
+      } else toast("Choose a free tile within the map.", true);
       return;
     }
-    if (event.ctrlKey || event.metaKey) {
+    if (ev.ctrlKey || ev.metaKey) {
       const id = renderer.hit(pt.x, pt.y);
-      const entity = entities().find((item) => item.id === id);
-      if (!entity || entity.locked || entity.x === null) return;
-      if (
-        !group.size &&
-        selected() &&
-        !selected().locked &&
-        selected().x !== null
-      )
-        group.add(selected().id);
+      const target = entities().find((e) => e.id === id);
+      if (!target || target.locked || target.x === null) return;
+      if (!group.size) {
+        const current = selected();
+        if (current && !current.locked && current.x !== null)
+          group.add(current.id);
+      }
       if (group.has(id)) group.delete(id);
       else group.add(id);
       select(null);
-      groupChanged();
       renderer.draw();
       return;
     }
-    if (event.shiftKey && !getPending()) {
+    if (ev.shiftKey) {
       group.clear();
       select(null);
-      drag = { pt, pointerId: event.pointerId, band: true };
-      canvas.setPointerCapture(event.pointerId);
+      drag = { pt, band: true, pointerId: ev.pointerId };
+      canvas.setPointerCapture(ev.pointerId);
       return;
     }
     const id = renderer.hit(pt.x, pt.y);
     if (!group.has(id)) group.clear();
-    select(id);
-    const entity = entities().find((item) => item.id === id);
-    const members = entities().filter(
-      (item) =>
-        !item.locked &&
-        item.x !== null &&
-        (group.has(id) ? group.has(item.id) : item.id === id),
-    );
+    if (id) select(id);
+    const e = entities().find((e) => e.id === id);
     drag = {
       pt,
       last: pt,
-      pointerId: event.pointerId,
-      id: canEdit() && entity && !entity.locked ? id : null,
-      blocked: canEdit() && Boolean(entity?.locked),
-      origin: entity ? { x: entity.x, y: entity.y } : null,
-      members: members.map((item) => ({ ...item })),
+      pointerId: ev.pointerId,
+      id: canEdit() && e && !e.locked ? id : null,
+      blocked: canEdit() && Boolean(e?.locked),
+      origin: e ? { x: e.x, y: e.y } : null,
+      members: entities()
+        .filter(
+          (target) =>
+            !target.locked &&
+            target.x !== null &&
+            (group.has(id) ? group.has(target.id) : target.id === id),
+        )
+        .map((target) => ({ ...target })),
       camera: { ...renderer.camera },
       moved: false,
     };
-    canvas.setPointerCapture(event.pointerId);
+    canvas.setPointerCapture(ev.pointerId);
   };
   canvas.onpointermove = (event) => {
     if (canvas.style) {
