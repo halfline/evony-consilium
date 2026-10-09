@@ -48,3 +48,44 @@ def apply_objective_config(entries, config, language):
         asset["footprintSource"] = "BattlefieldConfig.range"
         if "_icon" in Path(asset["unityPath"]).stem.lower():
             asset["name"] += " (icon)"
+
+
+def apply_castle_categories(catalog, config, language):
+    records = rows(config / "CastleDressUpConfig.bytes")
+    categories = {}
+    for record in records:
+        if value(record, 101) != 1 or value(record, 107) != "Prefabs/Skin/UINormal":
+            continue
+        code = value(record, 102)
+        localization_key = value(record, 120)
+        name = language[localization_key]
+        categories[code] = {
+            "id": re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-"),
+            "name": name,
+            "gameCategory": code,
+            "localizationKey": localization_key,
+        }
+    if not categories:
+        raise ValueError("No castle categories in client configuration")
+    by_game_id = {
+        value(record, 103): value(record, 102)
+        for record in records
+        if value(record, 101) == 1
+    }
+    catalog["keepCategories"] = [{"id": "culture", "name": "Culture"}] + [
+        categories[code] for code in sorted(categories)
+    ]
+    for asset in catalog["assets"]:
+        if asset["kind"] != "keep":
+            continue
+        if asset.get("culture"):
+            asset["categories"] = ["culture"]
+            continue
+        codes = sorted(
+            {
+                by_game_id[game_id]
+                for game_id in asset.get("gameIds", [])
+                if game_id in by_game_id
+            }
+        )
+        asset["categories"] = [categories[code]["id"] for code in codes]
