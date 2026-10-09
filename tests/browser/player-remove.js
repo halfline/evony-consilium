@@ -17,6 +17,8 @@ export async function playerRemove({ page, driveFiles }) {
   await page.waitForTimeout(600);
   assert.equal(await page.locator(".player-name-actions").evaluate(
     (element) => element.classList.contains("player-name-actions-open")), true);
+  await page.waitForFunction(() =>
+    getComputedStyle(document.querySelector("#player-remove")).opacity === "1");
   assert.equal(await page.locator("#player-remove").evaluate(
     (element) => getComputedStyle(element).opacity), "1");
   await page.locator("#player-remove").click();
