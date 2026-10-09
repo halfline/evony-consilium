@@ -35,6 +35,7 @@ import { subcityLocate } from "./browser/subcity-locate.js";
 import { mapTerrain } from "./browser/map-terrain.js";
 import { formationPlace } from "./browser/formation-place.js";
 import { formationPan } from "./browser/formation-pan.js";
+import { formationWheelZoom } from "./browser/formation-wheel-zoom.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -113,10 +114,11 @@ try {
   await mapTerrain({ page });
   await formationPlace({ page, driveFiles });
   await formationPan({ page });
+  await formationWheelZoom({ page });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
-    "Browser checks passed: team entry, linked players, subcities, maps, terrain, placement, and panning.",
+    "Browser checks passed: team entry, linked players, subcities, maps, terrain, placement, panning, and wheel zoom.",
   );
 } catch (error) {
   console.error(
