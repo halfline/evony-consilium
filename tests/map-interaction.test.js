@@ -190,3 +190,17 @@ test("Control-Z delegates to map undo and prevents browser undo", () => {
   assert.equal(undos, 1);
   assert.equal(prevented, true);
 });
+
+test("arrow keys nudge selected keep by one tile", () => {
+  let plan = createEmptyPlan();
+  plan.keeps.push({ id: "keep", x: 10, y: 10, w: 2, h: 2, locked: false });
+  const canvas = {};
+  let prevented = false;
+  bindMapInteraction({
+    canvas, getPlan: () => plan, getSelection: () => "keep",
+    commit: (next) => { plan = next; },
+  });
+  canvas.onkeydown({ key: "ArrowRight", preventDefault: () => { prevented = true; } });
+  assert.equal(prevented, true);
+  assert.deepEqual([plan.keeps[0].x, plan.keeps[0].y], [11, 10]);
+});
