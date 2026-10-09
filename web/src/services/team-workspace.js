@@ -136,6 +136,7 @@ export class TeamWorkspace {
   async open(resource, discardDraft = false) {
     this.authorize();
     const account = this.account;
+    await this.flush();
     const { project, file, plan } = await loadTeamFiles({
       drive: this.drive,
       picker: this.picker,
