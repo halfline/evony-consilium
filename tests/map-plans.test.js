@@ -4,7 +4,7 @@ import { createEmptyPlan } from "../web/src/domain/plan.js";
 import { MAPS, MAP_ICONS } from "../web/src/domain/maps.js";
 import { validatePlan } from "../web/src/domain/validation.js";
 import { createLayout } from "../web/src/domain/layout.js";
-import { syncMapLayouts, defaultFormationName, createMapPlan, selectMapPlan, removeMapPlan } from "../web/src/domain/map-plans.js";
+import { syncMapLayouts, defaultFormationName, createMapPlan, selectMapPlan, removeMapPlan, projectFingerprint } from "../web/src/domain/map-plans.js";
 
 test("new teams expose verified named map choices and a blank canvas", () => {
   const plan = createEmptyPlan();
@@ -104,4 +104,39 @@ test("map synchronization records active placements and drops removed players", 
   assert.deepEqual(plan.maps[0].layout.positions.map(({ id }) => id), ["present"]);
   assert.equal(plan.maps[0].layout.rallyId, null);
   assert.equal(defaultFormationName("server"), "Hive");
+});
+
+
+test("project fingerprint ignores map navigation but preserves active and inactive layout edits", () => {
+  let plan = createEmptyPlan();
+  plan.keeps = [{ id: "one", name: "A", x: null, y: null, w: 2, h: 2, locked: false }];
+  plan = createMapPlan(plan, "server", "Hive");
+  const first = plan.activeMapId;
+  plan = createMapPlan(plan, "bog", "Rally");
+  const saved = projectFingerprint(plan);
+
+  const navigated = selectMapPlan(plan, first);
+  assert.equal(projectFingerprint(navigated), saved);
+  navigated.keeps[0].x = 10;
+  navigated.keeps[0].y = 20;
+  assert.notEqual(projectFingerprint(navigated), saved);
+
+  const unplacedLock = structuredClone(plan);
+  unplacedLock.keeps[0].locked = true;
+  assert.notEqual(projectFingerprint(unplacedLock), saved);
+
+  const inactiveEdit = structuredClone(plan);
+  inactiveEdit.maps.find(({ id }) => id === first).layout.spacing = 8;
+  assert.notEqual(projectFingerprint(inactiveEdit), saved);
+});
+
+test("project fingerprint treats key order and missing default fields as equivalent", () => {
+  const plan = createMapPlan(createEmptyPlan(), "server", "Hive");
+  const reordered = Object.fromEntries(Object.entries(plan).reverse());
+  delete reordered.projectLogo;
+  delete reordered.discordUrl;
+  reordered.subcities = [{ id: "city", name: "City" }];
+  const canonical = structuredClone(plan);
+  canonical.subcities = [{ id: "city", name: "City", ownerId: null }];
+  assert.equal(projectFingerprint(reordered), projectFingerprint(canonical));
 });
