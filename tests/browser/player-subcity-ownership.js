@@ -5,6 +5,7 @@ export async function playerSubcityOwnership({ page, driveFiles }) {
   await page.locator("#players .player-card").first().click();
   await page.locator('[data-player-tab="subcities"]').click();
   assert.equal(await page.locator('[data-player-panel="subcities"]').isVisible(), true);
+  assert.equal(await page.locator("#player-profile-actions").isVisible(), false);
   await page.locator("#player-add-subcity").click();
   await page.locator("#assign-subcity-dialog").waitFor({ state: "visible" });
   await page.locator("#assign-subcity-list .subcity-card").first().click();
