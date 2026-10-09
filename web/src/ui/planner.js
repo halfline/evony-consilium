@@ -19,6 +19,7 @@ import { createPlayerSubcities } from "./player-subcities.js";
 import { removePlayer } from "../domain/players.js";
 import { createMapPlan, removeMapPlan } from "../domain/map-plans.js";
 import { setRallySetter } from "../domain/rally.js";
+import { createPlacementInspector } from "./placement-inspector.js";
 
 export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorkspace }) {
   const store = new TeamStore(catalog);
@@ -26,7 +27,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
   const getPlan = () => store.plan;
   let workspace, entry, players, playerSubcities;
   const selection = new PlacementSelection(getPlan);
-  let mapInteraction;
+  let mapInteraction, placementInspector;
   let screen = "project";
   const access = createReadOnlyView(
     $("planner"),
@@ -47,6 +48,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
       selection.clear();
       renderer.selected = null;
       formationList.render();
+      placementInspector?.render();
     }
     screen = next;
     for (const name of ["project", "players", "subcities", "maps"]) {
@@ -140,6 +142,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     selection.select(id);
     renderer.selected = selection.id;
     formationList.render();
+    placementInspector?.render();
     renderer.draw();
   }
   const formationList = createFormationList({
@@ -152,6 +155,12 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
       $("map-guide").textContent = `Click a free map tile to place ${keep.name}.`;
     },
     center: (keep) => renderer.center(keep.x + keep.w / 2, keep.y + keep.h / 2),
+  });
+  placementInspector = createPlacementInspector({
+    root: $("inspector"),
+    selected: () => [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]
+      .find(({ id }) => id === selection.id),
+    close: () => selectKeep(null),
   });
   mapInteraction = bindMapInteraction({
     canvas: $("map"), renderer, getPlan,
@@ -182,6 +191,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     $("map-name").textContent = activeMap?.name || "";
     renderer.draw();
     formationList.render();
+    placementInspector.render();
     players?.renderList();
     if (screen === "player") players?.renderProfile();
     if (screen === "player") playerSubcities?.render();
