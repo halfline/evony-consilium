@@ -32,6 +32,7 @@ import { mapSwitch } from "./browser/map-switch.js";
 import { mapRemove } from "./browser/map-remove.js";
 import { mapZoom } from "./browser/map-zoom.js";
 import { subcityLocate } from "./browser/subcity-locate.js";
+import { mapTerrain } from "./browser/map-terrain.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -107,10 +108,11 @@ try {
   await mapZoom({ page });
   await mapRemove({ page, driveFiles });
   await subcityLocate({ page });
+  await mapTerrain({ page });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
-    "Browser checks passed: team entry, linked players, subcities, map creation and switching, and subcity location.",
+    "Browser checks passed: team entry, linked players, subcities, map creation, location, and terrain painting.",
   );
 } catch (error) {
   console.error(
