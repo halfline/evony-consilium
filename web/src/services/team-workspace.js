@@ -183,6 +183,28 @@ export class TeamWorkspace {
     this.remember();
     return draft;
   }
+  async unlockTeam() {
+    this.authorize();
+    const current = this.#begin();
+    const file = this.sync.file;
+    if (!file) throw new Error("Open a team first.");
+    const [selected] = await this.picker.files(null, file);
+    current();
+    if (selected.id !== file.id) throw new Error("Choose this team's file.");
+    selected.resourceKey ||= file.resourceKey || "";
+    const latest = await this.drive.metadata(selected);
+    current();
+    file.capabilities = latest.capabilities;
+    this.setReadOnly(!latest.capabilities?.canEdit);
+    this.sync.notify();
+    if (!latest.capabilities?.canEdit)
+      throw new Error(
+        "The team is still read-only. Ask an admin to grant you write access in Drive, then unlock again.",
+      );
+    // Preserve the local snapshot; a different shared version follows normal conflict handling.
+    await this.sync.checkRemote();
+    current();
+  }
   async create(name, logo) {
     this.authorize();
     if (!name.trim()) throw new Error("Enter a team name.");
