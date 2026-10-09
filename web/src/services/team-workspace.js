@@ -38,6 +38,9 @@ export class TeamWorkspace {
   expiresIn() {
     return Math.max(0, this.session.expires - Date.now());
   }
+  checkRemote() {
+    return this.sync.checkRemote();
+  }
   save() {
     return this.sync.save();
   }
