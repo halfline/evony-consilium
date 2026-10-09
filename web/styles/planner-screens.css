@@ -154,6 +154,96 @@
 .team-stat span {
   color: var(--muted);
 }
+.team-discord {
+  width: 100%;
+  padding-top: 8px;
+}
+#team-discord-url {
+  margin: 0;
+  padding-left: 48px;
+  background-image: url("../assets/branding/discord.svg");
+  background-repeat: no-repeat;
+  background-position: 16px center;
+  background-size: 22px 17px;
+}
+.discord-tile {
+  position: relative;
+  width: fit-content;
+  margin: 0 auto;
+}
+.discord-open {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-right: 24px;
+  border-radius: 999px;
+  background: #5865f2;
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 6px 16px #0003;
+}
+.discord-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  padding: 14px;
+  border-radius: 50%;
+}
+.discord-icon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.discord-open:hover {
+  background: #4752c4;
+  color: #fff;
+  box-shadow: 0 6px 18px #0005;
+}
+.discord-open:hover > span:last-child {
+  text-decoration: underline;
+}
+.discord-open:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+.discord-remove {
+  position: absolute;
+  top: -4px;
+  left: 44px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 50%;
+  background: #28392e;
+  color: var(--muted);
+  font-size: 19px;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms;
+}
+.discord-remove:hover {
+  color: var(--gold);
+  border-color: var(--gold);
+}
+.discord-actions-open .discord-remove {
+  opacity: 1;
+  pointer-events: auto;
+}
+@media (hover: hover) {
+  .discord-tile:hover .discord-remove {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+#team-discord-url[aria-invalid="true"] {
+  border-color: var(--red);
+}
 
 .save-status {
   align-self: center;

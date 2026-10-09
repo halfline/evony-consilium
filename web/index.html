@@ -273,6 +273,41 @@
               <strong id="team-map-count">0</strong><span>Maps</span>
             </button>
           </div>
+          <div class="team-discord">
+            <div id="team-discord-entry">
+              <input
+                id="team-discord-url"
+                type="url"
+                aria-label="Discord link"
+                placeholder="Invite or channel link"
+                maxlength="2048"
+                spellcheck="false"
+              />
+            </div>
+            <div id="team-discord-tile" class="discord-tile" hidden>
+              <a
+                id="team-discord-open"
+                class="discord-open"
+                aria-label="Chat Now on Discord"
+                title="Open Discord"
+                target="_blank"
+                rel="noopener noreferrer"
+                hidden
+                ><span class="discord-icon"
+                  ><img src="assets/branding/discord.svg" alt="" /></span
+                ><span>Chat Now &gt;</span></a
+              >
+              <button
+                id="team-discord-remove"
+                class="discord-remove"
+                type="button"
+                aria-label="Remove Discord link"
+                title="Remove Discord link"
+              >
+                ×
+              </button>
+            </div>
+          </div>
         </div>
       </section>
     </div>
