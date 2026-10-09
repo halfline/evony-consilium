@@ -246,6 +246,53 @@ test("the moat is drawn after ground and before every building", async () => {
 });
 
 
+test("the throne base aligns with the front of its footprint", async () => {
+  const { MapRenderer } = await import(
+    "../../web/src/rendering/map-renderer.js"
+  );
+  const asset = JSON.parse(
+    readFileSync(assetURL("assets/catalog.json")),
+  ).assets.find((asset) => asset.id === "map-kingdom");
+  const plan = { ...createEmptyPlan(), labels: false };
+  const throne = getTerrain("server").landmarks[0];
+  let bounds;
+  const ctx = new Proxy(
+    {},
+    {
+      get: (_, name) =>
+        name === "drawImage"
+          ? (_, left, top, width, height) => {
+              bounds = { left, top, width, height };
+            }
+          : () => {},
+    },
+  );
+  const renderer = Object.assign(Object.create(MapRenderer.prototype), {
+    terrainFor: getTerrain,
+    ctx,
+    width: 1000,
+    height: 800,
+    camera: { x: 0, y: 28824, zoom: 1 },
+    hits: [],
+    assets: new Map([[asset.id, asset]]),
+    getPlan: () => plan,
+    image: () => ({}),
+  });
+  renderer.entity(throne, plan, 1, true);
+  const front = renderer.screen(throne.x + throne.w, throne.y + throne.h);
+  assert.ok(bounds);
+  assert.ok(
+    Math.abs(
+      bounds.left +
+        (asset.mapAnchor.pivotX * bounds.width) / asset.width -
+        front.x,
+    ) < 0.001,
+  );
+  assert.ok(Math.abs(bounds.top + bounds.height - front.y) < 0.001);
+  assert.ok(Math.abs(bounds.width - 480 * 0.98) < 0.001);
+});
+
+
 test("whole-map view fits all server corners on screen", async () => {
   const { MapRenderer } = await import(
     "../../web/src/rendering/map-renderer.js"
