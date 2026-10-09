@@ -15,6 +15,7 @@ import { bindMapViewControls } from "./map-view-controls.js";
 import { bindMapInteraction } from "./map-interaction.js";
 import { createFormationList } from "./formation-list.js";
 import { PlacementSelection } from "../application/placement-selection.js";
+import { createPlacementView } from "./placement-view.js";
 import { createPlayerSubcities } from "./player-subcities.js";
 import { removePlayer } from "../domain/players.js";
 import { createMapPlan, removeMapPlan } from "../domain/map-plans.js";
@@ -29,7 +30,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
   const getPlan = () => store.plan;
   let workspace, entry, players, playerSubcities;
   const selection = new PlacementSelection(getPlan);
-  let mapInteraction, placementInspector;
+  let mapInteraction, placementInspector, placementView;
   let screen = "project";
   const access = createReadOnlyView(
     $("planner"),
@@ -144,21 +145,24 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     selected: () => [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]
       .find(({ id }) => id === selection.id),
   });
+  placementView = createPlacementView({
+    root: $("formation-screen"),
+    selection,
+    renderer,
+    refresh: () => {
+      formationList.render();
+      placementInspector?.render();
+    },
+  });
   function selectKeep(id) {
-    selection.select(id);
-    formationList.render();
-    placementInspector?.render();
-    renderer.draw();
+    placementView.select(id);
   }
   const formationList = createFormationList({
     root: $("formation-screen"), getPlan,
     getSelection: () => selection.id, group: selection.ids, select: selectKeep,
     canEdit: () => !store.readOnly,
     setRally: (id) => store.commit(setRallySetter(getPlan(), id)),
-    place: (keep) => {
-      selection.pending = keep.id;
-      $("map-guide").textContent = `Click a free map tile to place ${keep.name}.`;
-    },
+    place: (keep) => placementView.place(keep),
     center: (keep) => renderer.center(keep.x + keep.w / 2, keep.y + keep.h / 2),
   });
   placementInspector = createPlacementInspector({
@@ -177,31 +181,20 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     browse: catalogBrowser.open,
     terrainFor: (id) => terrain?.get(id),
     fit: () => renderer.fit(),
-    resetPlacement: () => {
-      selection.pending = null;
-      renderer.preview = null;
-      renderer.draw();
-      $("map-guide").textContent = "Choose an unplaced player, then click a free map tile.";
-    },
+    resetPlacement: () => placementView.reset(),
     status: toast,
     canEdit: () => !store.readOnly,
     commit: (plan) => store.commit(plan),
     place: (entity, message) => {
       selectKeep(entity.id);
-      selection.pending = entity.id;
-      $("map-guide").textContent = message;
+      placementView.place(entity, message);
     },
   });
   mapInteraction = bindMapInteraction({
     canvas: $("map"), renderer, getPlan,
     terrainFor: (id) => terrain?.get(id),
     getPending: () => selection.pending,
-    resetPending: () => {
-      selection.pending = null;
-      renderer.preview = null;
-      renderer.draw();
-      $("map-guide").textContent = "Choose an unplaced player, then click a free map tile.";
-    },
+    resetPending: () => placementView.reset(),
     canEdit: () => !store.readOnly,
     mutate: (change) => store.mutate(change),
     commit: (plan) => store.commit(plan), toast,
@@ -250,8 +243,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
   $("load-demo").onclick = () => {
     if (store.readOnly) return;
     selection.clear();
-    selection.pending = null;
-    $("map-guide").textContent = "Choose an unplaced player, then click a free map tile.";
+    placementView.reset();
     store.commit(validatePlan(createDemoPlan(catalog), catalog));
     renderer.fit();
     $("help-dialog").close();
