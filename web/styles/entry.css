@@ -43,6 +43,49 @@
   text-align: center;
   padding: 8px 0;
 }
+.account-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+.account-menu summary {
+  cursor: pointer;
+  list-style: none;
+  border-radius: 50%;
+}
+.account-menu summary::-webkit-details-marker {
+  display: none;
+}
+.account-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 2px solid var(--gold);
+  border-radius: 50%;
+  background: var(--panel);
+  object-fit: cover;
+  font-size: 20px;
+}
+.account-popover {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 20;
+  width: min(300px, calc(100vw - 32px));
+  padding: 20px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 12px 32px #0006;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.account-popover span {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
 .entry-progress {
   display: flex;
   align-items: center;
@@ -67,6 +110,9 @@
   .progress-spinner {
     animation: none;
   }
+}
+.entry[aria-busy="true"] .account-menu summary {
+  pointer-events: none;
 }
 .google-sign-in {
   display: flex;
