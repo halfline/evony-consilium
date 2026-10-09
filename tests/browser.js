@@ -55,6 +55,7 @@ import { formationRally } from "./browser/formation-rally.js";
 import { formationInspectorRead } from "./browser/formation-inspector-read.js";
 import { formationInspectorCoordinates } from "./browser/formation-inspector-coordinates.js";
 import { formationInspectorLock } from "./browser/formation-inspector-lock.js";
+import { formationObstacle } from "./browser/formation-obstacle.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -153,6 +154,7 @@ try {
   await formationCancelNavigation({ page, driveFiles });
   await formationInspectorCoordinates({ page, driveFiles });
   await formationInspectorLock({ page, driveFiles });
+  await formationObstacle({ page, driveFiles });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
