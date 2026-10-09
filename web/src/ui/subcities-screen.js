@@ -49,9 +49,10 @@ export function createSubcitiesScreen({
     addButton.hidden = !canEdit();
     const query = search.value.trim().toLowerCase();
     const cities = (getPlan().subcities || []).filter((city) => {
+      const owner = getPlan().keeps.find((player) => player.id === city.ownerId);
       const type = types().find((type) => type.id === city.cityType);
       const category = city.cityType ? type?.category : city.culture ? "culture" : "";
-      return `${city.name} ${city.culture} ${city.color}`.toLowerCase().includes(query) &&
+      return `${city.name} ${type?.name || ""} ${city.culture} ${city.color} ${owner?.name || ""} ${owner?.allianceTag || ""}`.toLowerCase().includes(query) &&
         (!$("subcities-type").value || category === $("subcities-type").value) &&
         (!$("subcities-color").value || city.color === $("subcities-color").value);
     });
