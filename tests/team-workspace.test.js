@@ -109,3 +109,32 @@ test("navigation flushes the outgoing team's latest edits under its original key
   assert.equal(f.getPlan().title, "Incoming");
 });
 
+test("creation puts team name and logo in the authoritative document", async () => {
+  const f = fixture();
+  await f.workspace.signIn();
+  await f.workspace.create(" Team ", "data:image/webp;base64,AAAA");
+  assert.equal(f.getPlan().title, "Team");
+  assert.equal(f.getPlan().projectLogo, "data:image/webp;base64,AAAA");
+});
+
+
+test("joining a team link preserves its file ID and resource key", async () => {
+  const f = fixture();
+  await f.workspace.signIn();
+  let opened;
+  f.drive.project = async (resource) => {
+    opened = resource;
+    return {
+      folder: { id: "folder", name: "Shared" },
+      file: structuredClone(f.file),
+    };
+  };
+  await f.workspace.join(
+    "https://drive.google.com/file/d/team-file/view?resourcekey=secret",
+  );
+  assert.deepEqual(opened, {
+    id: "team-file",
+    kind: "file",
+    resourceKey: "secret",
+  });
+});
