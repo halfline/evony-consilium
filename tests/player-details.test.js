@@ -57,3 +57,44 @@ test("invalid counts, repeated tiers, and incomplete subcity coordinates cannot 
   ])
     assert.throws(() => validatePlayerDetails(details));
 });
+test("details survive map switches, shared-file validation, and Undo without changing placements", () => {
+  const store = new TeamStore(catalog);
+  store.replace(createDemoPlan(catalog));
+  const player = store.plan.keeps[0],
+    first = store.plan.activeMapId;
+  store.commit(createMapPlan(store.plan, "blank", "Second"));
+  const before = structuredClone(store.plan.keeps[0]);
+  const details = {
+    marchSizes: { ground: 7936450 },
+    buffs: { city: { ground: { attack: 3385 } } },
+    marches: [
+      {
+        id: "g",
+        name: "Ground",
+        layers: [{ tier: 15, ground: 2295435 }],
+        bases: { ground: 5000 },
+        baseThrough: 9,
+      },
+    ],
+    subcities: [
+      {
+        id: "sub",
+        culture: "Japan",
+        quality: "Gold",
+        name: "Main",
+        x: 299,
+        y: 299,
+      },
+    ],
+  };
+  store.commit(editPlayerDetails(store.plan, player.id, details));
+  assert.equal(store.plan.keeps[0].x, before.x);
+  const restored = validatePlan(
+    JSON.parse(JSON.stringify(selectMapPlan(store.plan, first))),
+    catalog,
+  );
+  assert.equal(restored.keeps[0].x, player.x);
+  assert.deepEqual(restored.keeps[0].details, { ...details, marchBoost: 200 });
+  store.undo();
+  assert.equal(store.plan.keeps[0].details, undefined);
+});
