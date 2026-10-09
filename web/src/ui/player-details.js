@@ -10,8 +10,9 @@ export function createPlayerDetails({ root, getPlayer }) {
   const marchSizes = createPlayerMarchSizes({ root });
   const marches = createPlayerMarches({
     root,
-    getSizes: () => getPlayer()?.details?.marchSizes || {},
+    getSizes: () => marchSizes.read().marchSizes,
   });
+  $("player-march-sizes").onchange = () => marches.syncSizes();
   function showTab(tab) {
     for (const button of root.querySelectorAll("[data-player-tab]")) {
       const active = button.dataset.playerTab === tab;
