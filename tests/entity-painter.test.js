@@ -29,6 +29,7 @@ test("entity labels follow the map preference and mark the rally keep", () => {
       fillText: (label) => labels.push(label),
       beginPath() {}, arc() {}, fill() {}, stroke() {},
     },
+    path() {},
     screen: (x, y) => ({ x, y }),
     assets: new Map([["castle", { src: "castle.webp", width: 100, height: 80 }]]),
     image: (src) => src,
@@ -71,6 +72,35 @@ test("low zoom paints selectable dots with selected, rally, and obstacle emphasi
   assert.deepEqual(fills, ["#e0e9ce", "#f4d386", "#e5a887"]);
   assert.deepEqual(view.hits.map(({ id }) => id), ["selected", "rally", "obstacle"]);
   assert.equal(view.hits[0].right - view.hits[0].left, 14);
+});
+
+test("selected, rally, locked, and blocked tiles have distinct footprints", () => {
+  const painted = [];
+  const view = {
+    ctx: {
+      fill() { painted.push(["fill", this.fillStyle]); },
+      stroke() { painted.push(["stroke", this.strokeStyle]); },
+      drawImage() {},
+    },
+    path() {}, screen: (x, y) => ({ x, y }),
+    assets: new Map([["castle", { src: "castle.webp", width: 100, height: 80 }]]),
+    image: (src) => src, hits: [], selected: "selected",
+  };
+  const plan = {
+    grid: { ax: 48, ay: 24, bx: -48, by: 24 },
+    rallyId: "rally", obstacles: [{ id: "blocked" }], labels: false,
+  };
+  for (const entity of [
+    { id: "selected" }, { id: "rally" }, { id: "locked", locked: true },
+    { id: "blocked" },
+  ])
+    drawEntity(view, { ...entity, skin: "castle", x: 10, y: 20, w: 1, h: 1 }, plan, 1);
+  assert.deepEqual(painted, [
+    ["fill", "#e7d59728"], ["stroke", "#fff0b4"],
+    ["fill", "#22372620"], ["stroke", "#e1c678"],
+    ["fill", "#22372620"], ["stroke", "#b1d0ba"],
+    ["fill", "#513e37aa"], ["stroke", "#e6b19788"],
+  ]);
 });
 
 test("formation renderer paints placed keeps and exposes their hit region", () => {
