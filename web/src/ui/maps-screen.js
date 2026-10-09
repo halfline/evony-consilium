@@ -52,7 +52,6 @@ export function createMapsScreen({ root, getPlan, open, status, dialog, add, can
         const row = document.createElement("div");
         row.className = "map-list-row";
         const button = document.createElement("button");
-        button.disabled = !open;
         button.className =
           "map-row" + (map.id === plan.activeMapId ? " selected" : "");
         const name = document.createElement("strong");
@@ -73,7 +72,7 @@ export function createMapsScreen({ root, getPlan, open, status, dialog, add, can
         caption.className = "map-caption";
         caption.append(name, arrow);
         button.append(portrait, caption);
-        if (open) button.onclick = () => openMap(map.id);
+        button.onclick = () => openMap(map.id);
         row.append(button);
         return row;
       }),

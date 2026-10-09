@@ -84,6 +84,10 @@ export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
     getPlan,
     canEdit: () => !store.readOnly,
     add: (type, name) => store.commit(createMapPlan(getPlan(), type, name)),
+    open: (id) => {
+      store.openMap(id);
+      mapsScreen.render();
+    },
     status: toast,
   });
   function render() {
