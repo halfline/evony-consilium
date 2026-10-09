@@ -43,10 +43,6 @@ export function createPlayerDetails({ root, getPlayer }) {
       tabs[next].focus();
     };
   });
-  $("player-form").querySelector('[data-player-tab="buffs"]').hidden = false;
-  $("player-form").querySelector('[data-player-tab="march-size"]').hidden = false;
-  $("player-form").querySelector('[data-player-tab="rally-capacity"]').hidden = false;
-  $("player-form").querySelector('[data-player-tab="troops"]').hidden = false;
   function read() {
     marches.syncSizes();
     const result = {
