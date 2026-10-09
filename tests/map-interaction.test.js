@@ -136,3 +136,27 @@ test("Delete unplaces selected keep while preserving the player", () => {
   assert.equal(plan.keeps[0].name, "Player");
   assert.equal(plan.keeps[0].x, null);
 });
+
+test("dragging a keep outside the canvas removes only its placement", () => {
+  let plan = createEmptyPlan();
+  plan.keeps.push({ id: "keep", name: "Player", x: 10, y: 10, w: 2, h: 2, locked: false });
+  const captures = new Set();
+  const canvas = {
+    getBoundingClientRect: () => ({ left: 0, top: 0, right: 100, bottom: 100 }),
+    setPointerCapture: (id) => captures.add(id),
+    hasPointerCapture: (id) => captures.has(id),
+    releasePointerCapture: (id) => captures.delete(id),
+  };
+  const renderer = { hit: () => "keep", world: (x, y) => ({ x, y }), draw() {} };
+  bindMapInteraction({
+    canvas, renderer, getPlan: () => plan, getPending: () => null,
+    commit: (next) => { plan = next; },
+  });
+  canvas.onpointerdown({ button: 0, pointerId: 2, clientX: 10, clientY: 10 });
+  canvas.onpointermove({ pointerId: 2, clientX: -20, clientY: 10 });
+  canvas.onpointerup({ pointerId: 2, clientX: -20, clientY: 10 });
+  assert.equal(plan.keeps.length, 1);
+  assert.equal(plan.keeps[0].name, "Player");
+  assert.equal(plan.keeps[0].x, null);
+  assert.equal(captures.size, 0);
+});
