@@ -6,9 +6,11 @@ export async function playerMarchShares({ page, driveFiles }) {
   assert.equal(await share.isEnabled(), true);
   await share.fill("35");
   await share.press("Tab");
+  assert.match(await page.locator("#player-troop-summary").textContent(), /Tier shares must total 100%/);
   const balancingShare = page.getByRole("spinbutton", { name: "T12 share (%)" });
   await balancingShare.fill("15");
   await balancingShare.press("Tab");
+  assert.doesNotMatch(await page.locator("#player-troop-summary").textContent(), /Tier shares must total 100%/);
   await page.locator("#player-form [type=submit]").click();
   const playerFile = [...driveFiles.values()].find(
     ({ data }) => data?.format === "evony-consilium-player",
