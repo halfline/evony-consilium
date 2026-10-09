@@ -15,12 +15,11 @@ export function bindMapInteraction({
   coordinates = () => {},
 }) {
   let drag = null;
-  let band = null;
   function cancel() {
-    for (const state of [drag, band])
+    for (const state of [drag])
       if (state?.pointerId !== undefined && canvas.hasPointerCapture(state.pointerId))
         canvas.releasePointerCapture(state.pointerId);
-    drag = band = null;
+    drag = null;
     renderer.preview = renderer.previews = renderer.selectionBox = null;
     if (canvas.style) canvas.style.cursor = "default";
     renderer.draw();
@@ -84,7 +83,7 @@ export function bindMapInteraction({
     if (event.shiftKey && !getPending()) {
       group.clear();
       select(null);
-      band = { pt, pointerId: event.pointerId };
+      drag = { pt, pointerId: event.pointerId, band: true };
       canvas.setPointerCapture(event.pointerId);
       return;
     }
@@ -149,11 +148,11 @@ export function bindMapInteraction({
       drag.moved ||= Math.hypot(pt.x - drag.pt.x, pt.y - drag.pt.y) > 4;
       return;
     }
-    if (band) {
+    if (drag?.band) {
       const pt = point(event);
       const box = {
-        x: Math.min(pt.x, band.pt.x), y: Math.min(pt.y, band.pt.y),
-        w: Math.abs(pt.x - band.pt.x), h: Math.abs(pt.y - band.pt.y),
+        x: Math.min(pt.x, drag.pt.x), y: Math.min(pt.y, drag.pt.y),
+        w: Math.abs(pt.x - drag.pt.x), h: Math.abs(pt.y - drag.pt.y),
       };
       renderer.selectionBox = box;
       group.clear();
@@ -168,7 +167,7 @@ export function bindMapInteraction({
       renderer.draw();
       return;
     }
-    if (drag && !drag.pan && !drag.blocked) {
+    if (drag && !drag.pan && !drag.blocked && !drag.band) {
       const pt = point(event);
       const start = renderer.world(drag.pt.x, drag.pt.y);
       const end = renderer.world(pt.x, pt.y);
@@ -198,14 +197,14 @@ export function bindMapInteraction({
       if (canvas.style) canvas.style.cursor = "default";
       return;
     }
-    if (band) {
+    if (drag?.band) {
       if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
-      band = null;
+      drag = null;
       renderer.selectionBox = null;
       renderer.draw();
       return;
     }
-    if (drag && !drag.pan && !drag.blocked) {
+    if (drag && !drag.pan && !drag.blocked && !drag.band) {
       const box = canvas.getBoundingClientRect();
       const outside = event.clientX < box.left || event.clientX > box.right ||
         event.clientY < box.top || event.clientY > box.bottom;
