@@ -2,9 +2,10 @@ import { createBrowserWorkspace } from "./src/services/browser-workspace.js";
 import { googleConfig } from "./google-config.js";
 import { createPlanner } from "./src/ui/planner.js";
 import { createNotifier } from "./src/ui/notifications.js";
+import { loadResources } from "./src/services/resources.js";
 
 try {
-  const planner = createPlanner({}, {
+  const planner = createPlanner(await loadResources(), {
     createWorkspace: (callbacks) =>
       createBrowserWorkspace(googleConfig, callbacks),
   });
