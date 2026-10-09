@@ -1,29 +1,27 @@
-import { canPlace } from "../domain/placement.js";
 import {
   previewPlacementMove,
   movePlacements,
   removePlacements,
 } from "../domain/placement-commands.js";
-
+import { canPlace } from "../domain/placement.js";
 export function bindMapInteraction({
   canvas,
+  canEdit = () => true,
   renderer,
+  group,
   getPlan,
   terrainFor = () => null,
   getPending,
-  resetPending,
-  canEdit = () => true,
-  mutate,
-  commit,
-  toast,
-  select,
-  openSubcity = () => {},
-  openPlayer,
   entities,
   selected,
+  select,
+  openPlayer,
+  openSubcity = () => {},
+  mutate,
+  commit,
+  resetPending,
+  toast,
   undo,
-  group,
-  groupChanged = () => {},
   coordinates = () => {},
 }) {
   let drag = null;
