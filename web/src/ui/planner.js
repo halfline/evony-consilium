@@ -287,7 +287,8 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
   render();
   workspace = createWorkspace({
     getPlan,
-    getPlayer: () => players?.selected(),
+    getPlayer: () => screens.isPlayer() ? getPlan().keeps.find((player) => player.id === selection.id) : null,
+    isEditingPlayer: () => $("player-form").contains(document.activeElement),
     commitPlan: (plan) => store.commit(plan),
     validatePlan: (plan) => validatePlan(plan, catalog),
     setReadOnly: (value) => {
@@ -307,7 +308,11 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
     expired: () => entry.show("login"),
     canCheck: () => !entry?.busy && !$("planner").hidden && !document.hidden,
     status: toast,
-    playersChanged: () => players?.renderList(),
+    playersChanged: () => {
+      team.render();
+      players?.renderList();
+      players?.renderProfile();
+    },
   });
   function removePlayer(id) {
     if (selection.id === id) selection.id = null;
