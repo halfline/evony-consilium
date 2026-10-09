@@ -11,7 +11,7 @@ test("map grid fits the canvas and zoom preserves the pointer world location", (
   try {
     let strokes = 0, draws = 0;
     const ctx = {
-      setTransform() {}, fillRect() {}, beginPath() {}, moveTo() {}, lineTo() {},
+      setTransform() {}, fillRect() {}, beginPath() {}, moveTo() {}, lineTo() {}, closePath() {},
       stroke() { strokes++; },
     };
     const canvas = {
@@ -92,25 +92,27 @@ test("fit frames placed formation more closely than the whole map", () => {
   }
 });
 
-test("turning off the grid removes map grid strokes", () => {
+test("map boundary remains visible when the grid is hidden", () => {
   const previousObserver = globalThis.ResizeObserver;
   const previousDpr = globalThis.devicePixelRatio;
   globalThis.ResizeObserver = class { observe() {} };
   globalThis.devicePixelRatio = 1;
   try {
-    let strokes = 0;
-    const ctx = new Proxy({}, { get: (_target, key) => key === "stroke"
-      ? () => { strokes++; } : () => {} });
+    const strokes = [];
+    const ctx = new Proxy({}, { get: (target, key) => key === "stroke"
+      ? () => strokes.push(target.strokeStyle) : target[key] ?? (() => {}) });
     const canvas = { parentElement: {}, getContext: () => ctx,
       getBoundingClientRect: () => ({ width: 800, height: 600 }) };
     const plan = createEmptyPlan();
     const renderer = new MapRenderer(canvas, () => plan);
     renderer.resize();
-    assert.ok(strokes > 0);
-    const before = strokes;
+    assert.ok(strokes.includes("#17261b35"));
+    assert.ok(strokes.includes("#e1d2a255"));
+    const gridStrokes = strokes.filter((style) => style === "#17261b35").length;
     plan.showGrid = false;
     renderer.draw();
-    assert.equal(strokes, before);
+    assert.equal(strokes.filter((style) => style === "#17261b35").length, gridStrokes);
+    assert.equal(strokes.at(-1), "#e1d2a255");
   } finally {
     globalThis.ResizeObserver = previousObserver;
     globalThis.devicePixelRatio = previousDpr;

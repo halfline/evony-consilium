@@ -228,6 +228,7 @@ test("formation renderer paints overlapping entities back to front", () => {
     const images = [];
     const ctx = {
       setTransform() {}, fillRect() {}, drawImage: (image) => images.push(image),
+      beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, stroke() {},
     };
     const canvas = { getContext: () => ctx, parentElement: {} };
     const assets = new Map([
