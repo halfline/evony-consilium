@@ -388,3 +388,20 @@ test("pending obstacle is placed with the same validity check as a keep", () => 
   assert.deepEqual([plan.obstacles[0].x, plan.obstacles[0].y], [10, 20]);
   assert.equal(pending, null);
 });
+
+test("pending placement previews valid and invalid map tiles", () => {
+  const plan = createEmptyPlan();
+  plan.obstacles.push({ id: "blocked", name: "Blocked tile", w: 1, h: 1,
+    x: null, y: null, locked: false });
+  const canvas = { getBoundingClientRect: () => ({ left: 0, top: 0 }) };
+  let draws = 0;
+  const renderer = { world: (x, y) => ({ x, y }), draw: () => { draws++; } };
+  bindMapInteraction({ canvas, renderer, getPlan: () => plan,
+    getPending: () => "blocked" });
+  canvas.onpointermove({ clientX: 10, clientY: 20 });
+  assert.deepEqual([renderer.preview.x, renderer.preview.y, renderer.preview.valid],
+    [10, 20, true]);
+  canvas.onpointermove({ clientX: -1, clientY: 20 });
+  assert.equal(renderer.preview.valid, false);
+  assert.equal(draws, 2);
+});
