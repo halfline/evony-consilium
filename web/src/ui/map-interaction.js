@@ -206,60 +206,56 @@ export function bindMapInteraction({
     }
     drag.last = pt;
   };
-  canvas.onpointerup = (event) => {
+  canvas.onpointerup = (ev) => {
     if (!drag) return;
-    if (drag?.band) {
-      if (canvas.hasPointerCapture(event.pointerId))
-        canvas.releasePointerCapture(event.pointerId);
+    if (drag.band) {
       drag = null;
       renderer.selectionBox = null;
+      if (canvas.hasPointerCapture(ev.pointerId))
+        canvas.releasePointerCapture(ev.pointerId);
       renderer.draw();
       return;
     }
-    if (drag?.id) {
-      const box = canvas.getBoundingClientRect();
-      const pt = point(event);
-      const width = box.width ?? box.right - box.left;
-      const height = box.height ?? box.bottom - box.top;
-      const outside = pt.x < 0 || pt.y < 0 || pt.x > width || pt.y > height;
-      const preview = renderer.preview;
-      const beyondMap =
-        preview &&
-        (preview.x + preview.w <= 0 ||
-          preview.y + preview.h <= 0 ||
-          preview.x > getPlan().extent ||
-          preview.y > getPlan().extent);
-      if (drag.moved && (outside || beyondMap)) {
-        removeObjects(new Set(drag.members.map((item) => item.id)));
-      } else if (drag.moved && renderer.preview?.valid) {
+    const preview = renderer.preview;
+    const pt = point(ev),
+      bounds = canvas.getBoundingClientRect();
+    const outside =
+      pt.x < 0 || pt.y < 0 || pt.x > bounds.width || pt.y > bounds.height;
+    const beyondMap =
+      preview &&
+      (preview.x + preview.w <= 0 ||
+        preview.y + preview.h <= 0 ||
+        preview.x > getPlan().extent ||
+        preview.y > getPlan().extent);
+
+    if (drag.id && drag.moved && preview) {
+      if (outside || beyondMap) {
+        removeObjects(new Set(drag.members.map((e) => e.id)));
+      } else if (preview.valid) {
         try {
           commit(
             movePlacements(
               getPlan(),
-              renderer.previews || [renderer.preview],
+              renderer.previews,
               terrainFor(getPlan().map),
             ),
           );
         } catch (error) {
           toast(error.message, true);
         }
-      } else if (drag.moved && renderer.preview)
+      } else
         toast(
           "Position blocked. The selection stayed at its original location.",
           true,
         );
     }
-    if (drag?.blocked && drag.moved)
+    if (drag.blocked && drag.moved)
       toast("Unlock this position before moving it.");
-    if (
-      drag.pointerId === event.pointerId &&
-      canvas.hasPointerCapture(event.pointerId)
-    )
-      canvas.releasePointerCapture(event.pointerId);
     drag = null;
     renderer.preview = null;
     renderer.previews = null;
-    canvas.style.cursor = "default";
+    if (canvas.hasPointerCapture(ev.pointerId))
+      canvas.releasePointerCapture(ev.pointerId);
     renderer.draw();
   };
   canvas.onpointercancel = () => {
