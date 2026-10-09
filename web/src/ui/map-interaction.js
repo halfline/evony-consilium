@@ -251,6 +251,16 @@ export function bindMapInteraction({
       renderer.draw();
       return;
     }
+    if (event.key === "+" || event.key === "=") {
+      event.preventDefault();
+      renderer.zoom(1.2);
+      return;
+    }
+    if (event.key === "-") {
+      event.preventDefault();
+      renderer.zoom(1 / 1.2);
+      return;
+    }
     const arrow = {
       ArrowLeft: [-1, 0], ArrowRight: [1, 0],
       ArrowUp: [0, -1], ArrowDown: [0, 1],
