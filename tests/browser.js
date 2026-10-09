@@ -1,3 +1,4 @@
+import { teamImprovements } from "./browser/team-improvements.js";
 import { entryWorkflow } from "./browser/entry.js";
 import { playerRoster } from "./browser/player-roster.js";
 import { playerProfileEarly } from "./browser/player-profile-early.js";
@@ -193,6 +194,7 @@ try {
   await mapOverview({ page });
   await mapGrid({ page, driveFiles });
   await mapLabels({ page, driveFiles });
+  await teamImprovements({ browser });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
