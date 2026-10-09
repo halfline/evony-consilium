@@ -31,6 +31,7 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
   const store = new TeamStore(catalog);
   const toast = createNotifier($("toast"));
   const getPlan = () => store.plan;
+  const terrainFor = (id) => terrainCatalog.get(id);
   let workspace, entry, players, playerSubcities, navigation, opening = false;
   const selection = new PlacementSelection(getPlan);
   let mapInteraction, placementInspector, placementView;
@@ -82,7 +83,7 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
     status: toast,
   });
   function locateSubcity(city) {
-    const map = getPlan().maps.find((map) => map.layout?.map === "server");
+    const map = getPlan().maps.find((map) => map.type === "server" || map.layout?.map === "server");
     if (!map) {
       toast("Add a Server map to locate subcities.", true);
       return;
@@ -118,14 +119,22 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
     getPlan,
     canEdit: () => !store.readOnly,
     add: (type, name) => {
-      store.commit(createMapPlan(getPlan(), type, name));
+      selection.id = null;
+      store.commit(createMapPlan(getPlan(), type, name, terrainFor(type)));
+      mapsScreen.render();
       showScreen("formation");
     },
     open: (id) => {
+      if (id !== getPlan().activeMapId) selection.id = null;
       store.openMap(id);
+      placementView.reset();
       showScreen("formation");
     },
-    remove: (id) => store.commit(removeMapPlan(getPlan(), id)),
+    remove: (id) => {
+      selection.id = null;
+      store.commit(removeMapPlan(getPlan(), id));
+      mapsScreen.enter();
+    },
     status: toast,
   });
   let mapViewControls;
