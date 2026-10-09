@@ -94,6 +94,33 @@ test("an existing project is never reinitialized", async () => {
     /already has/,
   );
 });
+test("opening a project restricts formation references to its folder", async () => {
+  const drive = new Drive(
+    () => "token",
+    async (url) => {
+      if (url.includes("alt=media"))
+        return json({
+          format: "evony-alliance-project",
+          schema: 1,
+          formations: [{ id: "outside" }],
+          defaultFormationId: "outside",
+          playersFileId: "players",
+        });
+      if (url.includes("/files?"))
+        return json({
+          files: [
+            { id: "manifest", name: "project.json" },
+            { id: "players", name: "players.json" },
+          ],
+        });
+      return json({
+        id: "folder",
+        mimeType: "application/vnd.google-apps.folder",
+      });
+    },
+  );
+  await assert.rejects(drive.project({ id: "folder" }), /Choose the team file/);
+});
 test("expired sessions never send a request", async () => {
   const drive = new Drive(
     () => "",
@@ -102,6 +129,37 @@ test("expired sessions never send a request", async () => {
     },
   );
   await assert.rejects(drive.metadata({ id: "f" }), (e) => e.status === 401);
+});
+
+test("folder-only authorization requests file selection rather than claiming the project is absent", async () => {
+  const drive = new Drive(
+    () => "token",
+    async (url) =>
+      url.includes("/files?")
+        ? json({ files: [] })
+        : json({
+            id: "folder",
+            mimeType: "application/vnd.google-apps.folder",
+          }),
+  );
+  await assert.rejects(drive.project({ id: "folder" }), /Choose the team file/);
+});
+test("Picker selections cannot authorize outside-folder references as project files", async () => {
+  const drive = new Drive(
+    () => "token",
+    async (url) =>
+      url.includes("/files?")
+        ? json({ files: [] })
+        : json({
+            id: "outside",
+            mimeType: "application/vnd.google-apps.folder",
+            parents: ["different_folder"],
+          }),
+  );
+  await assert.rejects(
+    drive.project({ id: "folder" }, [{ id: "outside" }]),
+    /only files directly inside/,
+  );
 });
 
 test("optional project logos are shared in metadata and remembered with folders", async () => {
@@ -136,6 +194,37 @@ test("optional project logos are shared in metadata and remembered with folders"
   assert.equal(rememberedProjects(storage, "alice")[0].logo, undefined);
 });
 
+for (const format of ["evony-consilium-team"]) {
+  test(`loads ${format} without metadata or player-file grants`, async () => {
+    const plan = {
+      title: "Team",
+      keeps: [{ id: "player", details: { marchSizes: { ground: 8000000 } } }],
+      maps: [{ id: "map" }],
+    };
+    const requests = [];
+    const drive = new Drive(
+      () => "token",
+      async (url) => {
+        requests.push(url);
+        return json(
+          url.includes("alt=media")
+            ? { format, schema: 1, plan }
+            : {
+                id: "data",
+                version: "1",
+                parents: ["folder"],
+                mimeType: "application/json",
+              },
+        );
+      },
+    );
+    const project = await drive.project({ id: "data", kind: "file" });
+    const loaded = await drive.load(project.file);
+    assert.deepEqual(loaded.plan, plan);
+    assert.equal(project.folder.id, "folder");
+    assert.ok(requests.every((url) => url.includes("/files/data?")));
+  });
+}
 test("saving writes the team document to its existing file", async () => {
   let upload;
   const drive = new Drive(
@@ -231,5 +320,60 @@ test("opening refuses continuously changing content after bounded retries", asyn
     (error) => error.status === 409,
   );
   assert.equal(downloads, 3);
+});
+
+for (const parents of [undefined, []]) {
+  test(`selected link-shared team opens with ${parents === undefined ? "omitted" : "empty"} parent metadata`, async () => {
+    const plan = { title: "Shared team", keeps: [], maps: [] };
+    const drive = new Drive(
+      () => "token",
+      async (url) =>
+        json(
+          url.includes("/files?")
+            ? { files: [{ id: "shared-file" }] }
+            : url.includes("alt=media")
+              ? { format: "evony-consilium-team", schema: 1, plan }
+              : {
+                  id: "shared-file",
+                  name: "team.consilium.json",
+                  version: "1",
+                  parents,
+                },
+        ),
+    );
+    const project = await drive.project({ id: "shared-folder" }, [
+      { id: "shared-file", resourceKey: "file-key" },
+    ]);
+    const loaded = await drive.load(project.file);
+    assert.deepEqual(loaded.plan, plan);
+    assert.equal(project.folder.id, "shared-folder");
+    assert.equal(project.file.resourceKey, "file-key");
+  });
+}
+
+test("missing parent metadata cannot bypass linked-folder verification", async () => {
+  const drive = new Drive(
+    () => "token",
+    async (url, options) => {
+      if (url.includes("/files?")) {
+        assert.match(
+          new URL(url).searchParams.get("q"),
+          /^'linked-folder' in parents/,
+        );
+        assert.equal(
+          options.headers["X-Goog-Drive-Resource-Keys"],
+          "linked-folder/folder-key",
+        );
+        return json({ files: [] });
+      }
+      return json({ id: "outside", name: "team.consilium.json", version: "1" });
+    },
+  );
+  await assert.rejects(
+    drive.project({ id: "linked-folder", resourceKey: "folder-key" }, [
+      { id: "outside" },
+    ]),
+    /Could not verify/,
+  );
 });
 
