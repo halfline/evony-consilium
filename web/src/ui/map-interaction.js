@@ -212,5 +212,13 @@ export function bindMapInteraction({
     select(null);
     groupChanged();
   };
-  return { cancel };
+  return {
+    cancel,
+    dispose() {
+      cancel();
+      for (const name of ["ondblclick", "onpointerdown", "onpointermove", "onpointerup",
+        "onpointercancel", "onwheel", "onkeydown"])
+        canvas[name] = null;
+    },
+  };
 }
