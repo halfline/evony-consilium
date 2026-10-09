@@ -4,6 +4,12 @@ export async function playerProfileEarly({ page, driveFiles }) {
   await page.locator("#players .player-card").first().click();
   assert.equal(await page.locator("#player-screen").isVisible(), true);
   assert.equal(await page.locator("#players-screen").isVisible(), false);
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.equal(
+    await page.locator(".player-detail-tabs").evaluate((tabs) => getComputedStyle(tabs).overflowX),
+    "auto",
+  );
+  await page.setViewportSize({ width: 1440, height: 1000 });
   assert.equal(await page.locator("#player-name").inputValue(), "First player");
   assert.equal(await page.locator("#player-unlock").isVisible(), false);
   assert.equal(await page.locator("#player-castle").isVisible(), true);
