@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { saveSubcity, removeSubcity, assignSubcityOwner, validateSubcities } from "../web/src/domain/subcities.js";
 import { createEmptyPlan } from "../web/src/domain/plan.js";
+import { validatePlan } from "../web/src/domain/validation.js";
 
 const values = { name: "", culture: "Japan", color: "gold", x: 0, y: 1199 };
 const redTypes = [
@@ -60,4 +61,16 @@ test("city ownership is one optional reference to a team player", () => {
   assert.equal(assignSubcityOwner(assigned, id, null).subcities[0].ownerId, null);
   assert.throws(() => assignSubcityOwner(assigned, id, "unknown"), /player on this team/);
   assert.throws(() => assignSubcityOwner(assigned, "missing", null), /Subcity not found/);
+});
+
+test("team import validates cities and accepts older documents without a city list", () => {
+  const cityPlan = saveSubcity(createEmptyPlan(), values);
+  assert.equal(validatePlan(cityPlan).subcities.length, 1);
+  assert.throws(
+    () => validatePlan({ ...cityPlan, subcities: [{ ...cityPlan.subcities[0], ownerId: "missing" }] }),
+    /player on this team/,
+  );
+  const legacy = createEmptyPlan();
+  delete legacy.subcities;
+  assert.deepEqual(validatePlan(legacy).subcities, []);
 });
