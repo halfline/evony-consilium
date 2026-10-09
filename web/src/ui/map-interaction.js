@@ -219,8 +219,10 @@ export function bindMapInteraction({
     }
     if (drag && !drag.pan && !drag.blocked && !drag.band) {
       const box = canvas.getBoundingClientRect();
-      const outside = event.clientX < box.left || event.clientX > box.right ||
-        event.clientY < box.top || event.clientY > box.bottom;
+      const pt = point(event);
+      const width = box.width ?? box.right - box.left;
+      const height = box.height ?? box.bottom - box.top;
+      const outside = pt.x < 0 || pt.y < 0 || pt.x > width || pt.y > height;
       const preview = renderer.preview;
       const beyondMap = preview &&
         (preview.x + preview.w <= 0 || preview.y + preview.h <= 0 ||
