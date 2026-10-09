@@ -796,6 +796,7 @@
 .formation-obstacles h2 { margin: 0 0 8px; }
 .formation-obstacles #add-obstacle { width: 100%; }
 .formation-obstacles [data-building] { width: 100%; margin-bottom: 6px; }
+#auto-place { width: 100%; }
 #formation-screen .map-section { flex: 1; min-width: 0; min-height: min(75vh, 900px); }
 #formation-screen .map-surface { position: relative; width: 100%; min-height: min(75vh, 900px); }
 #formation-screen #map { display: block; width: 100%; height: min(75vh, 900px); }

@@ -171,6 +171,13 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
   const formationControls = createFormationControls({
     root: $("formation-screen"), getPlan,
     browse: catalogBrowser.open,
+    terrainFor: (id) => terrain?.get(id),
+    fit: () => renderer.fit(),
+    resetPlacement: () => {
+      selection.pending = null;
+      $("map-guide").textContent = "Choose an unplaced player, then click a free map tile.";
+    },
+    status: toast,
     canEdit: () => !store.readOnly,
     commit: (plan) => store.commit(plan),
     place: (entity, message) => {
