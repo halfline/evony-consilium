@@ -170,6 +170,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
   });
   const formationControls = createFormationControls({
     root: $("formation-screen"), getPlan,
+    browse: catalogBrowser.open,
     canEdit: () => !store.readOnly,
     commit: (plan) => store.commit(plan),
     place: (entity, message) => {
