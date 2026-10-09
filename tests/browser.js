@@ -1,3 +1,4 @@
+import { playerDetails } from "./browser/player-details.js";
 import { teamImprovements } from "./browser/team-improvements.js";
 import { subcityOwnership } from "./browser/subcity-ownership.js";
 import { subcities } from "./browser/subcities.js";
@@ -51,6 +52,7 @@ try {
   });
   const { projectLogo } = await entryWorkflow({ page, context });
   await playerCreation({ page, playersScreen });
+  await playerDetails({ page, playersScreen, driveFiles });
   await playerSharing({ browser });
   await subcities({ browser });
   await subcityOwnership({ browser });
