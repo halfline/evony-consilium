@@ -2,6 +2,7 @@ import { footprint, addEntity } from "./entities.js";
 import { number, string } from "./constraints.js";
 import { castleForLevel } from "./castles.js";
 import { validatePlayerDetails } from "./player-details-schema.js";
+import { syncMapLayouts } from "./map-plans.js";
 export function newPlayer(assets, allianceTag = "") {
   const variants = [...assets.values()].filter(
     (asset) => asset.family === "culture-japan",
@@ -60,7 +61,7 @@ export function removePlayer(plan, id) {
   for (const city of next.subcities || [])
     if (city.ownerId === id) city.ownerId = null;
   if (next.rallyId === id) next.rallyId = next.keeps[0]?.id || null;
-  return next;
+  return syncMapLayouts(next);
 }
 
 export function addPlayer(plan, player) {
