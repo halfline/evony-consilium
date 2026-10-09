@@ -98,3 +98,12 @@ test("details survive map switches, shared-file validation, and Undo without cha
   store.undo();
   assert.equal(store.plan.keeps[0].details, undefined);
 });
+test("detail commands preserve unknown profile metadata and refuse placement fields", () => {
+  const plan = validatePlan(createDemoPlan(catalog), catalog);
+  const player = plan.keeps[0];
+  player.details = { notes: "Keep me" };
+  const next = editPlayerDetails(plan, player.id, { marchSize: 100, x: 999 });
+  assert.equal(next.keeps[0].x, player.x);
+  assert.equal(next.keeps[0].details.notes, "Keep me");
+  assert.equal(player.details.marchSize, undefined);
+});
