@@ -16,6 +16,7 @@ import { playerBaseLayers } from "./browser/player-base-layers.js";
 import { playerMarchTiers } from "./browser/player-march-tiers.js";
 import { playerFileUnlock } from "./browser/player-file-unlock.js";
 import { playerFileResolution } from "./browser/player-file-resolution.js";
+import { playerProfileUnlock } from "./browser/player-profile-unlock.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -75,6 +76,7 @@ try {
   await playerMarchTiers({ page, driveFiles });
   await playerFileUnlock({ page });
   await playerFileResolution({ page });
+  await playerProfileUnlock({ page, driveFiles });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
