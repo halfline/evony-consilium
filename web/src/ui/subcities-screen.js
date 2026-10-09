@@ -18,7 +18,7 @@ export function createSubcitiesScreen({
     closeBrowser: chooser.close, canEdit, commit, context,
   });
   $("subcities-type").oninput = render;
-  $("subcities-color").hidden = true;
+  $("subcities-color").oninput = render;
   bindTileActions(grid, {
     tileSelector: ".subcity-tile",
     triggerSelector: ".subcity-card",
@@ -46,7 +46,8 @@ export function createSubcitiesScreen({
       const type = types().find((type) => type.id === city.cityType);
       const category = city.cityType ? type?.category : city.culture ? "culture" : "";
       return `${city.name} ${city.culture} ${city.color}`.toLowerCase().includes(query) &&
-        (!$("subcities-type").value || category === $("subcities-type").value);
+        (!$("subcities-type").value || category === $("subcities-type").value) &&
+        (!$("subcities-color").value || city.color === $("subcities-color").value);
     });
     $("subcities-empty").hidden = cities.length > 0;
     grid.replaceChildren(...cities.map(tile), addButton);
