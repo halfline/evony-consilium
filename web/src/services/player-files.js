@@ -193,4 +193,22 @@ export class PlayerFiles {
       },
     );
   }
+  async create(player, folder) {
+    if (!folder?.id || !folder.capabilities?.canAddChildren)
+      throw new Error(
+        "Player files must be created in the central team folder.",
+      );
+    return this.run("create", async (current) => {
+      const existing = this.created.get(player.id);
+      if (existing)
+        return linkedPlayer(player, existing.profile, existing.file);
+      const profile = validateProfile(player);
+      const file = await this.drive.createPlayer(profile, folder);
+      current();
+      this.#files.set(file.id, { file, profile });
+      this.remember(file.id);
+      this.created.set(player.id, { file, profile });
+      return linkedPlayer(player, profile, file);
+    });
+  }
 }
