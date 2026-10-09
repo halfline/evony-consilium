@@ -1,16 +1,16 @@
-import { sharingAndRecovery } from "./browser/sharing.js";
-import { terrainAndMobile } from "./browser/terrain.js";
-import { teamDashboard } from "./browser/team-dashboard.js";
-import { mapEditing } from "./browser/map-editing.js";
-import { playerAppearance } from "./browser/player-appearance.js";
-import { mapSelection } from "./browser/maps.js";
-import { playerDetails } from "./browser/player-details.js";
 import { teamImprovements } from "./browser/team-improvements.js";
 import { subcityOwnership } from "./browser/subcity-ownership.js";
 import { subcities } from "./browser/subcities.js";
 import { playerSharing } from "./browser/player-sharing.js";
+import { playerDetails } from "./browser/player-details.js";
 import { entryWorkflow } from "./browser/entry.js";
 import { playerCreation } from "./browser/players.js";
+import { mapSelection } from "./browser/maps.js";
+import { playerAppearance } from "./browser/player-appearance.js";
+import { mapEditing } from "./browser/map-editing.js";
+import { teamDashboard } from "./browser/team-dashboard.js";
+import { terrainAndMobile } from "./browser/terrain.js";
+import { sharingAndRecovery } from "./browser/sharing.js";
 import {
   unconfiguredDeployment,
   unavailableResources,
