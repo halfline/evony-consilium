@@ -299,3 +299,27 @@ test("Delete unplaces every group member and keeps both players", () => {
   assert.deepEqual(plan.keeps.map(({ x }) => x), [null, null]);
   assert.equal(group.size, 0);
 });
+
+test("cancel releases a captured drag without committing its preview", () => {
+  let plan = createEmptyPlan(), commits = 0;
+  plan.keeps.push({ id: "a", x: 10, y: 10, w: 2, h: 2, locked: false });
+  const captures = new Set(), canvas = {
+    getBoundingClientRect: () => ({ left: 0, top: 0, right: 100, bottom: 100 }),
+    setPointerCapture: (id) => captures.add(id),
+    hasPointerCapture: (id) => captures.has(id),
+    releasePointerCapture: (id) => captures.delete(id),
+  };
+  const renderer = { hit: () => "a", world: (x, y) => ({ x, y }), draw() {} };
+  const interaction = bindMapInteraction({
+    canvas, renderer, getPlan: () => plan, getPending: () => null,
+    commit: (next) => { plan = next; commits++; },
+  });
+  canvas.onpointerdown({ button: 0, pointerId: 4, clientX: 10, clientY: 10 });
+  canvas.onpointermove({ pointerId: 4, clientX: 14, clientY: 10 });
+  interaction.cancel();
+  canvas.onpointerup({ pointerId: 4, clientX: 14, clientY: 10 });
+  assert.equal(captures.size, 0);
+  assert.equal(renderer.preview, null);
+  assert.equal(commits, 0);
+  assert.equal(plan.keeps[0].x, 10);
+});
