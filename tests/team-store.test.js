@@ -53,3 +53,23 @@ test("team edits use immutable transactions and ignore no-op changes", () => {
   );
   assert.equal(store.plan.title, "Alliance Alpha");
 });
+
+test("Undo restores the previous team edit and respects read-only access", () => {
+  const store = new TeamStore();
+  assert.equal(store.canUndo, false);
+  store.mutate((plan) => {
+    plan.title = "First";
+  });
+  store.mutate((plan) => {
+    plan.title = "Second";
+  });
+  store.readOnly = true;
+  assert.equal(store.canUndo, false);
+  assert.equal(store.undo(), false);
+  store.readOnly = false;
+  assert.equal(store.undo(), true);
+  assert.equal(store.plan.title, "First");
+  assert.equal(store.undo(), true);
+  assert.equal(store.plan.title, "Alliance formation");
+  assert.equal(store.undo(), false);
+});
