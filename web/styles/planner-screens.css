@@ -731,3 +731,28 @@
 #add-map-dialog { width: min(480px, calc(100vw - 32px)); }
 #new-formation-error { color: var(--red); margin: 0; }
 #new-formation-error:empty { display: none; }
+.map-forget {
+  position: absolute;
+  top: 6px;
+  right: calc(50% - 70px);
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 50%;
+  background: #28392e;
+  color: var(--muted);
+  font-size: 19px;
+  line-height: 1;
+  box-shadow: 0 2px 6px #0004;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms;
+}
+.map-forget:hover { color: var(--gold); border-color: var(--gold); }
+.map-actions-open .map-forget,
+.map-list-row:focus-within .map-forget { opacity: 1; pointer-events: auto; }
+@media (hover: hover) {
+  .map-list-row:hover .map-forget { opacity: 1; pointer-events: auto; }
+}

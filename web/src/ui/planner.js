@@ -12,7 +12,7 @@ import { createSubcitiesScreen } from "./subcities-screen.js";
 import { createMapsScreen } from "./maps-screen.js";
 import { createPlayerSubcities } from "./player-subcities.js";
 import { removePlayer } from "../domain/players.js";
-import { createMapPlan } from "../domain/map-plans.js";
+import { createMapPlan, removeMapPlan } from "../domain/map-plans.js";
 
 export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
   const store = new TeamStore(catalog);
@@ -88,6 +88,7 @@ export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
       store.openMap(id);
       mapsScreen.render();
     },
+    remove: (id) => store.commit(removeMapPlan(getPlan(), id)),
     status: toast,
   });
   function render() {

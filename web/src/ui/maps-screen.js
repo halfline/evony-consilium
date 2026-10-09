@@ -1,8 +1,15 @@
 import { MAP_ICONS } from "../domain/maps.js";
 import { view, option } from "./dom.js";
 import { defaultFormationName } from "../domain/map-plans.js";
-export function createMapsScreen({ root, getPlan, open, status, dialog, add, canEdit = () => true }) {
+import { bindTileActions } from "./tile-actions.js";
+export function createMapsScreen({ root, getPlan, open, remove, status, dialog, add, canEdit = () => true }) {
   const $ = view(root, dialog);
+  bindTileActions($("maps-list"), {
+    tileSelector: ".map-list-row",
+    triggerSelector: ".map-row",
+    className: "map-actions-open",
+    enabled: canEdit,
+  });
   function presets(select) {
     select.replaceChildren(
       ...getPlan().mapPresets.map((preset) =>
@@ -74,6 +81,19 @@ export function createMapsScreen({ root, getPlan, open, status, dialog, add, can
         button.append(portrait, caption);
         button.onclick = () => openMap(map.id);
         row.append(button);
+        if (canEdit()) {
+          const forget = document.createElement("button");
+          forget.type = "button";
+          forget.className = "map-forget";
+          forget.textContent = "×";
+          forget.title = `Forget ${map.name}`;
+          forget.setAttribute("aria-label", forget.title);
+          forget.onclick = () => {
+            try { remove(map.id); }
+            catch (error) { status(error.message, true); }
+          };
+          row.append(forget);
+        }
         return row;
       }),
       addButton,
