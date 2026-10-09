@@ -8,6 +8,7 @@ import { validatePlan } from "../domain/validation.js";
 import { $ } from "./dom.js";
 import { createCatalogBrowser } from "./catalog-browser.js";
 import { createPlayerWorkflow } from "./player-workflow.js";
+import { createSubcitiesScreen } from "./subcities-screen.js";
 import { removePlayer } from "../domain/players.js";
 
 export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
@@ -29,9 +30,9 @@ export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
     selected: () => players?.selected() || null,
   });
   function showScreen(next) {
-    if (!["project", "players", "player"].includes(next)) return;
+    if (!["project", "players", "player", "subcities"].includes(next)) return;
     screen = next;
-    for (const name of ["project", "players"]) {
+    for (const name of ["project", "players", "subcities"]) {
       const active = name === screen || (name === "players" && screen === "player");
       $(name + "-screen").hidden = !active;
       const tab = document.querySelector(`[data-screen="${name}"]`);
@@ -42,8 +43,10 @@ export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
     $("player-screen").hidden = screen !== "player";
     $("players-return-arrow").hidden = screen !== "player";
     $("players-search-control").hidden = screen !== "players";
+    $("subcities-search-control").hidden = screen !== "subcities";
     if (screen === "players") players.renderList();
     if (screen === "player") players.renderProfile();
+    if (screen === "subcities") subcities.render();
   }
   const team = createTeamScreen({
     root: $("project-screen"),
@@ -55,10 +58,26 @@ export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
     navigate: showScreen,
     status: toast,
   });
+  const subcities = createSubcitiesScreen({
+    root: $("subcities-screen"),
+    search: $("subcities-search"),
+    dialog: $("subcity-dialog"),
+    browser: $("subcity-browser-dialog"),
+    ownerBrowser: $("subcity-owner-dialog"),
+    getAvatars: () => avatarCatalog,
+    getPlan,
+    getCatalog: () => catalog,
+    locate: () => toast("Add a Server map to locate subcities.", true),
+    canEdit: () => !store.readOnly,
+    commit: (plan) => store.commit(plan),
+    context: () => workspace?.key(),
+    status: toast,
+  });
   function render() {
     $("plan-title").value = getPlan().title;
     $("undo").disabled = !store.canUndo;
     team.render();
+    subcities.render();
     players?.renderList();
     if (screen === "player") players?.renderProfile();
     access.render();
@@ -76,7 +95,11 @@ export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
   const playersTab = document.querySelector('[data-screen="players"]');
   playersTab.hidden = false;
   playersTab.onclick = () => showScreen("players");
+  const subcitiesTab = document.querySelector('[data-screen="subcities"]');
+  subcitiesTab.hidden = false;
+  subcitiesTab.onclick = () => showScreen("subcities");
   $("team-players").hidden = false;
+  $("team-subcities").hidden = false;
   for (const button of document.querySelectorAll("[data-close]"))
     button.onclick = () => $(button.dataset.close).close();
   $("project-screen").hidden = false;
