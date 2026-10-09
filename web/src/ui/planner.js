@@ -19,7 +19,7 @@ import { createPlacementView } from "./placement-view.js";
 import { createPlannerScreens } from "./planner-screens.js";
 import { createNavigation } from "./navigation.js";
 import { createPlayerSubcities } from "./player-subcities.js";
-import { removePlayer } from "../domain/players.js";
+import { removePlayer as removePlayerFromPlan } from "../domain/players.js";
 import { createMapPlan, removeMapPlan } from "../domain/map-plans.js";
 import { setRallySetter } from "../domain/rally.js";
 import { createPlacementInspector } from "./placement-inspector.js";
@@ -285,6 +285,12 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
     status: toast,
     playersChanged: () => players?.renderList(),
   });
+  function removePlayer(id) {
+    if (selection.id === id) selection.id = null;
+    selection.ids.delete(id);
+    store.commit(removePlayerFromPlan(getPlan(), id));
+    placementView.reset();
+  }
   players = createPlayerWorkflow({
     roots: {
       list: $("players-screen"),
@@ -303,7 +309,7 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
     getWorkspace: () => workspace,
     selection,
     select: selectKeep,
-    remove: (id) => store.commit(removePlayer(getPlan(), id)),
+    remove: removePlayer,
     status: toast,
     navigate: showScreen,
     refreshAccess: () => access.render(),
