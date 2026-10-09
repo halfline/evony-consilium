@@ -12,6 +12,13 @@ export async function mapList({ page, driveFiles }) {
   assert.equal(await page.locator("#map-kicker").textContent(), "Alliance hive");
   await page.locator('[data-screen="maps"]').click();
   assert.equal(await page.locator("#maps-list .map-row").count(), 1);
+  assert.deepEqual(
+    await page.locator("#maps-list .map-caption").first().evaluate((caption) => ({
+      position: getComputedStyle(caption).position,
+      display: getComputedStyle(caption).display,
+    })),
+    { position: "static", display: "flex" },
+  );
   await page.locator("#add-map").click();
   await page.locator("#new-formation-type").selectOption("boc");
   await page.locator("#new-formation-name").fill("Battle map");
