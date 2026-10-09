@@ -913,3 +913,23 @@
     font-size: 13px;
   }
 }
+
+#players,
+#maps-list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 24px 18px;
+  max-height: none;
+  overflow: visible;
+}
+#players .player-tile,
+#maps-list .map-list-row {
+  flex: 0 0 168px;
+}
+#players .add-player-icon,
+#maps-list .add-map-icon {
+  flex: 0 0 44px;
+}
