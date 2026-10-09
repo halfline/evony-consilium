@@ -1,5 +1,5 @@
 import { MarchDraft } from "../application/march-draft.js";
-import { marchType, marchCapacity } from "../domain/march-generation.js";
+import { marchType, marchCapacity, initialGeneration } from "../domain/march-generation.js";
 import { marchTotals } from "../domain/attack-marches.js";
 import { names, columns, numeric, element, numberInput, table } from "./player-fields.js";
 import { view } from "./dom.js";
@@ -33,6 +33,27 @@ export function createPlayerMarches({ root, getSizes }) {
     });
     const tableRoot = $("player-troops");
     const grid = table(["Tier", names[marchType(march)]]);
+    const typeSelect = element("select");
+    typeSelect.id = "player-march-type";
+    typeSelect.setAttribute("aria-label", "March troop type");
+    for (const type of columns) {
+      const option = element("option", names[type]);
+      option.value = type;
+      typeSelect.append(option);
+    }
+    typeSelect.value = marchType(march);
+    typeSelect.onchange = () => {
+      march.troopType = typeSelect.value;
+      const fresh = initialGeneration(march, march.generation.highestTier);
+      march.generation = {
+        ...fresh,
+        layerSize: march.generation.layerSize,
+        manual: march.generation.manual,
+      };
+      draft.generate();
+      renderMarch();
+    };
+    grid.tHead.rows[0].cells[1].replaceChildren(typeSelect);
     for (let tier = march.generation.highestTier; tier >= 10; tier--) {
       const row = grid.tBodies[0].insertRow();
       row.append(element("th", `T${tier}`));
