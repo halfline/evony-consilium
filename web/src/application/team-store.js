@@ -1,5 +1,6 @@
 import { createEmptyPlan } from "../domain/plan.js";
 import { validatePlan } from "../domain/validation.js";
+import { updateKeepAppearances } from "../domain/castles.js";
 
 function readonly(value) {
   if (value && typeof value === "object" && !Object.isFrozen(value)) {
@@ -25,8 +26,11 @@ export class TeamStore {
   #history = [];
   readOnly = false;
   listeners = new Set();
-  constructor(_catalog, { historyLimit = 20 } = {}) {
+  constructor(catalog = { assets: [] }, { historyLimit = 20, assets = new Map() } = {}) {
+    this.catalog = catalog;
+    this.assets = assets;
     this.historyLimit = historyLimit;
+    this.refreshAssets();
   }
   get plan() {
     return this.#plan;
@@ -38,20 +42,35 @@ export class TeamStore {
   emit(kind) {
     for (const listener of this.listeners) listener({ kind, plan: this.#plan });
   }
+  prepare(input) {
+    const next = structuredClone(input);
+    const assets = new Map(
+      [...this.catalog.assets, ...(next.customAssets || [])].map((asset) => [asset.id, asset]),
+    );
+    updateKeepAppearances(next.keeps, assets);
+    return readonly(next);
+  }
+  refreshAssets() {
+    this.assets.clear();
+    for (const asset of [...this.catalog.assets, ...(this.#plan.customAssets || [])])
+      this.assets.set(asset.id, asset);
+  }
   replace(input, { force = false } = {}) {
     if (this.readOnly && !force) return false;
-    this.#plan = readonly(validatePlan(input));
+    this.#plan = this.prepare(validatePlan(input, this.catalog));
     this.#history = [];
+    this.refreshAssets();
     this.emit("replace");
     return true;
   }
   commit(input) {
     if (this.readOnly) return false;
-    const next = readonly(structuredClone(input));
+    const next = this.prepare(input);
     if (fingerprint(next) === fingerprint(this.#plan)) return false;
     this.#history.push(this.#plan);
     if (this.#history.length > this.historyLimit) this.#history.shift();
     this.#plan = next;
+    this.refreshAssets();
     this.emit("edit");
     return true;
   }
@@ -67,6 +86,7 @@ export class TeamStore {
   undo() {
     if (!this.canUndo) return false;
     this.#plan = this.#history.pop();
+    this.refreshAssets();
     this.emit("undo");
     return true;
   }
