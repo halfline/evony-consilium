@@ -760,18 +760,36 @@
 @media (hover: hover) {
   .map-list-row:hover .map-forget { opacity: 1; pointer-events: auto; }
 }
-.formation-player-row { position: relative; }
-.formation-player-row .players-row { padding-right: 40px; }
+.formation-player-row {
+  position: relative;
+}
+.formation-player-row .players-row {
+  padding-right: 40px;
+  width: 100%;
+}
 .rally-star {
   position: absolute;
   right: 6px;
   top: 50%;
   transform: translateY(-50%);
+  padding: 4px;
   border: 0;
   background: transparent;
-  color: var(--gold);
   font-size: 23px;
-  padding: 4px;
+  color: var(--gold);
+  opacity: 0;
+  pointer-events: none;
+}
+.rally-star.active,
+.rally-actions-open .rally-star {
+  opacity: 1;
+  pointer-events: auto;
+}
+@media (hover: hover) {
+  .formation-player-row:hover .rally-star {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 .building-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .building-tools button[data-building] {
