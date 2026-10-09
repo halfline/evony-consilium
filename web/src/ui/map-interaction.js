@@ -230,8 +230,9 @@ export function bindMapInteraction({
     const pt = point(event);
     renderer.zoom(Math.exp(-event.deltaY * 0.001), pt.x, pt.y);
   };
-  canvas.onkeydown = (event) => {
+  const keydown = (event) => {
     if (!canEdit()) return;
+    if (event.target?.closest?.("input,select,textarea")) return;
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z") {
       event.preventDefault();
       undo();
@@ -287,18 +288,22 @@ export function bindMapInteraction({
     event.preventDefault();
     removeObjects(group.size ? group : new Set([selected().id]));
   };
+  canvas.onkeydown = (event) => {
+    event.stopPropagation?.();
+    keydown(event);
+  };
   const documentKeydown = (event) => {
-    if (!canEdit() || event.target === canvas ||
-        event.target?.closest?.("input,select,textarea")) return;
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z") {
-      event.preventDefault();
-      undo();
-    } else if (event.key === "Escape") {
+    if (event.target === canvas) return;
+    if (event.key === "Escape") {
+      if (!canEdit() || event.target?.closest?.("input,select,textarea")) return;
       resetPending();
       group.clear();
       groupChanged();
       cancel();
+      return;
     }
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z")
+      keydown(event);
   };
   if (typeof document !== "undefined")
     document.addEventListener("keydown", documentKeydown);
