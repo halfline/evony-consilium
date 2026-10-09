@@ -315,119 +315,68 @@ export function bindMapInteraction({
     const pt = point(event);
     renderer.zoom(Math.exp(-event.deltaY * 0.001), pt.x, pt.y);
   };
-  const keydown = (event) => {
+  const keydown = (ev) => {
     if (!canEdit()) return;
-    if (event.target?.closest?.("input,select,textarea")) return;
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z") {
-      event.preventDefault();
-      undo();
-      return;
-    }
-    if (event.key === "Escape") {
-      event.preventDefault();
+    if (ev.target.closest("input,select,textarea")) return;
+    if (ev.key === "Escape") {
       resetPending();
-      select(null);
-      renderer.preview = null;
+      group.clear();
+      cancel();
       renderer.draw();
       return;
     }
-    if (event.key === "+" || event.key === "=") {
-      event.preventDefault();
+    if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "z") {
+      ev.preventDefault();
+      undo();
+      return;
+    }
+    if (ev.target !== canvas) return;
+    if (ev.key === "Delete" || ev.key === "Backspace") {
+      ev.preventDefault();
+      removeObjects(group.size ? group : new Set([selected()?.id]));
+      return;
+    }
+    if (["+", "="].includes(ev.key)) {
+      ev.preventDefault();
       renderer.zoom(1.2);
-      return;
-    }
-    if (event.key === "-") {
-      event.preventDefault();
+    } else if (ev.key === "-") {
+      ev.preventDefault();
       renderer.zoom(1 / 1.2);
-      return;
+    } else if (
+      ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(ev.key)
+    ) {
+      ev.preventDefault();
+      const e = selected();
+      if (!e || e.locked || e.x === null) return;
+      const x =
+          e.x + (ev.key === "ArrowRight" ? 1 : ev.key === "ArrowLeft" ? -1 : 0),
+        y = e.y + (ev.key === "ArrowDown" ? 1 : ev.key === "ArrowUp" ? -1 : 0);
+      if (canPlace(e, x, y, getPlan(), [], terrainFor(getPlan().map)))
+        mutate((p) => {
+          const t = [...p.keeps, ...p.structures, ...p.obstacles].find(
+            (k) => k.id === e.id,
+          );
+          t.x = x;
+          t.y = y;
+        });
+      else toast("That tile is occupied or outside the map.", true);
     }
-    const arrow = {
-      ArrowLeft: [-1, 0],
-      ArrowRight: [1, 0],
-      ArrowUp: [0, -1],
-      ArrowDown: [0, 1],
-    }[event.key];
-    if (arrow && canEdit() && selected()) {
-      event.preventDefault();
-      const entity = selected();
-      if (!entity || entity.locked || entity.x === null) return;
-      const x = entity.x + arrow[0],
-        y = entity.y + arrow[1];
-      if (mutate) {
-        if (canPlace(entity, x, y, getPlan(), [], terrainFor(getPlan().map)))
-          mutate((plan) => {
-            const target = [
-              ...plan.keeps,
-              ...plan.structures,
-              ...plan.obstacles,
-            ].find((item) => item.id === entity.id);
-            target.x = x;
-            target.y = y;
-          });
-        else toast("That tile is occupied or outside the map.", true);
-        return;
-      }
-      try {
-        commit(
-          movePlacements(
-            getPlan(),
-            [{ id: entity.id, x, y }],
-            terrainFor(getPlan().map),
-          ),
-        );
-      } catch (error) {
-        toast(error.message, true);
-      }
-      return;
-    }
-    if (
-      !["Delete", "Backspace"].includes(event.key) ||
-      !canEdit() ||
-      (!selected() && !group.size)
-    )
-      return;
-    event.preventDefault();
-    removeObjects(group.size ? group : new Set([selected().id]));
   };
-  canvas.onkeydown = (event) => {
-    event.stopPropagation?.();
-    keydown(event);
-  };
-  const documentKeydown = (event) => {
-    if (event.target === canvas) {
-      if (event.key === "Delete" || event.key === "Backspace") keydown(event);
-      return;
-    }
-    if (event.key === "Escape") {
-      if (!canEdit() || event.target?.closest?.("input,select,textarea"))
-        return;
-      resetPending();
-      group.clear();
-      groupChanged();
-      cancel();
-      return;
-    }
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z")
-      keydown(event);
-  };
-  if (typeof document !== "undefined")
-    document.addEventListener("keydown", documentKeydown);
+  document.addEventListener("keydown", keydown);
   return {
     cancel,
     dispose() {
       cancel();
-      if (typeof document !== "undefined")
-        document.removeEventListener("keydown", documentKeydown);
-      for (const name of [
+      document.removeEventListener("keydown", keydown);
+      for (const event of [
         "ondblclick",
         "onpointerdown",
         "onpointermove",
         "onpointerup",
         "onpointercancel",
         "onwheel",
-        "onkeydown",
       ])
-        canvas[name] = null;
+        canvas[event] = null;
     },
   };
 }
