@@ -226,3 +226,32 @@ test("modifier clicks toggle multiple placed entities", () => {
   canvas.onpointerdown({ button: 0, ctrlKey: true, clientX: 10, clientY: 0 });
   assert.deepEqual([...group], ["b"]);
 });
+
+test("Shift rubber band selects unlocked entities inside the box", () => {
+  const plan = createEmptyPlan();
+  plan.keeps.push(
+    { id: "a", x: 10, y: 10, w: 2, h: 2 },
+    { id: "b", x: 20, y: 20, w: 2, h: 2 },
+    { id: "locked", x: 15, y: 15, w: 2, h: 2, locked: true },
+  );
+  const captures = new Set(), group = new Set(), canvas = {
+    getBoundingClientRect: () => ({ left: 0, top: 0 }),
+    setPointerCapture: (id) => captures.add(id),
+    hasPointerCapture: (id) => captures.has(id),
+    releasePointerCapture: (id) => captures.delete(id),
+  };
+  const renderer = { screen: (x, y) => ({ x, y }), draw() {} };
+  let changes = 0;
+  bindMapInteraction({
+    canvas, renderer, group, getPlan: () => plan, getPending: () => null,
+    groupChanged: () => { changes++; },
+  });
+  canvas.onpointerdown({ button: 0, shiftKey: true, pointerId: 3, clientX: 0, clientY: 0 });
+  canvas.onpointermove({ pointerId: 3, clientX: 30, clientY: 30 });
+  assert.deepEqual([...group], ["a", "b"]);
+  assert.ok(renderer.selectionBox);
+  canvas.onpointerup({ pointerId: 3 });
+  assert.equal(renderer.selectionBox, null);
+  assert.equal(captures.size, 0);
+  assert.equal(changes, 1);
+});
