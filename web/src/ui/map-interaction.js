@@ -36,6 +36,9 @@ export function bindMapInteraction({
     const pt = point(event);
     const id = renderer.hit(pt.x, pt.y);
     if (!getPlan().keeps.some((keep) => keep.id === id)) return;
+    drag = null;
+    renderer.preview = null;
+    renderer.previews = null;
     resetPending();
     openPlayer(id);
   };
