@@ -150,7 +150,6 @@ test("moat overlay stays clipped to a landmark ground footprint", async () => {
     ].map((name) => [name, (...args) => calls.push([name, ...args])]),
   );
   const plan = createEmptyPlan();
-  plan.map = "server";
   const renderer = Object.assign(Object.create(MapRenderer.prototype), {
     terrainFor: getTerrain,
     ctx,
@@ -181,7 +180,6 @@ test("moat overlay stays clipped to a landmark ground footprint", async () => {
   assert.equal(calls.length, 0);
 });
 
-
 test("fixed building clearings replace trees with original dirt tiles", () => {
   const terrain = getTerrain("server");
   const surface = terrain.layers.find((layer) => layer.name === "surface");
@@ -203,13 +201,12 @@ test("fixed building clearings replace trees with original dirt tiles", () => {
   );
 });
 
-
 test("the moat is drawn after ground and before every building", async () => {
   const { MapRenderer } = await import(
     "../../web/src/rendering/map-renderer.js"
   );
   const calls = [];
-  const plan = { ...createEmptyPlan(), map: "server", showGrid: false };
+  const plan = { ...createEmptyPlan(), showGrid: false };
   const ctx = new Proxy(
     {},
     {
@@ -244,7 +241,6 @@ test("the moat is drawn after ground and before every building", async () => {
   assert.ok(calls.slice(1, firstBuilding).every((call) => call === "moat"));
   assert.ok(calls.slice(firstBuilding).every((call) => call === "building"));
 });
-
 
 test("the throne base aligns with the front of its footprint", async () => {
   const { MapRenderer } = await import(
@@ -291,7 +287,6 @@ test("the throne base aligns with the front of its footprint", async () => {
   assert.ok(Math.abs(bounds.top + bounds.height - front.y) < 0.001);
   assert.ok(Math.abs(bounds.width - 480 * 0.98) < 0.001);
 });
-
 
 test("temple ground bases fill and align with their occupied footprints", async () => {
   const { MapRenderer } = await import(
@@ -346,7 +341,6 @@ test("temple ground bases fill and align with their occupied footprints", async 
   }
 });
 
-
 test("fixed landmarks have no outlines and major sprites stay visible at distant zoom", async () => {
   const { MapRenderer } = await import(
     "../../web/src/rendering/map-renderer.js"
@@ -395,7 +389,6 @@ test("fixed landmarks have no outlines and major sprites stay visible at distant
     }
   }
 });
-
 
 test("whole-map view fits all server corners on screen", async () => {
   const { MapRenderer } = await import(
