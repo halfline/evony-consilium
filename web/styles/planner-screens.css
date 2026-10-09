@@ -61,6 +61,7 @@
 #players-editor .entity-fields label:first-child {
   grid-column: auto;
 }
+.inspector-actions .apply-entity { margin-left: auto; }
 .player-detail-tabs {
   display: flex;
   gap: 8px;
@@ -1126,6 +1127,7 @@
   margin: 0;
   overflow-wrap: anywhere;
 }
+#player-screen .inspector-heading h2 { font-size: 32px; }
 .player-name-actions {
   display: flex;
   align-items: center;
