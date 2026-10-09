@@ -9,8 +9,10 @@ import { $ } from "./dom.js";
 import { createCatalogBrowser } from "./catalog-browser.js";
 import { createPlayerWorkflow } from "./player-workflow.js";
 import { createSubcitiesScreen } from "./subcities-screen.js";
+import { createMapsScreen } from "./maps-screen.js";
 import { createPlayerSubcities } from "./player-subcities.js";
 import { removePlayer } from "../domain/players.js";
+import { createMapPlan } from "../domain/map-plans.js";
 
 export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
   const store = new TeamStore(catalog);
@@ -31,9 +33,9 @@ export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
     selected: () => players?.selected() || null,
   });
   function showScreen(next) {
-    if (!["project", "players", "player", "subcities"].includes(next)) return;
+    if (!["project", "players", "player", "subcities", "maps"].includes(next)) return;
     screen = next;
-    for (const name of ["project", "players", "subcities"]) {
+    for (const name of ["project", "players", "subcities", "maps"]) {
       const active = name === screen || (name === "players" && screen === "player");
       $(name + "-screen").hidden = !active;
       const tab = document.querySelector(`[data-screen="${name}"]`);
@@ -49,6 +51,7 @@ export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
     if (screen === "player") players.renderProfile();
     if (screen === "player") playerSubcities?.render();
     if (screen === "subcities") subcities.render();
+    if (screen === "maps") mapsScreen.enter();
   }
   const team = createTeamScreen({
     root: $("project-screen"),
@@ -75,11 +78,20 @@ export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
     context: () => workspace?.key(),
     status: toast,
   });
+  const mapsScreen = createMapsScreen({
+    root: $("maps-screen"),
+    dialog: $("add-map-dialog"),
+    getPlan,
+    canEdit: () => !store.readOnly,
+    add: (type, name) => store.commit(createMapPlan(getPlan(), type, name)),
+    status: toast,
+  });
   function render() {
     $("plan-title").value = getPlan().title;
     $("undo").disabled = !store.canUndo;
     team.render();
     subcities.render();
+    mapsScreen.render();
     players?.renderList();
     if (screen === "player") players?.renderProfile();
     if (screen === "player") playerSubcities?.render();
@@ -101,8 +113,12 @@ export function createPlanner({ catalog, avatarCatalog }, { createWorkspace }) {
   const subcitiesTab = document.querySelector('[data-screen="subcities"]');
   subcitiesTab.hidden = false;
   subcitiesTab.onclick = () => showScreen("subcities");
+  const mapsTab = document.querySelector('[data-screen="maps"]');
+  mapsTab.hidden = false;
+  mapsTab.onclick = () => showScreen("maps");
   $("team-players").hidden = false;
   $("team-subcities").hidden = false;
+  $("team-maps").hidden = false;
   for (const button of document.querySelectorAll("[data-close]"))
     button.onclick = () => $(button.dataset.close).close();
   $("project-screen").hidden = false;
