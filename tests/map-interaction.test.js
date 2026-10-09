@@ -255,3 +255,30 @@ test("Shift rubber band selects unlocked entities inside the box", () => {
   assert.equal(captures.size, 0);
   assert.equal(changes, 1);
 });
+
+test("group drag moves both keeps with unchanged relative spacing", () => {
+  let plan = createEmptyPlan();
+  plan.keeps.push(
+    { id: "a", x: 10, y: 10, w: 2, h: 2, locked: false },
+    { id: "b", x: 20, y: 20, w: 2, h: 2, locked: false },
+  );
+  const captures = new Set(), group = new Set(["a", "b"]);
+  const canvas = {
+    getBoundingClientRect: () => ({ left: 0, top: 0, right: 100, bottom: 100 }),
+    setPointerCapture: (id) => captures.add(id),
+    hasPointerCapture: (id) => captures.has(id),
+    releasePointerCapture: (id) => captures.delete(id),
+  };
+  const renderer = { hit: () => "a", world: (x, y) => ({ x, y }), draw() {} };
+  bindMapInteraction({
+    canvas, renderer, group, getPlan: () => plan, getPending: () => null,
+    commit: (next) => { plan = next; },
+  });
+  canvas.onpointerdown({ button: 0, pointerId: 9, clientX: 10, clientY: 10 });
+  canvas.onpointermove({ pointerId: 9, clientX: 13, clientY: 14 });
+  assert.equal(renderer.previews.length, 2);
+  assert.equal(renderer.previews.every(({ valid }) => valid), true);
+  canvas.onpointerup({ pointerId: 9, clientX: 13, clientY: 14 });
+  assert.deepEqual(plan.keeps.map(({ x, y }) => [x, y]), [[13, 14], [23, 24]]);
+  assert.equal(captures.size, 0);
+});
