@@ -27,6 +27,7 @@ import { subcityOwner } from "./browser/subcity-owner.js";
 import { playerSubcityOwnership } from "./browser/player-subcity-ownership.js";
 import { playerSubcityCreate } from "./browser/player-subcity-create.js";
 import { subcityOwnerSearch } from "./browser/subcity-owner-search.js";
+import { mapList } from "./browser/map-list.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -97,10 +98,11 @@ try {
   await playerSubcityOwnership({ page, driveFiles });
   await playerSubcityCreate({ page, driveFiles });
   await subcityOwnerSearch({ page, driveFiles });
+  await mapList({ page, driveFiles });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
-    "Browser checks passed: mocked Google/Drive entry, linked player editing, and alliance subcity registry.",
+    "Browser checks passed: team entry, linked players, subcities, and map creation.",
   );
 } catch (error) {
   console.error(
