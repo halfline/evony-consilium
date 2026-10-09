@@ -9,7 +9,7 @@ test("renderer observes the current placement selection without mirrored state",
   try {
     const selection = { id: null, ids: new Set() };
     const canvas = { parentElement: {}, getContext: () => ({}) };
-    const renderer = new MapRenderer(canvas, createEmptyPlan, { selection });
+    const renderer = new MapRenderer(canvas, new Map(), createEmptyPlan, { selection });
     assert.equal(renderer.selected, null);
     selection.id = "keep";
     selection.ids.add("other");
@@ -32,7 +32,7 @@ test("map grid fits the canvas and zoom preserves the pointer world location", (
   try {
     let strokes = 0, draws = 0;
     const ctx = {
-      setTransform() {}, fillRect() {}, beginPath() {}, moveTo() {}, lineTo() {}, closePath() {},
+      setTransform() {}, fillRect() {}, save() {}, restore() {}, translate() {}, scale() {}, beginPath() {}, moveTo() {}, lineTo() {}, closePath() {},
       stroke() { strokes++; },
       createRadialGradient: () => ({ addColorStop() {} }),
     };
@@ -41,7 +41,7 @@ test("map grid fits the canvas and zoom preserves the pointer world location", (
       getContext: () => ctx,
       getBoundingClientRect: () => ({ width: 800, height: 600 }),
     };
-    const renderer = new MapRenderer(canvas, createEmptyPlan, { onDraw: () => draws++ });
+    const renderer = new MapRenderer(canvas, new Map(), createEmptyPlan, { onDraw: () => draws++ });
     renderer.resize();
     renderer.fit();
     assert.equal(canvas.width, 800);
@@ -75,7 +75,7 @@ test("Server maps expose painted subcity marker hit regions", () => {
     const plan = createEmptyPlan();
     plan.map = "server";
     plan.subcities = [{ id: "city", name: "Harbor", culture: "Europe", color: "gold", x: 600, y: 600 }];
-    const renderer = new MapRenderer(canvas, () => plan);
+    const renderer = new MapRenderer(canvas, new Map(), () => plan);
     renderer.resize();
     renderer.fit();
     const point = renderer.screen(600, 600);
@@ -103,7 +103,7 @@ test("fit frames placed formation more closely than the whole map", () => {
     const plan = createEmptyPlan();
     plan.keeps.push({ id: "a", name: "A", skin: "missing", x: 600, y: 600,
       w: 2, h: 2, locked: false });
-    const renderer = new MapRenderer(canvas, () => plan);
+    const renderer = new MapRenderer(canvas, new Map(), () => plan);
     renderer.resize();
     renderer.fit(true);
     const wholeZoom = renderer.camera.zoom;
@@ -129,7 +129,7 @@ test("map boundary remains visible when the grid is hidden", () => {
     const canvas = { parentElement: {}, getContext: () => ctx,
       getBoundingClientRect: () => ({ width: 800, height: 600 }) };
     const plan = createEmptyPlan();
-    const renderer = new MapRenderer(canvas, () => plan);
+    const renderer = new MapRenderer(canvas, new Map(), () => plan);
     renderer.resize();
     assert.ok(strokes.includes("#17261b35"));
     assert.ok(strokes.includes("#e1d2a255"));
@@ -153,7 +153,7 @@ test("map vignette shades the canvas edge after painting", () => {
     const stops = [], gradients = [], fills = [];
     const gradient = { addColorStop: (...args) => stops.push(args) };
     const ctx = {
-      setTransform() {}, beginPath() {}, moveTo() {}, lineTo() {},
+      setTransform() {}, save() {}, restore() {}, translate() {}, scale() {}, beginPath() {}, moveTo() {}, lineTo() {},
       closePath() {}, stroke() {},
       fillRect(...args) { fills.push([this.fillStyle, ...args]); },
       createRadialGradient(...args) { gradients.push(args); return gradient; },

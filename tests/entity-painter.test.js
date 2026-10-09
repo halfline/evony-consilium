@@ -224,14 +224,12 @@ test("formation renderer paints placed keeps and exposes their hit region", () =
     plan.keeps.push({ id: "keep", skin: "missing", x: 600, y: 600, w: 2, h: 2 });
     let painted = 0;
     const ctx = {
-      setTransform() {}, fillRect() {}, beginPath() {}, moveTo() {}, lineTo() {},
+      setTransform() {}, fillRect() {}, save() {}, restore() {}, translate() {}, scale() {}, beginPath() {}, moveTo() {}, lineTo() {},
       closePath() {}, fill() { painted++; }, stroke() {}, fillText() { painted++; },
       createRadialGradient: () => ({ addColorStop() {} }),
     };
     const canvas = { getContext: () => ctx, parentElement: {} };
-    const renderer = new MapRenderer(canvas, () => plan, {
-      assets: new Map([["missing", { src: "missing.webp", width: 100, height: 80 }]]),
-    });
+    const renderer = new MapRenderer(canvas, new Map([["missing", { src: "missing.webp", width: 100, height: 80 }]]), () => plan);
     renderer.images.get = () => null;
     renderer.width = 200;
     renderer.height = 100;
@@ -259,7 +257,7 @@ test("formation renderer paints overlapping entities back to front", () => {
     ];
     const images = [];
     const ctx = {
-      setTransform() {}, fillRect() {}, drawImage: (image) => images.push(image),
+      setTransform() {}, fillRect() {}, save() {}, restore() {}, translate() {}, scale() {}, drawImage: (image) => images.push(image),
       beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, stroke() {},
       createRadialGradient: () => ({ addColorStop() {} }),
     };
@@ -268,7 +266,7 @@ test("formation renderer paints overlapping entities back to front", () => {
       ["front", { src: "front.webp", width: 100, height: 80 }],
       ["back", { src: "back.webp", width: 100, height: 80 }],
     ]);
-    const renderer = new MapRenderer(canvas, () => plan, { assets });
+    const renderer = new MapRenderer(canvas, assets, () => plan);
     renderer.images.get = (src) => src;
     renderer.width = 400;
     renderer.height = 200;

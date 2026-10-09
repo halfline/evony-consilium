@@ -26,20 +26,20 @@ test("map background uses the active map anchor, dimensions, and opacity", () =>
       drawImage(...args) { calls.push(["image", ...args]); },
     };
     const renderer = new MapRenderer(
-      { getContext: () => ctx, parentElement: {} }, () => plan);
+      { getContext: () => ctx, parentElement: {} }, new Map(), () => plan);
     renderer.images.get = (src) => src;
     renderer.width = 400;
     renderer.height = 300;
     renderer.draw();
     assert.deepEqual(calls, [
       "save", ["translate", 200, 150], ["scale", 1, 1], ["alpha", 0.4],
-      ["image", "custom.webp", -48, 120, 600, 400], "restore",
+      ["image", "custom.webp", -48, 120, 600, 400], ["alpha", 1], "restore",
     ]);
     calls.length = 0;
     plan.backgrounds[plan.map].src = "missing.webp";
     renderer.images.get = () => null;
     renderer.draw();
-    assert.deepEqual(calls, []);
+    assert.deepEqual(calls, ["save", ["translate", 200, 150], ["scale", 1, 1], "restore"]);
   } finally {
     globalThis.ResizeObserver = originalObserver;
     globalThis.devicePixelRatio = originalRatio;
