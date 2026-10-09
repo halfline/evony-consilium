@@ -22,7 +22,6 @@ export function bindMapInteraction({
     drag = null;
     renderer.preview = renderer.previews = renderer.selectionBox = null;
     if (canvas.style) canvas.style.cursor = "default";
-    renderer.draw();
   }
   function removeObjects(ids) {
     commit(removePlacements(getPlan(), ids));
@@ -257,6 +256,7 @@ export function bindMapInteraction({
     group.clear();
     groupChanged();
     cancel();
+    renderer.draw();
   };
   canvas.onwheel = (event) => {
     event.preventDefault();
