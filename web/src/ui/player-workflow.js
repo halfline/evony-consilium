@@ -118,11 +118,7 @@ export function createPlayerWorkflow({
       select(id);
       navigate("player");
     },
-    renderList: () => {
-      list.render();
-      roots.list.querySelector("#add-player").hidden =
-        !getWorkspace()?.sync.file?.capabilities?.canEdit;
-    },
+    renderList: list.render,
     openAdd: dialog.open,
     draft: dialog.player,
     resetTag: () => {
