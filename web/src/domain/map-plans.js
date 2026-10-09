@@ -1,4 +1,5 @@
-import { createLayout, captureLayout, applyLayout } from "./layout.js";
+import { ensureMapRallySetters } from "./rally.js";
+import { createLayout, captureLayout, applyLayout, LAYOUT_FIELDS } from "./layout.js";
 const copy = (value) => structuredClone(value);
 export const defaultFormationName = (type) =>
   type === "server" ? "Hive" : type === "blank" ? "Formation" : "Rally";
@@ -57,4 +58,40 @@ export function removeMapPlan(plan, id) {
     if (next.maps.length) return selectMapPlan(next, next.maps[0].id);
   }
   return next;
+}
+// Ignore navigation state when deciding whether there are unsaved project changes.
+export function projectFingerprint(plan) {
+  const next = syncMapLayouts(copy(plan));
+  ensureMapRallySetters(next);
+  next.subcities ??= [];
+  for (const city of next.subcities) city.ownerId ??= null;
+  const projectLogo = next.projectLogo ?? "",
+    discordUrl = next.discordUrl ?? "";
+  delete next.projectLogo;
+  delete next.discordUrl;
+  next.projectLogo = projectLogo;
+  next.discordUrl = discordUrl;
+  if (next.maps?.length) {
+    for (const key of [...LAYOUT_FIELDS, "activeMapId"]) delete next[key];
+    next.keeps = next.keeps.map((player) => {
+      const result = { ...player };
+      for (const key of ["x", "y", "w", "h", "locked"]) delete result[key];
+      return result;
+    });
+    // Unplaced, unlocked positions are equivalent to missing positions.
+    for (const map of next.maps)
+      map.layout.positions = map.layout.positions.filter(
+        (position) => position.x !== null || position.locked,
+      );
+  }
+  // JSON property order is not a content change (for example, a teammate’s formatter).
+  return JSON.stringify(next, (_key, value) => {
+    if (!value || typeof value !== "object" || Array.isArray(value))
+      return value;
+    return Object.fromEntries(
+      Object.keys(value)
+        .sort()
+        .map((key) => [key, value[key]]),
+    );
+  });
 }
