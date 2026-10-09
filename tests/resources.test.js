@@ -27,7 +27,7 @@ test("planner resources load player catalogs and decoded map terrain", async () 
     ]);
     assert.equal(resources.catalog.path, "assets/catalog.json");
     assert.equal(resources.avatarCatalog.path, "assets/avatar-catalog.json");
-    assert.equal(resources.terrain.get("tiny").layers[0].tiles[0], 7);
+    assert.equal(resources.terrainCatalog.get("tiny").layers[0].tiles[0], 7);
   } finally {
     globalThis.fetch = original;
   }
