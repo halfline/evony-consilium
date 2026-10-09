@@ -1,3 +1,5 @@
+import { overlap } from "./geometry.js";
+
 // Each resource load owns its terrain catalog; domain rules have no shared registry.
 export class TerrainCatalog {
   #maps = new Map();
@@ -33,4 +35,19 @@ export function terrainTileAt(terrain, layer, x, y) {
   );
   if (clearing) return layer.name === "surface" ? clearing.groundTile : 0;
   return layer.tiles[y * terrain.width + x];
+}
+
+export function terrainAllowsPlacement(terrain, entity) {
+  if (!terrain) return true;
+  if (
+    entity.x < 0 ||
+    entity.y < 0 ||
+    entity.x + entity.w > terrain.extent ||
+    entity.y + entity.h > terrain.extent
+  )
+    return false;
+  for (let y = entity.y; y < entity.y + entity.h; y++)
+    for (let x = entity.x; x < entity.x + entity.w; x++)
+      if (terrain.blocked[y * terrain.width + x]) return false;
+  return !terrain.landmarks.some((landmark) => overlap(entity, landmark));
 }
