@@ -237,6 +237,7 @@
           <span id="players-return-arrow" aria-hidden="true" hidden>← </span
           >Players
         </button>
+        <button data-screen="subcities" aria-pressed="false" hidden>Subcities</button>
 
 
         <label id="players-search-control" class="tab-search" hidden>
@@ -259,6 +260,9 @@
             placeholder="Find a player…"
             aria-label="Search players"
           />
+        </label>
+        <label id="subcities-search-control" class="tab-search" hidden>
+          <input id="subcities-search" type="search" placeholder="Find a subcity…" aria-label="Search subcities" />
         </label>
 
       </nav>
@@ -347,6 +351,28 @@
               </button>
             </div>
           </section>
+        </div>
+      </section>
+      <section id="subcities-screen" class="players-screen" aria-label="Subcities" hidden>
+        <div class="subcity-filters">
+          <select id="subcities-type" aria-label="Filter subcity type">
+            <option value="">All types</option>
+            <option value="culture">Culture</option>
+            <option value="historic">Historic</option>
+            <option value="famous">Famous</option>
+          </select>
+          <select id="subcities-color" aria-label="Filter subcity color">
+            <option value="">All colors</option>
+            <option value="green">Green</option>
+            <option value="blue">Blue</option>
+            <option value="purple">Purple</option>
+            <option value="gold">Gold</option>
+            <option value="red">Red</option>
+          </select>
+        </div>
+        <p id="subcities-empty" class="muted" hidden>No matching subcities.</p>
+        <div id="subcities" class="subcities-grid">
+          <button id="add-subcity" class="add-subcity-icon" type="button" aria-label="Add subcity" title="Add subcity">＋</button>
         </div>
       </section>
       <section
