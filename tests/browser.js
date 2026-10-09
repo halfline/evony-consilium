@@ -1,3 +1,4 @@
+import { unconfiguredDeployment } from "./browser/setup.js";
 import { subcityOwnership } from "./browser/subcity-ownership.js";
 import { subcities } from "./browser/subcities.js";
 import { playerSharing } from "./browser/player-sharing.js";
@@ -201,6 +202,7 @@ try {
   await playerSharing({ browser });
   await subcities({ browser });
   await subcityOwnership({ browser });
+  await unconfiguredDeployment({ browser });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
