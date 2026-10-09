@@ -3,19 +3,25 @@ import { view } from "./dom.js";
 import { SUBCITY_COLORS, saveSubcity } from "../domain/subcities.js";
 import { renderSubcityArt } from "./subcity-browser.js";
 
-// Owns a subcity draft and checks its team context before saving.
+// Owns the form draft and checks the team context before applying it.
 export function createSubcityDialog({
   dialog,
   getPlan,
   types,
   browse,
+  browseOwner,
+  renderOwner,
   closeBrowser,
   canEdit,
   commit,
   context,
 }) {
   const $ = view(dialog);
-  let editing = null, openedContext, selected, selectedOwner = null;
+  let editing = null,
+    openedContext,
+    selected,
+    selectedOwner = null,
+    ownerLocked = false;
   const castleControl = createChoiceControl({
     root: dialog,
     button: $("subcity-castle"),
@@ -24,8 +30,23 @@ export function createSubcityDialog({
     canEdit,
     choose: chooseCastle,
   });
+  const ownerControl = createChoiceControl({
+    root: dialog,
+    button: $("subcity-owner"),
+    caption: $("subcity-owner-name"),
+    clear: $("subcity-owner-clear"),
+    tileSelector: ".subcity-owner-choice",
+    canEdit,
+    choose: chooseOwner,
+    remove: () => {
+      if (openedContext !== context()) return;
+      selectedOwner = null;
+      refreshOwner();
+    },
+  });
   function renderChoice() {
-    const color = SUBCITY_COLORS.find((item) => item.id === selected?.color)?.name || "";
+    const color =
+      SUBCITY_COLORS.find((color) => color.id === selected?.color)?.name || "";
     const label = selected ? `${selected.name} · ${color}` : "Choose a subcity";
     castleControl.render({
       label,
@@ -42,6 +63,32 @@ export function createSubcityDialog({
       renderChoice();
     });
   }
+  function refreshOwner() {
+    const player = getPlan().keeps.find(
+      (player) => player.id === selectedOwner,
+    );
+    $("subcity-owner").dataset.owner = selectedOwner || "";
+    const label = player
+      ? `${player.allianceTag ? `[${player.allianceTag}] ` : ""}${player.name}`
+      : "Unowned";
+    ownerControl.render({
+      label,
+      ariaLabel: `Choose owner: ${player?.name || "Unowned"}`,
+      locked: ownerLocked,
+      removable: !!selectedOwner,
+      paint: (button) => renderOwner(button, player),
+    });
+  }
+  function chooseOwner() {
+    if (!canEdit() || ownerLocked) return;
+    const current = openedContext;
+    browseOwner(selectedOwner, (id) => {
+      if (!dialog.open || current !== context() || !canEdit() || ownerLocked)
+        return;
+      selectedOwner = id;
+      refreshOwner();
+    });
+  }
   function refreshAccess() {
     if (!dialog.open) return;
     if (openedContext !== context()) {
@@ -49,27 +96,39 @@ export function createSubcityDialog({
       dialog.close();
       return;
     }
-    for (const field of dialog.querySelectorAll("input")) field.readOnly = !canEdit();
+    for (const field of dialog.querySelectorAll("input"))
+      field.readOnly = !canEdit();
     castleControl.access();
+    refreshOwner();
     $("subcity-save").hidden = !canEdit();
     if (!canEdit()) closeBrowser();
   }
-  function open(city = null) {
+  function open(city = null, ownerId = null, { lockOwner = false } = {}) {
     if (!city && !canEdit()) return;
+    ownerLocked = lockOwner;
     editing = city?.id || null;
     openedContext = context();
-    selectedOwner = city?.ownerId || null;
     selected = city
-      ? types().find((type) => city.color === "red"
-        ? type.id === city.cityType
-        : type.color === city.color && type.culture === city.culture)
-      : types().find((type) => type.culture === "Europe" && type.color === "gold");
-    $("subcity-title").textContent = city ? canEdit() ? "Edit subcity" : "Subcity" : "Add subcity";
+      ? types().find((type) =>
+          city.color === "red"
+            ? type.id === city.cityType
+            : type.color === city.color && type.culture === city.culture,
+        )
+      : types().find(
+          (type) => type.culture === "Europe" && type.color === "gold",
+        );
+    $("subcity-title").textContent = city
+      ? canEdit()
+        ? "Edit subcity"
+        : "Subcity"
+      : "Add subcity";
     $("subcity-name").value = city?.name || "";
+    ownerControl.reset();
+    selectedOwner = city?.ownerId || ownerId || null;
+    refreshOwner();
     $("subcity-x").value = city?.x ?? "";
     $("subcity-y").value = city?.y ?? "";
     $("subcity-error").textContent = "";
-    $("subcity-owner").closest(".subcity-owner-choice").hidden = true;
     $("subcity-locate").hidden = true;
     renderChoice();
     dialog.showModal();
@@ -79,18 +138,28 @@ export function createSubcityDialog({
     event.preventDefault();
     try {
       if (!canEdit() || openedContext !== context())
-        throw new Error("Reopen this subcity with team write access to save changes.");
+        throw new Error(
+          "Reopen this subcity with team write access to save changes.",
+        );
       if (!selected) throw new Error("Choose a subcity.");
-      const coordinate = (id) => $(id).value === "" ? null : Number($(id).value);
-      commit(saveSubcity(getPlan(), {
-        name: $("subcity-name").value,
-        ownerId: selectedOwner,
-        culture: selected.culture,
-        color: selected.color,
-        cityType: selected.color === "red" ? selected.id : null,
-        x: coordinate("subcity-x"),
-        y: coordinate("subcity-y"),
-      }, editing, types()));
+      const coordinate = (id) =>
+        $(id).value === "" ? null : Number($(id).value);
+      commit(
+        saveSubcity(
+          getPlan(),
+          {
+            name: $("subcity-name").value,
+            ownerId: selectedOwner,
+            culture: selected.culture,
+            color: selected.color,
+            cityType: selected.color === "red" ? selected.id : null,
+            x: coordinate("subcity-x"),
+            y: coordinate("subcity-y"),
+          },
+          editing,
+          types(),
+        ),
+      );
       dialog.close();
     } catch (error) {
       $("subcity-error").textContent = error.message;

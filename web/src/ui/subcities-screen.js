@@ -1,21 +1,27 @@
 import { createSubcityCard } from "./subcity-card.js";
 import { createSubcityBrowser } from "./subcity-browser.js";
 import { createSubcityDialog } from "./subcity-dialog.js";
+import { createSubcityOwnerPicker } from "./subcity-owner-picker.js";
 import { view } from "./dom.js";
 import { bindTileActions } from "./tile-actions.js";
 import { removeSubcity } from "../domain/subcities.js";
 
 export function createSubcitiesScreen({
-  root, search, dialog, browser, getPlan, getCatalog,
+  root, search, dialog, browser, ownerBrowser, getAvatars, getPlan, getCatalog,
   canEdit, commit, context, status,
 }) {
   const $ = view(root);
   const grid = $("subcities"), addButton = $("add-subcity");
   const types = () => getCatalog().subcityTypes || [];
   const chooser = createSubcityBrowser({ root: browser, types });
+  const owners = createSubcityOwnerPicker({
+    root: ownerBrowser, getPlan, getAvatars,
+  });
   const editor = createSubcityDialog({
     dialog, getPlan, types, browse: chooser.open,
-    closeBrowser: chooser.close, canEdit, commit, context,
+    browseOwner: owners.open, renderOwner: owners.renderOwner,
+    closeBrowser: () => { chooser.close(); owners.close(); },
+    canEdit, commit, context,
   });
   $("subcities-type").oninput = render;
   $("subcities-color").oninput = render;
