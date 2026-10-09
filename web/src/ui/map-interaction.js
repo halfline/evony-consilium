@@ -116,7 +116,13 @@ export function bindMapInteraction({
             ? entities()
               .filter((item) => group.has(item.id) && !item.locked && item.x !== null)
             : [entity];
-          drag = { pt, entity, members, pointerId: event.pointerId, moved: false };
+          drag = {
+            pt,
+            id: entity.id,
+            members: members.map((member) => ({ ...member })),
+            pointerId: event.pointerId,
+            moved: false,
+          };
           canvas.setPointerCapture(event.pointerId);
         }
         return;
@@ -183,7 +189,7 @@ export function bindMapInteraction({
       const preview = previewPlacementMove(
         getPlan(), drag.members, dx, dy, terrainFor(getPlan().map));
       renderer.previews = preview.positions.map((item) => ({ ...item, valid: preview.valid }));
-      renderer.preview = renderer.previews.find((item) => item.id === drag.entity.id);
+      renderer.preview = renderer.previews.find((item) => item.id === drag.id);
       if (canvas.style) canvas.style.cursor = "grabbing";
       renderer.draw();
       return;
