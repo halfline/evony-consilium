@@ -16,3 +16,12 @@ export function ensureRallySetter(plan) {
   }
   return plan;
 }
+
+export function setRallySetter(plan, id) {
+  if (!plan.keeps.some((player) => player.id === id))
+    throw new Error("Choose a player on this team.");
+  const next = structuredClone(plan);
+  next.rallyId = id;
+  next.rallyManual = true;
+  return next;
+}
