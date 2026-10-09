@@ -124,6 +124,7 @@ export function createPlayerWorkflow({
         !getWorkspace()?.sync.file?.capabilities?.canEdit;
     },
     openAdd: dialog.open,
+    draft: dialog.player,
     selected: () => getPlan().keeps.find((player) => player.id === selection.id),
     renderProfile: () => {
       profile.render();
