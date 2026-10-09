@@ -18,6 +18,7 @@ import { PlacementSelection } from "../application/placement-selection.js";
 import { createPlayerSubcities } from "./player-subcities.js";
 import { removePlayer } from "../domain/players.js";
 import { createMapPlan, removeMapPlan } from "../domain/map-plans.js";
+import { setRallySetter } from "../domain/rally.js";
 
 export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorkspace }) {
   const store = new TeamStore(catalog);
@@ -145,6 +146,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     root: $("formation-screen"), getPlan,
     getSelection: () => selection.id, group: selection.ids, select: selectKeep,
     canEdit: () => !store.readOnly,
+    setRally: (id) => store.commit(setRallySetter(getPlan(), id)),
     place: (keep) => {
       selection.pending = keep.id;
       $("map-guide").textContent = `Click a free map tile to place ${keep.name}.`;
