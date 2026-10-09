@@ -233,10 +233,33 @@
       </header>
       <nav class="workflow-nav tabs" aria-label="Team screens">
         <button data-screen="project" aria-pressed="false">Team</button>
+        <button data-screen="players" aria-pressed="false" hidden>
+          <span id="players-return-arrow" aria-hidden="true" hidden>← </span
+          >Players
+        </button>
 
 
-
-
+        <label id="players-search-control" class="tab-search" hidden>
+          <svg
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <circle cx="10.5" cy="10.5" r="6.5" />
+            <path d="m15.5 15.5 5 5" />
+          </svg>
+          <input
+            id="players-search"
+            type="search"
+            placeholder="Find a player…"
+            aria-label="Search players"
+          />
+        </label>
 
       </nav>
       <section
@@ -308,6 +331,22 @@
               </button>
             </div>
           </div>
+        </div>
+      </section>
+      <section id="players-screen" class="players-screen" aria-label="Players" hidden>
+        <div class="players-workspace">
+          <section id="players-panel" class="players-panel">
+            <div id="players" class="players">
+              <button
+                id="add-player"
+                class="add-player-icon"
+                aria-label="Add player"
+                title="Add player"
+              >
+                ＋
+              </button>
+            </div>
+          </section>
         </div>
       </section>
     </div>

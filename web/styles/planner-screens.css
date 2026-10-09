@@ -8,6 +8,40 @@
   font-size: 15px;
   padding: 14px 20px;
 }
+.players-screen {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 28px;
+}
+.players-workspace {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(320px, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+.players-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.players-panel .players {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+@media (max-width: 900px) {
+  .players-workspace {
+    grid-template-columns: 1fr;
+  }
+  .players-screen {
+    padding: 20px 16px;
+  }
+
+}
+
+#players-panel .section-line {
+  justify-content: flex-end;
+}
 
 #project-screen {
   max-width: 100%;
@@ -77,6 +111,80 @@
   border-color: var(--gold);
 }
 
+#players {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 24px 18px;
+  padding: 3px;
+}
+#players .player-card {
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 16px;
+  padding: 12px 8px;
+  border-color: transparent;
+  background: transparent;
+  text-align: center;
+}
+.player-portrait {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 128px;
+  height: 128px;
+  padding: 6px;
+  flex-shrink: 0;
+  border-radius: 28%;
+  border: 1px solid #cbb47760;
+  background: linear-gradient(145deg, #344739, #17261d);
+  box-shadow: 0 8px 20px #0003;
+}
+#players .player-card:hover .player-portrait,
+#players .player-card.selected .player-portrait {
+  border-color: var(--gold);
+}
+#players .player-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 25%;
+}
+#players .player-portrait .level {
+  position: absolute;
+  right: -8px;
+  bottom: -4px;
+  margin: 0;
+  padding: 6px 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #f1dca8;
+  border: 1px solid #cbb47799;
+  border-radius: 9px 9px 12px 12px;
+  background: #293c2e;
+  box-shadow: 0 3px 8px #0004;
+}
+.player-identity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 6px;
+  min-width: 0;
+}
+#players .player-identity .name {
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.player-tag {
+  color: var(--gold);
+  font-size: 12px;
+}
+#players .player-identity .detail {
+  flex-basis: 100%;
+  margin-top: 0;
+}
+
 .project-settings .project-logo-controls {
   position: relative;
 }
@@ -112,6 +220,10 @@
   }
 }
 
+#players-screen .players-workspace {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .header-actions .icon-action {
   display: inline-flex;
   align-items: center;
@@ -123,6 +235,93 @@
 #undo span {
   font-size: 24px;
   line-height: 1;
+}
+
+#players .add-player-icon {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  align-self: center;
+  justify-self: start;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--gold);
+  border-radius: 10px;
+}
+
+.workflow-nav .tab-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 0;
+  min-width: 44px;
+  max-width: 220px;
+  height: 32px;
+  margin: 8px 0 8px auto;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: #15221b;
+  color: var(--muted);
+}
+.tab-search svg {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+.workflow-nav .tab-search input {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  font-size: 13px;
+}
+.workflow-nav .tab-search:focus-within {
+  border-color: var(--gold);
+}
+
+.player-tile {
+  position: relative;
+  min-width: 0;
+}
+.player-remove {
+  border: 1px solid var(--muted);
+  position: absolute;
+  top: 6px;
+  right: calc(50% - 70px);
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 50%;
+  background: #28392e;
+  color: var(--muted);
+  font-size: 19px;
+  line-height: 1;
+  box-shadow: 0 2px 6px #0004;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms;
+}
+.player-remove:hover {
+  color: var(--gold);
+  border-color: var(--gold);
+}
+.player-actions-open .player-remove {
+  opacity: 1;
+  pointer-events: auto;
+}
+@media (hover: hover) {
+  .player-tile:hover .player-remove {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 #planner {
@@ -261,3 +460,4 @@
     padding: 14px 8px;
   }
 }
+
