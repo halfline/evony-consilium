@@ -71,3 +71,39 @@ test("formation renderer paints placed keeps and exposes their hit region", () =
     globalThis.devicePixelRatio = originalRatio;
   }
 });
+
+test("formation renderer paints overlapping entities back to front", () => {
+  const original = globalThis.ResizeObserver;
+  const originalRatio = globalThis.devicePixelRatio;
+  globalThis.ResizeObserver = class { observe() {} };
+  globalThis.devicePixelRatio = 1;
+  try {
+    const plan = createEmptyPlan();
+    plan.showGrid = false;
+    plan.labels = false;
+    plan.keeps = [
+      { id: "front", name: "Front", skin: "front", x: 101, y: 101, w: 2, h: 2 },
+      { id: "back", name: "Back", skin: "back", x: 100, y: 100, w: 2, h: 2 },
+    ];
+    const images = [];
+    const ctx = {
+      setTransform() {}, fillRect() {}, drawImage: (image) => images.push(image),
+    };
+    const canvas = { getContext: () => ctx, parentElement: {} };
+    const assets = new Map([
+      ["front", { src: "front.webp", width: 100, height: 80 }],
+      ["back", { src: "back.webp", width: 100, height: 80 }],
+    ]);
+    const renderer = new MapRenderer(canvas, () => plan, { assets });
+    renderer.images.get = (src) => src;
+    renderer.width = 400;
+    renderer.height = 200;
+    renderer.draw();
+    assert.deepEqual(images, ["back.webp", "front.webp"]);
+    const point = renderer.screen(102, 102);
+    assert.equal(renderer.hit(point.x, point.y), "front");
+  } finally {
+    globalThis.ResizeObserver = original;
+    globalThis.devicePixelRatio = originalRatio;
+  }
+});
