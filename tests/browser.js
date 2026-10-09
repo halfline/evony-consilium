@@ -9,6 +9,7 @@ import { playerRallyCapacity } from "./browser/player-rally-capacity.js";
 import { playerMarchList } from "./browser/player-march-list.js";
 import { playerMarchManual } from "./browser/player-march-manual.js";
 import { playerMarchSettings } from "./browser/player-march-settings.js";
+import { playerMarchReset } from "./browser/player-march-reset.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -61,6 +62,7 @@ try {
   await playerMarchList({ page, driveFiles });
   await playerMarchManual({ page, driveFiles });
   await playerMarchSettings({ page, driveFiles });
+  await playerMarchReset({ page, driveFiles });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
