@@ -66,6 +66,24 @@ function fixture({ writable = true } = {}) {
     },
   };
 }
+test("one user's Open player never grants another workspace access", async () => {
+  const f = fixture();
+  assert.equal(f.files.state(f.linked()).connected, false);
+  assert.deepEqual(f.calls, []);
+  await f.files.open(f.linked());
+  assert.equal(f.files.state(f.linked()).canEdit, true);
+  assert.deepEqual(f.remembered, ["source"]);
+  const another = new PlayerFiles(f.options);
+  assert.equal(another.state(f.linked()).connected, false);
+  f.files.reset();
+  assert.equal(f.files.state(f.linked()).connected, false);
+});
+test("opening for the roster rejects files outside the central folder", async () => {
+  const f = fixture();
+  f.file.parents = ["elsewhere"];
+  await assert.rejects(f.files.open(null, folder), /central team folder/);
+  assert.equal(f.files.state(f.linked()).connected, false);
+});
 test("native Drive access can enable editing without Picker or a remembered grant", async () => {
   const f = fixture();
   f.options.drive.metadata = async () => structuredClone(f.file);
