@@ -60,7 +60,20 @@ export function createPlayerWorkflow({
     getPlan().keeps.find((player) => player.id === selection.id);
   const editingPlan = () =>
     getWorkspace()?.profiles.editingPlan(selection.id) || getPlan();
-  let fileControls;
+  const fileControls = createPlayerFileControls({
+    root: roots.profile,
+    dialog: roots.sync,
+    getPlayer: cachedPlayer,
+    getFiles: () => getWorkspace()?.players,
+    unlock: () => getWorkspace().profiles.unlock(selection.id),
+    status,
+    refresh: () => {
+      profile.render();
+      list.render();
+      fileControls.render();
+      refreshAccess();
+    },
+  });
   const profile = createPlayerScreen({
     root: roots.profile,
     getPlan: editingPlan,
@@ -87,20 +100,6 @@ export function createPlayerWorkflow({
     },
     remove,
     status,
-  });
-  fileControls = createPlayerFileControls({
-    root: roots.profile,
-    dialog: roots.sync,
-    getPlayer: cachedPlayer,
-    getFiles: () => getWorkspace()?.players,
-    unlock: () => getWorkspace().profiles.unlock(selection.id),
-    status,
-    refresh: () => {
-      profile.render();
-      list.render();
-      fileControls.render();
-      refreshAccess();
-    },
   });
   return {
     open: (id) => {
