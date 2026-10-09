@@ -741,22 +741,34 @@
         </aside>
         <section class="map-section" aria-label="Formation map">
           <div id="map-surface" class="map-surface">
-            <canvas id="map" tabindex="0" aria-label="Formation map"></canvas>
+            <canvas
+              id="map"
+              tabindex="0"
+              aria-label="Formation map. Drag keeps to move them. Drag empty space to pan. Use plus and minus to zoom. Select a keep and use arrow keys to move it."
+            ></canvas>
             <div class="map-caption">
-              <span class="eyebrow" id="map-kicker">MAP</span>
-              <h2 id="map-name"></h2>
+              <span class="eyebrow" id="map-kicker">ALLIANCE HIVE</span>
+              <h2 id="map-name">Server map</h2>
             </div>
             <div class="map-guide" id="map-guide">
               Drag to move · Shift-drag / Ctrl-click to select · Delete to
               remove · Scroll to zoom
             </div>
-            <div id="map-zoom-controls" class="map-controls">
-              <button id="zoom-in" type="button" aria-label="Zoom in">＋</button>
-              <span id="zoom-level">100%</span>
-              <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
-              <button id="reset-view" type="button" aria-label="Center on rally setter">⌖</button>
+            <div class="map-controls">
+              <button id="zoom-in" aria-label="Zoom in">＋</button
+              ><span id="zoom-level">100%</span
+              ><button id="zoom-out" aria-label="Zoom out">−</button
+              ><button id="reset-view" aria-label="Center on rally setter">
+                ⌖
+              </button>
             </div>
-            <div id="map-coordinates" class="map-coordinates" aria-live="off">X: — · Y: —</div>
+            <div class="map-footer">
+              <span id="map-coordinates">X: — &nbsp; Y: —</span
+              ><span
+                ><i class="legend-ring"></i> Rally setter
+                <i class="legend-square"></i> Locked position</span
+              >
+            </div>
           </div>
           <div id="map-editor">
             <section id="inspector" class="inspector" hidden>
