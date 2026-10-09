@@ -52,8 +52,26 @@ export function drawEntity(view, entity, plan, zoom) {
     spriteHeight = spriteWidth * asset.height / asset.width;
     spriteTop = center.y - spriteHeight +
       Math.abs(plan.grid.ay + plan.grid.by) * entity.h * 0.35 * zoom;
-    ctx.drawImage(image, center.x - spriteWidth / 2, spriteTop,
-      spriteWidth, spriteHeight);
+    let spriteLeft = center.x - spriteWidth / 2;
+    if (asset.mapAnchor) {
+      const anchor = asset.mapAnchor;
+      const gridWidth = Math.abs(plan.grid.ax) + Math.abs(plan.grid.bx);
+      const scale = anchor.footprintFill
+        ? gridWidth * Math.max(entity.w, entity.h) *
+          anchor.footprintFill * zoom / (anchor.footprintWidth || asset.width)
+        : (gridWidth / 256 * zoom) / anchor.pixelScale;
+      spriteWidth = asset.width * scale;
+      spriteHeight = asset.height * scale;
+      if (anchor.footprintFill) {
+        const front = view.screen(entity.x + entity.w, entity.y + entity.h);
+        spriteLeft = front.x - anchor.pivotX * scale;
+        spriteTop = front.y - (anchor.groundPivotY ?? asset.height) * scale;
+      } else {
+        spriteLeft = center.x - anchor.pivotX * scale;
+        spriteTop = center.y - anchor.pivotY * scale;
+      }
+    }
+    ctx.drawImage(image, spriteLeft, spriteTop, spriteWidth, spriteHeight);
   } else if (!obstacle) {
     view.path(entity);
     ctx.fillStyle = "#d1ba7c";
