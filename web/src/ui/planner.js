@@ -392,29 +392,32 @@ export function createPlanner(
     store.commit(removePlayerFromPlan(getPlan(), id));
     placementView.reset();
   }
-  players = createPlayerWorkflow({
-    roots: {
-      list: $("players-screen"),
-      profile: $("player-screen"),
-      add: $("add-player-dialog"),
-      avatars: $("avatar-dialog"),
-      sync: $("player-sync-dialog"),
-    },
-    search: $("players-search"),
-    getPlan,
-    getAvatars: () => avatarCatalog,
-    terrainFor: (id) => terrainCatalog?.get(id),
-    assets: store.assets,
-    catalog,
-    browseCastle: catalogBrowser.open,
-    getWorkspace: () => workspace,
-    selection,
-    select: selectKeep,
-    remove: removePlayer,
-    status: toast,
-    navigate: showScreen,
-    refreshAccess: () => access.render(),
-  });
+  wirePlayersScreen();
+  function wirePlayersScreen() {
+    players = createPlayerWorkflow({
+      roots: {
+        list: $("players-screen"),
+        profile: $("player-screen"),
+        add: $("add-player-dialog"),
+        avatars: $("avatar-dialog"),
+        sync: $("player-sync-dialog"),
+      },
+      search: $("players-search"),
+      getPlan,
+      getAvatars: () => avatarCatalog,
+      terrainFor: (id) => terrainCatalog?.get(id),
+      assets: store.assets,
+      catalog,
+      browseCastle: catalogBrowser.open,
+      getWorkspace: () => workspace,
+      selection,
+      select: selectKeep,
+      remove: removePlayer,
+      status: toast,
+      navigate: showScreen,
+      refreshAccess: () => access.render(),
+    });
+  }
   playerSubcities = createPlayerSubcities({
     root: $("player-screen"),
     dialog: $("assign-subcity-dialog"),
