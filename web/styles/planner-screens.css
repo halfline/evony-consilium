@@ -221,6 +221,7 @@
   flex-shrink: 0;
   width: 160px;
   height: 160px;
+  margin: 0 auto 16px;
   padding: 8px;
   background: transparent;
   border-color: transparent;
