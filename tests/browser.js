@@ -51,6 +51,7 @@ import { formationGroupDrag } from "./browser/formation-group-drag.js";
 import { formationGroupDelete } from "./browser/formation-group-delete.js";
 import { formationCancelNavigation } from "./browser/formation-cancel-navigation.js";
 import { formationGroupDragOff } from "./browser/formation-group-drag-off.js";
+import { formationRally } from "./browser/formation-rally.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -140,6 +141,7 @@ try {
   await formationUndo({ page });
   await formationNudge({ page, driveFiles });
   await formationGroupClick({ page });
+  await formationRally({ page, driveFiles });
   await formationRubberBand({ page });
   await formationGroupDrag({ page, driveFiles });
   await formationGroupDragOff({ page, driveFiles });

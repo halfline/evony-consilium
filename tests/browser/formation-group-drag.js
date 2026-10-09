@@ -3,8 +3,10 @@ import assert from "node:assert/strict";
 export async function formationGroupDrag({ page, driveFiles }) {
   const teamFile = () => [...driveFiles.values()].find(
     ({ data }) => data?.format === "evony-consilium-team");
-  await page.locator("#drive-save").click();
-  await page.locator("#drive-save[disabled]").waitFor();
+  if (await page.locator("#drive-save").isEnabled()) {
+    await page.locator("#drive-save").click();
+    await page.locator("#drive-save[disabled]").waitFor();
+  }
   for (let attempt = 0; attempt < 40 && teamFile()?.data.plan.keeps.length !== 2; attempt++)
     await page.waitForTimeout(50);
   const before = teamFile().data.plan.keeps.map(({ id, x, y }) => ({ id, x, y }));
