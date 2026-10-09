@@ -16,6 +16,7 @@ export async function playerProfileEarly({ page, driveFiles }) {
     ({ data }) => data?.format === "evony-consilium-player",
   );
   assert.equal(playerFile.data.profile.name, "Renamed player");
+  assert.equal(playerFile.data.profile.details, undefined);
   await page.locator('[data-screen="players"]').click();
   await page.locator("#players-search").fill("");
   assert.match(await page.locator("#players").textContent(), /Renamed player/);
