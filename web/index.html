@@ -349,6 +349,114 @@
           </section>
         </div>
       </section>
+      <section
+        id="player-screen"
+        class="players-screen"
+        aria-label="Player"
+        hidden
+      >
+        <div id="players-editor">
+          <section id="player-inspector" class="inspector" hidden>
+            <button
+              id="player-unlock"
+              type="button"
+              aria-label="Unlock player"
+              title="Unlock player"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="20"
+                height="20"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <rect x="5" y="10" width="14" height="11" rx="2" />
+                <path d="M8 10V6a4 4 0 0 1 8 0v4" />
+                <path d="M12 14v3" />
+              </svg>
+            </button>
+            <div class="inspector-heading player-heading">
+              <button
+                id="player-avatar"
+                class="avatar-choice"
+                type="button"
+                aria-label="Choose avatar"
+              ></button>
+              <div class="player-name-actions">
+                <h2 id="player-title" tabindex="0"></h2>
+                <button
+                  id="player-remove"
+                  type="button"
+                  aria-label="Remove player"
+                  title="Remove player"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+            <form id="player-form">
+              <div
+                class="tabs player-detail-tabs"
+                role="tablist"
+                aria-label="Player details"
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  data-player-tab="overview"
+                  class="active"
+                  aria-selected="true"
+                >
+                  Overview
+                </button>
+              </div>
+              <div data-player-panel="overview" role="tabpanel">
+                <div class="player-appearance">
+                  <button
+                    id="player-castle"
+                    class="castle-choice"
+                    type="button"
+                    aria-label="Choose castle"
+                    hidden
+                  ></button>
+                </div>
+                <div class="entity-fields">
+                  <label
+                    >Name<input id="player-name" maxlength="100" required
+                  /></label>
+                  <label id="account-field"
+                    >Account ID<input
+                      id="player-account"
+                      inputmode="numeric"
+                      pattern="[0-9]*"
+                      maxlength="40"
+                  /></label>
+                  <label id="tag-field"
+                    >Alliance tag<input id="player-tag" maxlength="16"
+                  /></label>
+                  <label id="level-field"
+                    >Keep level<input
+                      id="player-level"
+                      type="number"
+                      min="1"
+                      max="100"
+                      required
+                  /></label>
+                </div>
+              </div>
+              <div id="player-profile-actions" class="inspector-actions">
+                <button class="primary apply-entity" type="submit">
+                  Apply
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      </section>
       <dialog id="avatar-dialog" class="catalog-dialog">
         <div class="dialog-heading">
           <h2>Choose an avatar</h2>

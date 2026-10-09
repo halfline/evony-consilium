@@ -28,6 +28,47 @@
   max-height: 60vh;
   overflow-y: auto;
 }
+#player-screen {
+  width: 100%;
+  max-width: 960px;
+}
+#player-inspector {
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+#player-screen .player-heading {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+#player-screen .player-heading .avatar-choice {
+  width: 64px;
+  height: 64px;
+}
+#player-screen .player-name-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+#player-screen .entity-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+#player-screen .entity-fields label {
+  display: grid;
+  gap: 6px;
+}
+#player-screen .inspector-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+#player-unlock {
+  float: right;
+}
 .avatar-card img {
   object-fit: contain;
 }
@@ -527,4 +568,3 @@
     padding: 14px 8px;
   }
 }
-
