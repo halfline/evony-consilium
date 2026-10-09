@@ -513,6 +513,64 @@
           </section>
         </div>
       </section>
+      <dialog id="subcity-dialog">
+        <div class="dialog-heading">
+          <h2 id="subcity-title">Add subcity</h2>
+          <button data-close="subcity-dialog" aria-label="Close subcity">
+            ×
+          </button>
+        </div>
+        <form id="subcity-form">
+          <div class="player-appearance">
+            <div class="subcity-castle-choice">
+              <button
+                id="subcity-castle"
+                class="castle-choice subcity-portrait"
+                type="button"
+                aria-label="Choose subcity"
+              ></button>
+              <p id="subcity-choice-name"></p>
+            </div>
+            <div class="subcity-owner-choice player-tile">
+              <button
+                id="subcity-owner"
+                class="avatar-choice"
+                type="button"
+                aria-label="Choose owner"
+              ></button>
+              <button
+                id="subcity-owner-clear"
+                class="player-remove"
+                type="button"
+                aria-label="Clear owner"
+                title="Clear owner"
+                hidden
+              >
+                ×
+              </button>
+              <span id="subcity-owner-name">Unowned</span>
+            </div>
+          </div>
+          <label>Name<input id="subcity-name" maxlength="100" /></label>
+          <div class="subcity-fields">
+            <label
+              >X<input id="subcity-x" type="number" min="0" max="1199" step="1"
+            /></label>
+            <label
+              >Y<input id="subcity-y" type="number" min="0" max="1199" step="1"
+            /></label>
+          </div>
+          <p id="subcity-error" class="entry-error" role="alert"></p>
+          <div class="dialog-actions">
+            <button id="subcity-locate" type="button" hidden>
+              Locate on map
+            </button>
+            <button id="subcity-save" class="primary" type="submit">
+              Save subcity
+            </button>
+          </div>
+        </form>
+      </dialog>
       <dialog id="avatar-dialog" class="catalog-dialog">
         <div class="dialog-heading">
           <h2>Choose an avatar</h2>
