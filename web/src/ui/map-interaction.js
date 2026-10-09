@@ -106,7 +106,6 @@ export function bindMapInteraction({
       pointerId: event.pointerId,
       id: canEdit() && entity && !entity.locked ? id : null,
       blocked: canEdit() && Boolean(entity?.locked),
-      pan: !entity || !canEdit(),
       origin: entity ? { x: entity.x, y: entity.y } : null,
       members: members.map((item) => ({ ...item })),
       camera: { ...renderer.camera },
@@ -199,7 +198,7 @@ export function bindMapInteraction({
       renderer.draw();
       return;
     }
-    if (drag && !drag.pan && !drag.blocked && !drag.band) {
+    if (drag?.id) {
       const box = canvas.getBoundingClientRect();
       const pt = point(event);
       const width = box.width ?? box.right - box.left;
@@ -229,7 +228,7 @@ export function bindMapInteraction({
       renderer.draw();
       return;
     }
-    if (drag?.pan && drag.pointerId === event.pointerId && canvas.hasPointerCapture(event.pointerId))
+    if (drag?.pointerId === event.pointerId && canvas.hasPointerCapture(event.pointerId))
       canvas.releasePointerCapture(event.pointerId);
     drag = null;
     if (canvas.style) canvas.style.cursor = "default";
