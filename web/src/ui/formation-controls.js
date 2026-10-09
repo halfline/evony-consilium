@@ -2,9 +2,27 @@ import { newObstacle, newStructure, addEntity } from "../domain/entities.js";
 import { view } from "./dom.js";
 import { autoFormation } from "../domain/formation.js";
 
-export function createFormationControls({ root, toolbar, getPlan, commit, place, browse,
+export function createFormationControls({ root, toolbar, assets, getPlan, commit, place, browse,
   fit, resetPlacement, status, terrainFor, canEdit = () => true }) {
   const $ = view(root, toolbar);
+  const previews = {
+    alliance: "map-world_castle_guild",
+    warehouse: "map-world_warehouse_guild",
+    resource: "map-world_food_guild",
+    objective: "map-battlefield-knighthall",
+  };
+  for (const button of root.querySelectorAll("[data-building]")) {
+    const asset = assets.get(previews[button.dataset.building]);
+    const portrait = document.createElement("span");
+    portrait.className = "building-portrait";
+    const image = document.createElement("img");
+    image.src = asset.previewSrc || asset.src;
+    image.alt = "";
+    portrait.append(image);
+    const label = document.createElement("span");
+    label.textContent = button.textContent.trim();
+    button.replaceChildren(portrait, label);
+  }
   $("auto-place").onclick = () => {
     if (!canEdit()) return;
     try {

@@ -173,7 +173,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     close: () => selectKeep(null),
   });
   const formationControls = createFormationControls({
-    root: $("formation-screen"), toolbar: document.querySelector(".map-toolbar"), getPlan,
+    root: $("formation-screen"), toolbar: document.querySelector(".map-toolbar"), assets: store.assets, getPlan,
     browse: catalogBrowser.open,
     terrainFor: (id) => terrain?.get(id),
     fit: () => renderer.fit(),
