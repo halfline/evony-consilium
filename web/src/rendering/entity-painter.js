@@ -1,6 +1,26 @@
 export function drawEntity(view, entity, plan, zoom) {
   const ctx = view.ctx;
   const center = view.screen(entity.x + entity.w / 2, entity.y + entity.h / 2);
+  if (zoom < 0.16) {
+    const selected = view.selected === entity.id || view.selectedIds?.has(entity.id);
+    const rally = entity.id === plan.rallyId;
+    ctx.beginPath();
+    ctx.arc(center.x, center.y, selected ? 6 : rally ? 5 : 3, 0, Math.PI * 2);
+    ctx.fillStyle = plan.obstacles?.some(({ id }) => id === entity.id)
+      ? "#e5a887" : rally ? "#f4d386" : "#e0e9ce";
+    ctx.fill();
+    ctx.strokeStyle = "#233529";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    view.hits.push({
+      id: entity.id,
+      left: center.x - 7,
+      right: center.x + 7,
+      top: center.y - 7,
+      bottom: center.y + 7,
+    });
+    return;
+  }
   const width = (Math.abs(plan.grid.ax) + Math.abs(plan.grid.bx)) * entity.w * zoom;
   const height = (Math.abs(plan.grid.ay) + Math.abs(plan.grid.by)) * entity.h * zoom;
   const asset = view.assets.get(entity.skin);
