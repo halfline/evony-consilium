@@ -80,4 +80,22 @@ export class PlayerProfiles {
       );
     this.replaceCached(linked);
   }
+  async save(player, resolve) {
+    if (!this.workspace.players.state(player).canEdit)
+      throw new Error(
+        "Unlock this player with write access to edit its profile.",
+      );
+    const current = this.context(),
+      before = JSON.stringify(this.player(player.id));
+    await this.workspace.players.saveOwn(player, resolve);
+    current();
+    if (this.canEditTeam()) {
+      const cached = this.player(player.id);
+      if (JSON.stringify(cached) !== before)
+        throw new Error(
+          "Player saved, but the team changed. Its cache will refresh automatically.",
+        );
+      this.replaceCached(this.workspace.players.cachedPlayer(cached));
+    }
+  }
 }
