@@ -29,6 +29,7 @@ import { playerSubcityCreate } from "./browser/player-subcity-create.js";
 import { subcityOwnerSearch } from "./browser/subcity-owner-search.js";
 import { mapList } from "./browser/map-list.js";
 import { mapSwitch } from "./browser/map-switch.js";
+import { mapRemove } from "./browser/map-remove.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -101,10 +102,11 @@ try {
   await subcityOwnerSearch({ page, driveFiles });
   await mapList({ page, driveFiles });
   await mapSwitch({ page });
+  await mapRemove({ page, driveFiles });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
-    "Browser checks passed: team entry, linked players, subcities, and map creation/switching.",
+    "Browser checks passed: team entry, linked players, subcities, and map create/switch/remove.",
   );
 } catch (error) {
   console.error(
