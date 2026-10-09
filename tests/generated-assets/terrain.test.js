@@ -347,6 +347,56 @@ test("temple ground bases fill and align with their occupied footprints", async 
 });
 
 
+test("fixed landmarks have no outlines and major sprites stay visible at distant zoom", async () => {
+  const { MapRenderer } = await import(
+    "../../web/src/rendering/map-renderer.js"
+  );
+  const catalog = JSON.parse(readFileSync(assetURL("assets/catalog.json")));
+  const plan = { ...createEmptyPlan(), labels: false };
+  for (const landmark of getTerrain("server").landmarks) {
+    const asset = catalog.assets.find((asset) => asset.id === landmark.skin);
+    for (const zoom of [1, 0.02]) {
+      let strokes = 0,
+        spriteWidth = 0;
+      const ctx = new Proxy(
+        {},
+        {
+          get: (_, name) =>
+            name === "stroke"
+              ? () => strokes++
+              : name === "drawImage"
+                ? (_, left, top, width) => {
+                    spriteWidth = width;
+                  }
+                : () => {},
+        },
+      );
+      const renderer = Object.assign(Object.create(MapRenderer.prototype), {
+        terrainFor: getTerrain,
+        ctx,
+        width: 1000,
+        height: 800,
+        camera: {
+          x: (landmark.x - landmark.y) * 48,
+          y: (landmark.x + landmark.y + landmark.w) * 24,
+          zoom,
+        },
+        hits: [],
+        assets: new Map([[asset.id, asset]]),
+        getPlan: () => plan,
+        image: () => ({}),
+      });
+      renderer.entity(landmark, plan, zoom, true);
+      if (zoom === 1) assert.equal(strokes, 0, landmark.name);
+      if (landmark.skin === "map-kingdom" || landmark.skin.endsWith("shrin")) {
+        assert.ok(spriteWidth >= 60, landmark.name);
+        assert.equal(strokes, 0, landmark.name);
+      }
+    }
+  }
+});
+
+
 test("whole-map view fits all server corners on screen", async () => {
   const { MapRenderer } = await import(
     "../../web/src/rendering/map-renderer.js"
