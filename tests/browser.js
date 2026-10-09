@@ -21,6 +21,7 @@ import { playerFileConflicts } from "./browser/player-file-conflicts.js";
 import { subcityRegistry } from "./browser/subcity-registry.js";
 import { subcityEdit } from "./browser/subcity-edit.js";
 import { subcityRemove } from "./browser/subcity-remove.js";
+import { subcityCategory } from "./browser/subcity-category.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -85,6 +86,7 @@ try {
   await subcityRegistry({ page, driveFiles });
   await subcityEdit({ page, driveFiles });
   await subcityRemove({ page, driveFiles });
+  await subcityCategory({ page });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
