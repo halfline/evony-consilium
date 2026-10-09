@@ -30,3 +30,35 @@ test("legacy project tags become player tags without overriding individual tags"
   assert.throws(() => validatePlan(validated, catalog), /alliance tag/);
 });
 
+test("profile edits cannot write placements and retain other player data", async () => {
+  const { editPlayerProfile } = await import("../web/src/domain/players.js");
+  const { createMapPlan, selectMapPlan, syncMapLayouts } = await import(
+    "../web/src/domain/map-plans.js"
+  );
+  let plan = validatePlan(createDemoPlan(catalog), catalog);
+  const first = plan.activeMapId;
+  const player = structuredClone(plan.keeps[0]);
+  // A future profile extension must survive every existing map and profile operation.
+  plan.keeps[0].stats = { marchSize: 2000000, troops: { ground: 1000000 } };
+  plan = createMapPlan(plan, "boc", "Rally");
+  plan.keeps[0].x = 10;
+  plan.keeps[0].y = 20;
+  syncMapLayouts(plan);
+  const edited = editPlayerProfile(plan, player.id, {
+    name: "New name",
+    level: 42,
+    x: 999,
+    locked: true,
+  });
+  assert.equal(edited.keeps[0].x, 10);
+  assert.equal(edited.keeps[0].locked, false);
+  assert.deepEqual(edited.keeps[0].stats, plan.keeps[0].stats);
+  const restored = selectMapPlan(edited, first);
+  assert.equal(restored.keeps[0].x, player.x);
+  assert.equal(restored.keeps[0].name, "New name");
+  assert.deepEqual(
+    validatePlan(restored, catalog).keeps[0].stats,
+    plan.keeps[0].stats,
+  );
+  assert.equal(plan.keeps[0].name, player.name);
+});
