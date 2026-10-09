@@ -12,6 +12,7 @@ export function createPlayerScreen({
   catalog,
   browseAvatar,
   commit,
+  remove,
   canEdit,
   status,
 }) {
@@ -50,6 +51,10 @@ export function createPlayerScreen({
       }
     });
   };
+  $("player-remove").onclick = () => {
+    const player = getPlayer();
+    if (player) remove(player.id);
+  };
   function render() {
     const player = getPlayer();
     $("player-inspector").hidden = !player;
@@ -57,7 +62,8 @@ export function createPlayerScreen({
     $("player-title").textContent = player.name;
     $("player-avatar").disabled = !canEdit();
     $("player-unlock").hidden = true;
-    $("player-remove").hidden = true;
+    $("player-remove").hidden = false;
+    $("player-remove").setAttribute("aria-label", `Remove ${player.name}`);
     for (const [field, id] of Object.entries({
       name: "player-name",
       accountId: "player-account",
