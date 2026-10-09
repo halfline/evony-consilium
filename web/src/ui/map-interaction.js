@@ -15,11 +15,12 @@ export function bindMapInteraction({
   let pan = null;
   let drag = null;
   let band = null;
+  let blocked = null;
   function cancel() {
-    for (const state of [pan, drag, band])
+    for (const state of [pan, drag, band, blocked])
       if (state?.pointerId !== undefined && canvas.hasPointerCapture(state.pointerId))
         canvas.releasePointerCapture(state.pointerId);
-    pan = drag = band = null;
+    pan = drag = band = blocked = null;
     renderer.preview = renderer.previews = renderer.selectionBox = null;
     renderer.draw();
   }
@@ -72,6 +73,11 @@ export function bindMapInteraction({
       if (id) {
         const entity = [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]
           .find((item) => item.id === id);
+        if (canEdit() && entity?.locked) {
+          blocked = { pt, pointerId: event.pointerId, moved: false };
+          canvas.setPointerCapture(event.pointerId);
+          return;
+        }
         if (canEdit() && entity && !entity.locked) {
           const members = group.has(id)
             ? [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]
@@ -121,6 +127,11 @@ export function bindMapInteraction({
       }
       return;
     }
+    if (blocked) {
+      const pt = point(event);
+      blocked.moved ||= Math.hypot(pt.x - blocked.pt.x, pt.y - blocked.pt.y) > 4;
+      return;
+    }
     if (band) {
       const pt = point(event);
       const box = {
@@ -160,6 +171,13 @@ export function bindMapInteraction({
     renderer.draw();
   };
   const endPan = (event, canceled = false) => {
+    if (blocked) {
+      if (!canceled && blocked.moved)
+        toast("Unlock this position before moving it.");
+      if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+      blocked = null;
+      return;
+    }
     if (band) {
       if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
       band = null;
