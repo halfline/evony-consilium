@@ -265,7 +265,16 @@
         <label id="subcities-search-control" class="tab-search" hidden>
           <input id="subcities-search" type="search" placeholder="Find a subcity…" aria-label="Search subcities" />
         </label>
-
+        <div class="map-toolbar" hidden>
+          <strong id="formation-name"></strong>
+          <div class="view-options">
+            <label><input id="show-grid" type="checkbox" /> Grid</label>
+            <label><input id="show-labels" type="checkbox" /> Names</label>
+            <button id="auto-place" type="button">Arrange formation</button>
+            <button id="fit-map" type="button">Fit formation</button>
+            <button id="overview-map" type="button">Whole map</button>
+          </div>
+        </div>
       </nav>
       <section
         id="project-screen"
@@ -669,9 +678,6 @@
         <aside class="formation-sidebar" aria-label="Formation players">
           <h2>Formation</h2>
           <div id="formation-players" class="players"></div>
-          <label class="view-option"><input id="show-grid" type="checkbox" /> Grid</label>
-          <label class="view-option"><input id="show-labels" type="checkbox" /> Names</label>
-          <button id="auto-place" type="button">Arrange formation</button>
           <p id="map-guide" class="muted">Choose an unplaced player, then click a free map tile.</p>
           <section class="formation-obstacles" aria-label="Blocked tiles">
             <h2>Blocked tiles</h2>
@@ -693,13 +699,11 @@
               <span class="eyebrow" id="map-kicker">MAP</span>
               <h2 id="map-name"></h2>
             </div>
-            <div id="map-zoom-controls" class="map-controls" hidden>
+            <div id="map-zoom-controls" class="map-controls">
               <button id="zoom-in" type="button" aria-label="Zoom in">＋</button>
               <span id="zoom-level">100%</span>
               <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
               <button id="reset-view" type="button" aria-label="Center on rally setter">⌖</button>
-              <button id="fit-map" type="button">Fit formation</button>
-              <button id="overview-map" type="button">Whole map</button>
             </div>
             <div id="map-coordinates" class="map-coordinates" aria-live="off">X: — · Y: —</div>
           </div>

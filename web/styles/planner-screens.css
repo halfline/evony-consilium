@@ -800,7 +800,7 @@
 .formation-obstacles h2 { margin: 0 0 8px; }
 .formation-obstacles #add-obstacle { width: 100%; }
 .formation-obstacles [data-building] { width: 100%; margin-bottom: 6px; }
-#auto-place { width: 100%; }
+#auto-place { width: auto; }
 .view-option { display: flex; align-items: center; gap: 6px; margin: 8px 0; }
 .sidebar-footer { margin-top: 16px; border-top: 1px solid #344338; padding-top: 12px; }
 .sidebar-footer button { width: 100%; }
@@ -833,3 +833,15 @@
 }
 #map-zoom-controls button { min-width: 36px; min-height: 36px; }
 #map-zoom-controls #zoom-level { min-width: 48px; text-align: center; }
+.workflow-nav .map-toolbar {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 12px;
+}
+.workflow-nav .map-toolbar[hidden] { display: none; }
+.workflow-nav .view-options { display: flex; align-items: center; gap: 10px; }
+.workflow-nav .view-options label { display: flex; align-items: center; gap: 5px; }
+.workflow-nav .view-options button { white-space: nowrap; }

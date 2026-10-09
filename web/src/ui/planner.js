@@ -63,6 +63,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     if (screen === "player") $("players-screen").hidden = true;
     $("player-screen").hidden = screen !== "player";
     $("formation-screen").hidden = screen !== "formation";
+    document.querySelector(".map-toolbar").hidden = screen !== "formation";
     $("players-return-arrow").hidden = screen !== "player";
     $("players-search-control").hidden = screen !== "players";
     $("subcities-search-control").hidden = screen !== "subcities";
@@ -140,7 +141,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     onDraw: (state) => mapViewControls?.render(state),
   });
   mapViewControls = bindMapViewControls({
-    root: $("formation-screen"), renderer, getPlan,
+    root: $("formation-screen"), toolbar: document.querySelector(".map-toolbar"), renderer, getPlan,
     mutate: (change) => store.mutate(change),
     selected: () => [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]
       .find(({ id }) => id === selection.id),
@@ -177,7 +178,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     close: () => selectKeep(null),
   });
   const formationControls = createFormationControls({
-    root: $("formation-screen"), getPlan,
+    root: $("formation-screen"), toolbar: document.querySelector(".map-toolbar"), getPlan,
     browse: catalogBrowser.open,
     terrainFor: (id) => terrain?.get(id),
     fit: () => renderer.fit(),
@@ -216,6 +217,8 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     subcities.render();
     mapsScreen.render();
     mapViewControls.render({ zoom: renderer.camera.zoom });
+    const activeMap = getPlan().maps.find(({ id }) => id === getPlan().activeMapId);
+    $("formation-name").textContent = activeMap?.name || "";
     renderer.draw();
     formationList.render();
     placementInspector.render();

@@ -2,9 +2,9 @@ import { newObstacle, newStructure, addEntity } from "../domain/entities.js";
 import { view } from "./dom.js";
 import { autoFormation } from "../domain/formation.js";
 
-export function createFormationControls({ root, getPlan, commit, place, browse,
+export function createFormationControls({ root, toolbar, getPlan, commit, place, browse,
   fit, resetPlacement, status, terrainFor, canEdit = () => true }) {
-  const $ = view(root);
+  const $ = view(root, toolbar);
   $("auto-place").onclick = () => {
     if (!canEdit()) return;
     try {
