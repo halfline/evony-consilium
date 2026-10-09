@@ -130,7 +130,12 @@ export function createPlayerWorkflow({
     },
     selected: () => getPlan().keeps.find((player) => player.id === selection.id),
     renderProfile: () => {
-      profile.render();
+      const focused = roots.profile.ownerDocument.activeElement;
+      if (
+        !focused?.matches("input, textarea, select") ||
+        !roots.profile.contains(focused)
+      )
+        profile.render();
       fileControls.render();
       refreshAccess();
       getWorkspace()?.players.probe(cachedPlayer());
