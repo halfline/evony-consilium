@@ -6,6 +6,7 @@ import { renderCastleButton } from "./castle-button.js";
 
 export function createPlacementInspector({
   root, selected, close, getPlan, terrainFor, catalog, assets, browse, commit, status,
+  applied = () => {},
   canEdit = () => true,
 }) {
   const $ = view(root);
@@ -56,6 +57,7 @@ export function createPlacementInspector({
         throw new Error("That location overlaps another tile or is outside the map.");
       validatePlan(next, catalog);
       commit(next);
+      applied();
       status("Changes applied.");
     } catch (error) { status(error.message, true); }
   };

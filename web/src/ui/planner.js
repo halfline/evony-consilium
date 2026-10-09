@@ -169,6 +169,7 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
     terrainFor: (id) => terrainCatalog?.get(id),
     canEdit: () => !store.readOnly,
     commit: (plan) => store.commit(plan),
+    applied: () => placementView.reset(),
     status: toast,
     selected: () => [...getPlan().keeps, ...getPlan().structures, ...getPlan().obstacles]
       .find(({ id }) => id === selection.id),
