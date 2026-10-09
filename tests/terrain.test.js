@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { TerrainCatalog } from "../web/src/domain/terrain.js";
+import { loadTerrain } from "../web/src/services/terrain-loader.js";
 
 test("terrain catalogs remain independent across resource loads", () => {
   const manifest = {
@@ -30,4 +31,32 @@ test("terrain catalogs remain independent across resource loads", () => {
   assert.equal(first.get("tiny").blocked[0], 0);
   assert.equal(second.get("tiny").blocked[0], 1);
   assert.throws(() => new TerrainCatalog(manifest, new Map()), /Invalid terrain data/);
+});
+
+test("terrain loader fetches each manifest buffer and rejects missing data", async () => {
+  const original = globalThis.fetch;
+  const requests = [];
+  const manifest = {
+    maps: {
+      tiny: {
+        src: "assets/terrain/tiny.bin",
+        width: 1, height: 1, extent: 1, blockedOffset: 1,
+        layers: [{ name: "surface", offset: 0 }], landmarks: [],
+      },
+    },
+  };
+  try {
+    globalThis.fetch = async (url) => {
+      requests.push(url);
+      return url.endsWith("manifest.json")
+        ? { ok: true, json: async () => manifest }
+        : { ok: true, arrayBuffer: async () => Uint8Array.of(4, 0).buffer };
+    };
+    assert.equal((await loadTerrain()).get("tiny").layers[0].tiles[0], 4);
+    assert.deepEqual(requests, ["assets/terrain/manifest.json", "assets/terrain/tiny.bin"]);
+    globalThis.fetch = async () => ({ ok: false });
+    await assert.rejects(loadTerrain(), /Map terrain could not be loaded/);
+  } finally {
+    globalThis.fetch = original;
+  }
 });
