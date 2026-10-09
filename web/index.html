@@ -443,6 +443,7 @@
                 <button type="button" role="tab" data-player-tab="march-size" aria-selected="false" hidden>March size</button>
                 <button type="button" role="tab" data-player-tab="rally-capacity" aria-selected="false" hidden>Rally capacity</button>
                 <button type="button" role="tab" data-player-tab="troops" aria-selected="false" hidden>Attack marches</button>
+                <button type="button" role="tab" data-player-tab="subcities" aria-selected="false" hidden>Subcities</button>
               </div>
               <div data-player-panel="overview" role="tabpanel">
                 <div class="player-appearance">
@@ -502,6 +503,12 @@
                   <div id="player-troop-summary" class="player-stat-summary"></div>
                   <div id="player-troops" class="player-table-scroll"></div>
                   <button id="player-add-tier" type="button" class="player-small-add" aria-label="Add troop tier">＋</button>
+                </div>
+              </div>
+              <div data-player-panel="subcities" role="tabpanel" hidden>
+                <p id="player-subcities-empty" class="muted">No subcities assigned.</p>
+                <div id="player-subcities" class="subcities-grid">
+                  <button id="player-add-subcity" class="add-subcity-icon" type="button" aria-label="Assign subcity" title="Assign subcity">＋</button>
                 </div>
               </div>
               <div id="player-profile-actions" class="inspector-actions">
