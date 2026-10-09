@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 
 export async function formationObstacle({ page, driveFiles }) {
+  await page.locator('[data-tab="hive"]').click();
+  assert.equal(await page.locator("#panel-hive").isVisible(), true);
+  assert.equal(await page.locator("#panel-formation").isVisible(), false);
   await page.locator("#add-obstacle").click();
   const row = page.locator("#structure-list .players-row").last();
   assert.equal(await row.locator(".name").textContent(), "Blocked tile");
