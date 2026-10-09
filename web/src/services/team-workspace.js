@@ -1,3 +1,4 @@
+import { OperationCancelled } from "./cancellation.js";
 import { loadTeamFiles } from "./team-files.js";
 import { ProjectSync } from "./project-sync.js";
 import { DraftQueue } from "../persistence/draft-queue.js";
@@ -18,6 +19,13 @@ const teamFingerprint = (plan) =>
 
 // Account and shared-document lifetime; callers supply presentation callbacks.
 export class TeamWorkspace {
+  #generation = 0;
+  #begin() {
+    const generation = ++this.#generation;
+    return () => {
+      if (generation !== this.#generation) throw new OperationCancelled();
+    };
+  }
   healthy() {
     return !!this.account && !!this.session.token();
   }
@@ -108,14 +116,18 @@ export class TeamWorkspace {
     this.repository.forget(this.account.sub, id);
   }
   clear() {
+    this.#generation++;
     this.session.clear();
     this.sync.reset();
     this.account = null;
     this.project = null;
   }
   async signIn(options) {
+    const current = this.#begin();
     const account = await this.session.signIn(options);
+    current();
     await this.flush();
+    current();
     if (this.account?.sub !== account.sub) {
       this.sync.reset();
       this.project = null;
@@ -137,16 +149,20 @@ export class TeamWorkspace {
   }
   async open(resource, discardDraft = false) {
     this.authorize();
+    const current = this.#begin();
     const account = this.account;
     await this.flush();
+    current();
     const { project, file, plan } = await loadTeamFiles({
       drive: this.drive,
       picker: this.picker,
       folder: resource,
       authorizeFiles: () => this.status("Choose the team file."),
     });
+    current();
     const key = teamDraftKey(account.sub, project.folder.id, file.id);
     const cached = await this.repository.read(key);
+    current();
     const readOnly = !file.capabilities?.canEdit;
     const draft = resolveTeamDraft({
       sharedPlan: plan,
@@ -162,6 +178,7 @@ export class TeamWorkspace {
         { plan, baseVersion: file.version, dirty: false },
         key,
       );
+    current();
     this.sync.opened(draft.file, plan, file.version);
     this.remember();
     return draft;
@@ -169,18 +186,24 @@ export class TeamWorkspace {
   async create(name, logo) {
     this.authorize();
     if (!name.trim()) throw new Error("Enter a team name.");
+    const current = this.#begin();
     await this.flush();
+    current();
     const plan = createEmptyPlan();
     plan.title = name.trim();
     plan.projectLogo = logo;
     const folder = await this.drive.createFolder(plan.title);
+    current();
     await this.drive.initializeProject(folder, plan);
+    current();
     return this.open(folder);
   }
   async join(link) {
     this.authorize();
     if (link) return this.open(parseDriveLink(link));
+    const current = this.#begin();
     const [selected] = await this.picker.files(null);
+    current();
     return this.open({ ...selected, kind: "file" });
   }
 }
