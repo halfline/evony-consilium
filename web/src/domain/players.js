@@ -1,5 +1,4 @@
 import { footprint, addEntity } from "./entities.js";
-import { validatePlayerDetails } from "./player-details-schema.js";
 import { number, string } from "./constraints.js";
 import { castleForLevel } from "./castles.js";
 export function newPlayer(assets, allianceTag = "") {
@@ -21,4 +20,35 @@ export function newPlayer(assets, allianceTag = "") {
     y: null,
     locked: false,
   };
+}
+
+// Only profile fields may be written by the player editor. Placements belong to maps.
+const PLAYER_PROFILE_FIELDS = [
+  "name",
+  "accountId",
+  "allianceTag",
+  "level",
+  "skin",
+  "avatarId",
+];
+export function validatePlayerProfile(player, defaultTag = "") {
+  string(player.name, 100, "name");
+  number(player.level, 1, 100, "keep level");
+  if (player.avatarId !== undefined) string(player.avatarId, 120, "avatar ID");
+  player.allianceTag ??= defaultTag;
+  string(player.allianceTag, 16, "alliance tag");
+  string(player.accountId, 40, "account ID");
+  if (player.accountId && !/^\d+$/.test(player.accountId))
+    throw new Error("Account IDs must contain digits.");
+  return player;
+}
+export function editPlayerProfile(plan, id, changes) {
+  const next = structuredClone(plan);
+  const player = next.keeps.find((item) => item.id === id);
+  if (!player) throw new Error("Player not found.");
+  for (const field of PLAYER_PROFILE_FIELDS)
+    if (Object.hasOwn(changes, field)) player[field] = changes[field];
+  validatePlayerProfile(player);
+  if (!player.name.trim()) throw new Error("Enter a player name.");
+  return next;
 }
