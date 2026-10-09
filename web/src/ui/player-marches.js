@@ -15,10 +15,25 @@ export function createPlayerMarches({ root, getSizes }) {
     $("player-troops").querySelectorAll("[data-share]").forEach((input) => {
       input.disabled = march.generation.manual;
     });
-    const total = marchTotals(march).total;
-    const capacity = marchCapacity(march, getSizes());
-    $("player-troop-summary").textContent =
-      `${total.toLocaleString()} troops` + (capacity == null ? "" : ` · ${(capacity - total).toLocaleString()} available`);
+    try {
+      const total = marchTotals(march).total;
+      const capacity = marchCapacity(march, getSizes());
+      const difference =
+        capacity == null || total == null ? null : capacity - total;
+      const usage =
+        difference == null
+          ? ""
+          : difference === 0
+            ? " · Full"
+            : difference > 0
+              ? ` · ${difference.toLocaleString()} available`
+              : ` · ${(-difference).toLocaleString()} over capacity`;
+      $("player-troop-summary").textContent =
+        draft.errors.get(march.id) ||
+        (total == null ? "" : `${total.toLocaleString()} troops${usage}`);
+    } catch (error) {
+      $("player-troop-summary").textContent = error.message;
+    }
   }
   function renderMarch() {
     editing = true;
