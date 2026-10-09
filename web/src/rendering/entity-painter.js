@@ -25,6 +25,8 @@ export function drawEntity(view, entity, plan, zoom) {
   const height = (Math.abs(plan.grid.ay) + Math.abs(plan.grid.by)) * entity.h * zoom;
   const asset = view.assets.get(entity.skin);
   const image = asset && view.image(asset.src);
+  let spriteWidth = width;
+  let spriteHeight = height;
   let spriteTop = center.y;
   const selected = view.selected === entity.id || view.selectedIds?.has(entity.id);
   const rally = entity.id === plan.rallyId;
@@ -45,9 +47,13 @@ export function drawEntity(view, entity, plan, zoom) {
     ctx.stroke();
   }
   if (image) {
-    const spriteHeight = width * asset.height / asset.width;
-    spriteTop = center.y - spriteHeight;
-    ctx.drawImage(image, center.x - width / 2, spriteTop, width, spriteHeight);
+    spriteWidth = (Math.abs(plan.grid.ax) + Math.abs(plan.grid.bx)) *
+      Math.max(entity.w, entity.h) * 0.87 * zoom;
+    spriteHeight = spriteWidth * asset.height / asset.width;
+    spriteTop = center.y - spriteHeight +
+      Math.abs(plan.grid.ay + plan.grid.by) * entity.h * 0.35 * zoom;
+    ctx.drawImage(image, center.x - spriteWidth / 2, spriteTop,
+      spriteWidth, spriteHeight);
   } else if (!obstacle) {
     view.path(entity);
     ctx.fillStyle = "#d1ba7c";
@@ -66,10 +72,10 @@ export function drawEntity(view, entity, plan, zoom) {
   }
   view.hits.push({
     id: entity.id,
-    left: center.x - width / 2,
-    right: center.x + width / 2,
-    top: center.y - Math.max(height, 10),
-    bottom: center.y + Math.max(height / 2, 10),
+    left: center.x - Math.max(spriteWidth / 2, 10),
+    right: center.x + Math.max(spriteWidth / 2, 10),
+    top: spriteTop - 10,
+    bottom: center.y + Math.max(25, 35 * zoom),
   });
   if (plan.labels && zoom > 0.16) {
     const label = (rally ? "★ " : "") +
