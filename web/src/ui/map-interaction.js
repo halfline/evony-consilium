@@ -83,7 +83,13 @@ export function bindMapInteraction({
   };
   const endPan = (event, canceled = false) => {
     if (drag) {
-      if (!canceled && drag.moved && renderer.preview?.valid)
+      const box = canvas.getBoundingClientRect();
+      const outside = event.clientX < box.left || event.clientX > box.right ||
+        event.clientY < box.top || event.clientY > box.bottom;
+      if (!canceled && drag.moved && outside) {
+        commit(removePlacements(getPlan(), new Set([drag.entity.id])));
+        select(null);
+      } else if (!canceled && drag.moved && renderer.preview?.valid)
         commit(movePlacements(getPlan(), [renderer.preview], terrainFor(getPlan().map)));
       if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
       drag = null;
