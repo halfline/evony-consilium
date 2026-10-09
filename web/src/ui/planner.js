@@ -159,7 +159,7 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
   });
   placementInspector = createPlacementInspector({
     root: $("inspector"),
-    getPlan, catalog,
+    getPlan, catalog, assets: store.assets, browse: catalogBrowser.open,
     terrainFor: (id) => terrain?.get(id),
     canEdit: () => !store.readOnly,
     commit: (plan) => store.commit(plan),

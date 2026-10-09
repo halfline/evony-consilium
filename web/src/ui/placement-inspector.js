@@ -1,13 +1,28 @@
 import { view } from "./dom.js";
 import { canPlace } from "../domain/placement.js";
 import { validatePlan } from "../domain/validation.js";
+import { changeAppearance } from "../domain/appearance-commands.js";
+import { renderCastleButton } from "./castle-button.js";
 
 export function createPlacementInspector({
-  root, selected, close, getPlan, terrainFor, catalog, commit, status,
+  root, selected, close, getPlan, terrainFor, catalog, assets, browse, commit, status,
   canEdit = () => true,
 }) {
   const $ = view(root);
   $("close-inspector").onclick = close;
+  $("choose-building-skin").onclick = () => {
+    if (!canEdit()) return;
+    const entity = selected();
+    const asset = assets.get(entity?.skin);
+    if (asset) browse(asset.kind, (chosen) => {
+      try {
+        const next = changeAppearance(getPlan(), entity.id, chosen,
+          terrainFor(getPlan().map));
+        validatePlan(next, catalog);
+        commit(next);
+      } catch (error) { status(error.message, true); }
+    });
+  };
   $("entity-form").onsubmit = (event) => {
     event.preventDefault();
     const entity = selected();
@@ -54,6 +69,10 @@ export function createPlacementInspector({
     $("entity-y").value = entity.y ?? "";
     $("entity-locked").checked = !!entity.locked;
     const obstacle = getPlan().obstacles.some(({ id }) => id === entity.id);
+    const structureAsset = assets.get(entity.skin);
+    $("choose-building-skin").hidden = obstacle || "level" in entity || !structureAsset;
+    $("choose-building-skin").disabled = !canEdit();
+    if (structureAsset) renderCastleButton($("choose-building-skin"), structureAsset);
     for (const key of ["w", "h"]) {
       const input = $("entity-" + key);
       input.value = entity[key];
