@@ -46,3 +46,21 @@ test("dragging empty canvas pans the camera and releases pointer capture", () =>
   canvas.onpointermove({ pointerId: 1, clientX: 50, clientY: 60 });
   assert.deepEqual([renderer.camera.x, renderer.camera.y], [0, 10]);
 });
+
+test("mouse wheel zooms around the pointer and suppresses page scrolling", () => {
+  const canvas = { getBoundingClientRect: () => ({ left: 5, top: 10 }) };
+  const zooms = [];
+  bindMapInteraction({
+    canvas,
+    renderer: { zoom: (...args) => zooms.push(args) },
+    getPending: () => null,
+  });
+  let prevented = false;
+  canvas.onwheel({
+    clientX: 25, clientY: 40, deltaY: -100,
+    preventDefault: () => { prevented = true; },
+  });
+  assert.equal(prevented, true);
+  assert.deepEqual(zooms[0].slice(1), [20, 30]);
+  assert.ok(zooms[0][0] > 1);
+});
