@@ -178,14 +178,6 @@ export function bindMapInteraction({
     renderer.draw();
   };
   canvas.onpointerup = (event) => {
-    if (drag?.blocked) {
-      if (drag.moved)
-        toast("Unlock this position before moving it.");
-      if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
-      drag = null;
-      if (canvas.style) canvas.style.cursor = "default";
-      return;
-    }
     if (drag?.band) {
       if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
       drag = null;
@@ -225,8 +217,11 @@ export function bindMapInteraction({
     }
     if (drag?.pointerId === event.pointerId && canvas.hasPointerCapture(event.pointerId))
       canvas.releasePointerCapture(event.pointerId);
+    if (drag?.blocked && drag.moved)
+      toast("Unlock this position before moving it.");
     drag = null;
     if (canvas.style) canvas.style.cursor = "default";
+    renderer.draw?.();
   };
   canvas.onpointercancel = () => {
     group.clear();
