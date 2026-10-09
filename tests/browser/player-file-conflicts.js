@@ -10,6 +10,10 @@ export async function playerFileConflicts({ page, driveFiles }) {
   await page.locator("#player-form [type=submit]").click();
   const dialog = page.locator("#player-sync-dialog");
   await dialog.waitFor({ state: "visible" });
+  assert.equal(
+    await page.locator("#player-screen").getAttribute("aria-busy"),
+    "true",
+  );
   assert.match(await page.locator("#player-sync-conflicts").textContent(), /name/);
   await dialog.locator('[data-resolution="team"]').click();
   for (let attempt = 0; attempt < 40; attempt++) {
@@ -18,6 +22,9 @@ export async function playerFileConflicts({ page, driveFiles }) {
   }
   assert.equal(playerFile.data.profile.name, "Local player name");
   assert.equal(await dialog.isVisible(), false);
+  await page.waitForFunction(
+    () => document.getElementById("player-screen").getAttribute("aria-busy") === "false",
+  );
 
   playerFile.data.profile.name = "Remote second name";
   await page.locator("#player-name").fill("Local second name");
