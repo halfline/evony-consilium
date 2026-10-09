@@ -209,6 +209,17 @@ test("unlocking a team rechecks Drive access", async () => {
   assert.equal(f.workspace.sync.file.capabilities.canEdit, true);
 });
 
+test("remote polling checks only the shared team document", async () => {
+  const f = fixture();
+  await f.workspace.signIn();
+  await f.workspace.open({ id: "folder" });
+  let checks = 0;
+  f.workspace.sync.checkRemote = async () => {
+    checks++;
+  };
+  await f.workspace.checkRemote();
+  assert.equal(checks, 1);
+});
 
 test("joining a team link preserves its file ID and resource key", async () => {
   const f = fixture();
