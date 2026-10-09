@@ -1,6 +1,6 @@
 import { number, string } from "./constraints.js";
 import { TROOP_TYPES, troopTotals, validateTroops } from "./troops.js";
-import { validateGeneration } from "./march-generation.js";
+import { initialGeneration, validateGeneration } from "./march-generation.js";
 
 export function validateMarches(marches) {
   if (!Array.isArray(marches) || marches.length > 50)
@@ -58,4 +58,10 @@ export function marchTotals(march) {
       throw new Error("March total exceeds the supported range.");
   }
   return totals;
+}
+
+export function newMarch(name, troopType, highestTier) {
+  const march = { id: crypto.randomUUID(), name, troopType, layers: [] };
+  march.generation = initialGeneration(march, highestTier);
+  return march;
 }
