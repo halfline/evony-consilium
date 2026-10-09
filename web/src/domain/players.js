@@ -52,3 +52,11 @@ export function editPlayerProfile(plan, id, changes) {
   if (!player.name.trim()) throw new Error("Enter a player name.");
   return next;
 }
+export function removePlayer(plan, id) {
+  const next = structuredClone(plan);
+  next.keeps = next.keeps.filter((player) => player.id !== id);
+  for (const city of next.subcities || [])
+    if (city.ownerId === id) city.ownerId = null;
+  if (next.rallyId === id) next.rallyId = next.keeps[0]?.id || null;
+  return next;
+}
