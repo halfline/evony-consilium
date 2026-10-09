@@ -274,10 +274,27 @@ export function bindMapInteraction({
     select(null);
     groupChanged();
   };
+  const documentKeydown = (event) => {
+    if (!canEdit() || event.target === canvas ||
+        event.target?.closest?.("input,select,textarea")) return;
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z") {
+      event.preventDefault();
+      undo();
+    } else if (event.key === "Escape") {
+      resetPending();
+      group.clear();
+      groupChanged();
+      cancel();
+    }
+  };
+  if (typeof document !== "undefined")
+    document.addEventListener("keydown", documentKeydown);
   return {
     cancel,
     dispose() {
       cancel();
+      if (typeof document !== "undefined")
+        document.removeEventListener("keydown", documentKeydown);
       for (const name of ["ondblclick", "onpointerdown", "onpointermove", "onpointerup",
         "onpointercancel", "onwheel", "onkeydown"])
         canvas[name] = null;
