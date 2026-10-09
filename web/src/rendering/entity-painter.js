@@ -79,6 +79,11 @@ export function drawEntity(view, entity, plan, zoom, fixed = false) {
       }
     }
     ctx.drawImage(image, spriteLeft, spriteTop, spriteWidth, spriteHeight);
+  } else if (asset) {
+    ctx.fillStyle = "#d1ba7c";
+    ctx.font = `${Math.max(14, 30 * zoom)}px serif`;
+    ctx.textAlign = "center";
+    ctx.fillText("♜", center.x, center.y);
   } else if (!obstacle) {
     view.path(entity);
     ctx.fillStyle = "#d1ba7c";
