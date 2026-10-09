@@ -6,12 +6,11 @@ import {
   playerProfile,
   validateProfile,
 } from "../web/src/domain/player-document.js";
+import { createDemoPlan } from "../web/src/domain/plan.js";
+import { catalog } from "./fixtures/catalog.js";
 const folder = { id: "central", capabilities: { canAddChildren: true } };
 function fixture({ writable = true } = {}) {
-  const player = {
-    id: "player-a", name: "Player", accountId: "", allianceTag: "", level: 42,
-    skin: "castle", w: 2, h: 2, x: null, y: null, locked: false,
-  };
+  const player = createDemoPlan(catalog).keeps[0];
   let profile = validateProfile(player);
   const file = {
     id: "source",
