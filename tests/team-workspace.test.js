@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { TeamWorkspace } from "../web/src/services/team-workspace.js";
 import { createEmptyPlan } from "../web/src/domain/plan.js";
+import { createMapPlan, selectMapPlan } from "../web/src/domain/map-plans.js";
 
 function fixture({ canEdit = true, cached = null } = {}) {
   let plan = createEmptyPlan();
@@ -287,6 +288,8 @@ test("team opening reconnects only player files this account previously opened",
   const f = fixture();
   f.shared.keeps = ["allowed", "other"].map((id) => ({
     id,
+    name: id,
+    level: 1,
     playerSource: { fileId: id },
   }));
   f.workspace.repository.openedPlayers = () => ["allowed"];
@@ -311,4 +314,64 @@ test("central folder authorization rejects an unrelated Drive folder", async () 
         })();
   f.workspace.picker.folder = async () => ({ id: "elsewhere" });
   await assert.rejects(f.workspace.playerFolder(), /central team folder/);
+});
+
+
+test("map switching keeps local draft clean while inactive layout edits make it dirty", async () => {
+  const f = fixture();
+  let saved = createMapPlan(createEmptyPlan(), "server", "Hive");
+  const first = saved.activeMapId;
+  saved = createMapPlan(saved, "bog", "Rally");
+  Object.assign(f.shared, saved);
+  await f.workspace.signIn();
+  await f.workspace.open({ id: "folder" });
+
+  Object.assign(f.getPlan(), selectMapPlan(f.getPlan(), first));
+  f.workspace.persist();
+  await f.workspace.flush();
+  assert.equal(f.workspace.sync.state().dirty, false);
+  assert.equal(f.writes.at(-1).data.dirty, false);
+
+  f.getPlan().maps.find(({ id }) => id !== first).layout.spacing = 8;
+  f.workspace.persist();
+  await f.workspace.flush();
+  assert.equal(f.workspace.sync.state().dirty, true);
+  assert.equal(f.writes.at(-1).data.dirty, true);
+});
+
+test("a navigation-only Drive revision does not create a team conflict", async () => {
+  const f = fixture();
+  let saved = createMapPlan(createEmptyPlan(), "server", "Hive");
+  const first = saved.activeMapId;
+  saved = createMapPlan(saved, "bog", "Rally");
+  Object.assign(f.shared, saved);
+  await f.workspace.signIn();
+  await f.workspace.open({ id: "folder" });
+  f.drive.metadata = async () => ({ ...f.file, version: "4" });
+  f.drive.load = async () => ({
+    file: { ...f.file, version: "4" },
+    plan: selectMapPlan(saved, first),
+  });
+  await f.workspace.sync.checkRemote();
+  assert.equal(f.workspace.sync.remoteChanged, false);
+  assert.equal(f.workspace.sync.file.version, "4");
+  assert.equal(f.workspace.sync.state().dirty, false);
+});
+
+test("locking an unplaced keep makes the local draft dirty", async () => {
+  const f = fixture();
+  let saved = createEmptyPlan();
+  saved.keeps = [{
+    id: "one", name: "One", level: 40, skin: "placeholder",
+    x: null, y: null, w: 2, h: 2, locked: false,
+  }];
+  saved = createMapPlan(saved, "blank", "Formation");
+  Object.assign(f.shared, saved);
+  await f.workspace.signIn();
+  await f.workspace.open({ id: "folder" });
+  f.getPlan().keeps[0].locked = true;
+  f.workspace.persist();
+  await f.workspace.flush();
+  assert.equal(f.workspace.sync.state().dirty, true);
+  assert.equal(f.writes.at(-1).data.dirty, true);
 });
