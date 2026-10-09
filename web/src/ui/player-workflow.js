@@ -15,12 +15,13 @@ export function createPlayerWorkflow({
   terrainFor,
   browseCastle,
   getWorkspace,
+  selection,
+  select,
   remove,
   status,
   navigate,
   refreshAccess,
 }) {
-  let selectedId = null;
   let lastTag = getPlan().keeps.at(-1)?.allianceTag || "";
   const avatars = createAvatarBrowser({
     root: roots.avatars,
@@ -36,7 +37,7 @@ export function createPlayerWorkflow({
     add: async (player) => {
       const linked = await getWorkspace().profiles.add(player);
       lastTag = player.allianceTag;
-      selectedId = linked.id;
+      select(linked.id);
       list.render();
       status("Player added.");
       return linked;
@@ -47,28 +48,28 @@ export function createPlayerWorkflow({
     search,
     getPlan,
     getAvatars,
-    getSelection: () => selectedId,
+    getSelection: () => selection.id,
     open: (id) => {
-      selectedId = id;
+      select(id);
       navigate("player");
     },
     remove: (id) => {
       remove(id);
-      if (selectedId === id) selectedId = null;
+      if (selection.id === id) select(null);
       list.render();
     },
     add: dialog.open,
     fileState: (player) => getWorkspace()?.players.state(player),
   });
   const cachedPlayer = () =>
-    getPlan().keeps.find((player) => player.id === selectedId);
+    getPlan().keeps.find((player) => player.id === selection.id);
   const editingPlan = () =>
-    getWorkspace()?.profiles.editingPlan(selectedId) || getPlan();
+    getWorkspace()?.profiles.editingPlan(selection.id) || getPlan();
   let fileControls;
   const profile = createPlayerScreen({
     root: roots.profile,
     getPlan: editingPlan,
-    getPlayer: () => editingPlan().keeps.find((player) => player.id === selectedId),
+    getPlayer: () => editingPlan().keeps.find((player) => player.id === selection.id),
     terrainFor,
     assets,
     getAvatars,
@@ -77,7 +78,7 @@ export function createPlayerWorkflow({
     browseCastle,
     canEdit: () => !!getWorkspace()?.players.state(cachedPlayer()).canEdit,
     commit: async (next) => {
-      const player = next.keeps.find((item) => item.id === selectedId);
+      const player = next.keeps.find((item) => item.id === selection.id);
       roots.profile.setAttribute("aria-busy", "true");
       try {
         await getWorkspace().profiles.save(player, fileControls.resolve);
@@ -94,7 +95,7 @@ export function createPlayerWorkflow({
     unlock: (id) => getWorkspace().profiles.unlock(id),
     remove: (id) => {
       remove(id);
-      selectedId = null;
+      select(null);
       navigate("players");
     },
     status,
@@ -104,7 +105,7 @@ export function createPlayerWorkflow({
     dialog: roots.sync,
     getPlayer: cachedPlayer,
     getFiles: () => getWorkspace()?.players,
-    unlock: () => getWorkspace().profiles.unlock(selectedId),
+    unlock: () => getWorkspace().profiles.unlock(selection.id),
     status,
     refresh: () => {
       profile.render();
@@ -115,7 +116,7 @@ export function createPlayerWorkflow({
   });
   return {
     open: (id) => {
-      selectedId = id;
+      select(id);
       navigate("player");
     },
     renderList: () => {
@@ -124,7 +125,7 @@ export function createPlayerWorkflow({
         !getWorkspace()?.sync.file?.capabilities?.canEdit;
     },
     openAdd: dialog.open,
-    selected: () => getPlan().keeps.find((player) => player.id === selectedId),
+    selected: () => getPlan().keeps.find((player) => player.id === selection.id),
     renderProfile: () => {
       profile.render();
       fileControls.render();

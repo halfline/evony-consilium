@@ -52,7 +52,8 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
   const screens = createPlannerScreens($("planner"), (next) => {
     if (next !== "formation") {
       mapInteraction?.cancel();
-      selection.clear();
+      selection.ids.clear();
+      placementView.reset();
       formationList.render();
       placementInspector?.render();
     }
@@ -222,7 +223,8 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
   store.subscribe(({ kind }) => {
     if (["undo", "replace", "navigate"].includes(kind)) {
       mapInteraction?.cancel();
-      selection.clear();
+      if (kind === "replace") selection.clear();
+      else selection.reconcile();
     }
     if (kind === "edit" || kind === "undo") workspace?.persist();
     render();
@@ -284,6 +286,8 @@ export function createPlanner({ catalog, avatarCatalog, terrain }, { createWorks
     catalog,
     browseCastle: catalogBrowser.open,
     getWorkspace: () => workspace,
+    selection,
+    select: selectKeep,
     remove: (id) => store.commit(removePlayer(getPlan(), id)),
     status: toast,
     navigate: showScreen,
