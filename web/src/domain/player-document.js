@@ -43,3 +43,37 @@ export function readPlayerDocument(input) {
     throw new Error("This file is not an Evony Consilium player.");
   return validateProfile(input.profile);
 }
+export function validatePlayerSource(source) {
+  if (
+    !source ||
+    typeof source !== "object" ||
+    Array.isArray(source) ||
+    typeof source.fileId !== "string" ||
+    !/^[\w-]{1,200}$/.test(source.fileId) ||
+    typeof source.resourceKey !== "string" ||
+    source.resourceKey.length > 200 ||
+    typeof source.version !== "string" ||
+    source.version.length > 100 ||
+    typeof source.syncedAt !== "string" ||
+    !Number.isFinite(Date.parse(source.syncedAt))
+  )
+    throw new Error("Invalid player file link.");
+  source.baseline = validateProfile(source.baseline);
+}
+export function applyPlayerProfile(player, profile) {
+  const next = { ...structuredClone(player) };
+  for (const field of FIELDS) delete next[field];
+  Object.assign(next, validateProfile(profile));
+  return next;
+}
+export function linkedPlayer(player, profile, file) {
+  const next = applyPlayerProfile(player, profile);
+  next.playerSource = {
+    fileId: file.id,
+    resourceKey: file.resourceKey || "",
+    version: file.version,
+    baseline: playerProfile(next),
+    syncedAt: new Date().toISOString(),
+  };
+  return next;
+}
