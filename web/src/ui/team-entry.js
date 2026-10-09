@@ -120,7 +120,7 @@ export class TeamEntry {
     this.$("project-tab-open").hidden = false;
     this.$("project-tab-create").hidden = false;
     this.$("project-browse").hidden = false;
-    this.$("drive-save").hidden = true;
+    this.$("drive-save").hidden = false;
     this.$("project-reload").hidden = true;
     this.$("google-login").onclick = () => this.signIn();
     this.$("google-grant-access").onclick = () =>
@@ -138,6 +138,7 @@ export class TeamEntry {
         await this.workspace.flush();
         this.show("projects");
       });
+    this.$("drive-save").onclick = () => this.run(() => this.workspace.save());
     this.$("project-browse").onclick = () =>
       this.run(() => this.join(true), "Opening team…");
     if (!this.workspace.configured()) {
