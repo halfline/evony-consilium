@@ -96,4 +96,42 @@ export class MarchDraft {
     if (march.generation.manual) march.layers.push({ tier });
     else this.generate();
   }
+  add() {
+    if (this.marches.length >= 50) return false;
+    const march = newMarch("New march", "ground", this.maxTier);
+    this.marches.push(march);
+    this.currentIndex = this.marches.length - 1;
+    this.markEdited();
+    this.generate();
+    return true;
+  }
+  remove() {
+    const removed = this.current.id;
+    this.marches.splice(this.currentIndex, 1);
+    this.explicit.delete(removed);
+    this.errors.delete(removed);
+    if (!this.marches.length) {
+      const march = newMarch("Ground", "ground", this.maxTier);
+      this.marches.push(march);
+    }
+    this.currentIndex = Math.min(this.currentIndex, this.marches.length - 1);
+  }
+  read() {
+    return this.marches
+      .map((march) => ({
+        ...structuredClone(march),
+        layers: structuredClone(
+          march.layers.filter((row) =>
+            TROOP_TYPES.some((type) => row[type] != null),
+          ),
+        ),
+      }))
+      .filter(
+        (march) =>
+          this.explicit.has(march.id) ||
+          this.original.marches?.some((old) => old.id === march.id) ||
+          march.layers.length ||
+          Object.values(march.bases || {}).some((value) => value != null),
+      );
+  }
 }
