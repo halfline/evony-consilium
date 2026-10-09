@@ -720,6 +720,17 @@
 }
 .map-row:hover .map-portrait,
 .map-row.selected .map-portrait { border-color: var(--gold); }
+.map-caption {
+  display: flex;
+  position: static;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+.map-caption > span {
+  color: var(--gold);
+}
 #maps-list .add-map-icon {
   width: 44px;
   height: 44px;
