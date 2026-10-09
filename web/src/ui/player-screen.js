@@ -1,38 +1,38 @@
-import { editPlayerProfile } from "../domain/players.js";
+import { createPlayerDetails } from "./player-details.js";
 import { editPlayerDetails } from "../domain/player-details.js";
+import { editPlayerProfile } from "../domain/players.js";
 import { validatePlan } from "../domain/validation.js";
 import { changeAppearance } from "../domain/appearance-commands.js";
 import { renderAvatarButton } from "./avatar-browser.js";
 import { renderCastleButton } from "./castle-button.js";
 import { bindTileActions } from "./tile-actions.js";
 import { view } from "./dom.js";
-import { createPlayerDetails } from "./player-details.js";
 
-// The first profile screen edits the linked player's identity fields.
+// The player form owns profile fields only. It never reads map-coordinate inputs.
 export function createPlayerScreen({
   root,
   getPlan,
-  getPlayer,
   terrainFor,
+  getPlayer,
   assets,
   getAvatars,
   catalog,
-  browseAvatar,
   browseCastle,
+  browseAvatar,
   commit,
   remove,
-  canEdit,
   status,
   applied,
+  canEdit = () => true,
 }) {
   const $ = view(root);
-  const details = createPlayerDetails({ root, getPlayer });
+  const details = createPlayerDetails({ root });
   bindTileActions(root.querySelector(".player-name-actions"), {
     tileSelector: ".player-name-actions",
     triggerSelector: "#player-title",
     className: "player-name-actions-open",
   });
-  async function saveProfile(id, changes, detailChanges = null) {
+  async function saveProfile(id, changes, detailChanges) {
     if (!canEdit()) throw new Error("Unlock this player before editing.");
     let next = editPlayerProfile(getPlan(), id, changes);
     if (detailChanges) next = editPlayerDetails(next, id, detailChanges);
@@ -46,22 +46,28 @@ export function createPlayerScreen({
     const player = getPlayer();
     if (!player) return;
     try {
-      await saveProfile(player.id, {
-        name: $("player-name").value.trim(),
-        accountId: $("player-account").value.trim(),
-        allianceTag: $("player-tag").value.trim(),
-        level: Number($("player-level").value),
-      }, details.read());
+      await saveProfile(
+        player.id,
+        {
+          name: $("player-name").value.trim(),
+          accountId: $("player-account").value.trim(),
+          allianceTag: $("player-tag").value.trim(),
+          level: Number($("player-level").value),
+        },
+        details.read(),
+      );
+      status("Player saved.");
     } catch (error) {
       status(error.message, true);
     }
   };
   $("player-avatar").onclick = () => {
     const player = getPlayer();
-    if (!player || !canEdit()) return;
+    if (!player) return;
+    const id = player.id;
     browseAvatar(player.avatarId, async (avatar) => {
       try {
-        await saveProfile(player.id, { avatarId: avatar.id });
+        await saveProfile(id, { avatarId: avatar.id });
       } catch (error) {
         status(error.message, true);
       }
@@ -69,16 +75,19 @@ export function createPlayerScreen({
   };
   $("player-castle").onclick = () => {
     const player = getPlayer();
-    if (!player || !canEdit()) return;
+    if (!player) return;
+    if (!canEdit()) return status("Unlock this player before editing.", true);
     const id = player.id;
     browseCastle("keep", async (asset) => {
       try {
         const next = changeAppearance(
-          getPlan(), id, asset, terrainFor(getPlan().map),
+          getPlan(),
+          id,
+          asset,
+          terrainFor(getPlan().map),
         );
         validatePlan(next, catalog);
         await commit(next);
-        render();
       } catch (error) {
         status(error.message, true);
       }
@@ -103,7 +112,8 @@ export function createPlayerScreen({
       accountId: "player-account",
       allianceTag: "player-tag",
       level: "player-level",
-    })) $(id).value = player[field] ?? "";
+    }))
+      $(id).value = player[field] ?? "";
     const castle = assets.get(player.skin);
     if (castle) renderCastleButton($("player-castle"), castle);
     renderAvatarButton($("player-avatar"), getAvatars(), player.avatarId);
