@@ -778,24 +778,53 @@
                   <span class="eyebrow" id="entity-kind">SELECTED KEEP</span>
                   <h2 id="entity-title"></h2>
                 </div>
-                <button id="close-inspector" type="button" aria-label="Close selection">×</button>
+                <button id="close-inspector" aria-label="Close selection">
+                  ×
+                </button>
               </div>
               <form id="entity-form">
                 <div class="player-appearance">
-                  <button id="choose-building-skin" class="castle-choice" type="button"
-                    aria-label="Choose building" hidden></button>
+                  <button
+                    id="choose-building-skin"
+                    class="castle-choice"
+                    type="button"
+                    aria-label="Choose building"
+                  ></button>
                 </div>
                 <div class="entity-fields">
-                  <label>Name<input id="placement-name" maxlength="100" required /></label>
-                  <label>X<input id="entity-x" type="number" min="0" /></label>
-                  <label>Y<input id="entity-y" type="number" min="0" /></label>
-                  <label>Width (tiles)<input id="entity-w" type="number" min="1" max="20" required /></label>
-                  <label>Height (tiles)<input id="entity-h" type="number" min="1" max="20" required /></label>
+                  <label
+                    >Name<input
+                      id="placement-name"
+                      maxlength="100"
+                      required /></label
+                  ><label>X<input id="entity-x" type="number" min="0" /></label
+                  ><label>Y<input id="entity-y" type="number" min="0" /></label
+                  ><label
+                    >Width (tiles)<input
+                      id="entity-w"
+                      type="number"
+                      min="1"
+                      max="20"
+                      required /></label
+                  ><label
+                    >Height (tiles)<input
+                      id="entity-h"
+                      type="number"
+                      min="1"
+                      max="20"
+                      required
+                  /></label>
                 </div>
                 <div class="inspector-actions">
-                  <button id="game-footprint" type="button" hidden>Use game size</button>
-                  <label class="checkbox-label"><input id="entity-locked" type="checkbox" /> Lock position</label>
-                  <button class="primary apply-entity" type="submit">Apply</button>
+                  <button id="game-footprint" type="button" hidden>
+                    Use game size</button
+                  ><label class="checkbox-label"
+                    ><input id="entity-locked" type="checkbox" /> Lock
+                    position</label
+                  >
+                  <button class="primary apply-entity" type="submit">
+                    Apply
+                  </button>
                 </div>
               </form>
             </section>
