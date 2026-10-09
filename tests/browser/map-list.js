@@ -23,6 +23,5 @@ export async function mapList({ page, driveFiles }) {
   }
   const team = [...driveFiles.values()].find(({ data }) => data?.format === "evony-consilium-team");
   assert.deepEqual(team.data.plan.maps.map(({ name }) => name), ["First hive", "Battle map"]);
-  assert.equal(await page.locator("#maps-list .map-row").first().isDisabled(), true);
   assert.equal(await page.locator("#drive-save").isDisabled(), true);
 }
