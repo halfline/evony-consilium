@@ -71,6 +71,23 @@ test("fixed landmarks are inert and major ones stay visible at distant zoom", ()
   assert.deepEqual(view.hits, []);
 });
 
+test("offscreen sprites leave no draw call or hit region", () => {
+  let drawings = 0;
+  const view = {
+    ctx: { drawImage: () => drawings++ },
+    screen: (x, y) => ({ x, y }), width: 400, height: 300,
+    assets: new Map([["castle", { src: "castle.webp", width: 100, height: 80 }]]),
+    image: (src) => src, hits: [],
+  };
+  const plan = { grid: { ax: 48, ay: 24, bx: -48, by: 24 }, labels: false };
+  drawEntity(view, { id: "far", skin: "castle", x: 1000, y: 1000, w: 2, h: 2 }, plan, 1);
+  assert.equal(drawings, 0);
+  assert.deepEqual(view.hits, []);
+  drawEntity(view, { id: "near", skin: "castle", x: 10, y: 10, w: 2, h: 2 }, plan, 1);
+  assert.equal(drawings, 1);
+  assert.equal(view.hits[0].id, "near");
+});
+
 test("entity labels follow the map preference and mark the rally keep", () => {
   const labels = [];
   const plates = [];
@@ -221,6 +238,7 @@ test("formation renderer paints overlapping entities back to front", () => {
     renderer.images.get = (src) => src;
     renderer.width = 400;
     renderer.height = 200;
+    renderer.camera.y = 4896;
     renderer.draw();
     assert.deepEqual(images, ["back.webp", "front.webp"]);
     const point = renderer.screen(102, 102);
