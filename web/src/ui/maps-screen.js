@@ -1,8 +1,39 @@
 import { MAP_ICONS } from "../domain/maps.js";
-import { view } from "./dom.js";
-export function createMapsScreen({ root, getPlan, open, status }) {
-  const $ = view(root);
-  $("add-map").hidden = true;
+import { view, option } from "./dom.js";
+import { defaultFormationName } from "../domain/map-plans.js";
+export function createMapsScreen({ root, getPlan, open, status, dialog, add, canEdit = () => true }) {
+  const $ = view(root, dialog);
+  function presets(select) {
+    select.replaceChildren(
+      ...getPlan().mapPresets.map((preset) =>
+        option(preset.id, preset.id === "server" ? "Server" : preset.name),
+      ),
+    );
+  }
+  function newMap() {
+    if (!canEdit()) return;
+    presets($("new-formation-type"));
+    $("new-formation-type").value = "server";
+    $("new-formation-name").value = "Hive";
+    $("new-formation-error").textContent = "";
+    dialog.showModal();
+    $("new-formation-name").focus();
+  }
+  $("add-map").onclick = newMap;
+  $("new-formation-type").onchange = () => {
+    const name = $("new-formation-name");
+    if (["", "Hive", "Rally", "Formation"].includes(name.value.trim()))
+      name.value = defaultFormationName($("new-formation-type").value);
+  };
+  $("add-map-form").onsubmit = (event) => {
+    event.preventDefault();
+    try {
+      add($("new-formation-type").value, $("new-formation-name").value);
+      dialog.close();
+    } catch (error) {
+      $("new-formation-error").textContent = error.message;
+    }
+  };
   function openMap(id) {
     try {
       if (!getPlan().maps?.some((map) => map.id === id))
@@ -14,6 +45,8 @@ export function createMapsScreen({ root, getPlan, open, status }) {
   }
   function render() {
     const plan = getPlan();
+    const addButton = $("add-map");
+    addButton.hidden = !canEdit();
     $("maps-list").replaceChildren(
       ...(plan.maps || []).map((map) => {
         const row = document.createElement("div");
@@ -43,7 +76,8 @@ export function createMapsScreen({ root, getPlan, open, status }) {
         row.append(button);
         return row;
       }),
+      addButton,
     );
   }
-  return { render, enter() { render(); } };
+  return { render, enter() { render(); if (canEdit() && !getPlan().maps?.length && !dialog.open) newMap(); } };
 }
