@@ -164,10 +164,14 @@ export function createPlayerMarches({ root, getSizes }) {
     add.type = "button";
     add.id = "player-add-march";
     add.setAttribute("aria-label", "Add attack march");
-    add.onclick = () => {
-      if (draft.add()) renderMarch();
-    };
+    add.onclick = addMarch;
     list.append(add);
+  }
+  function addMarch() {
+    if (!draft.add()) return;
+    renderMarch();
+    $("player-march-name").focus();
+    $("player-march-name").select();
   }
   $("player-march-back").onclick = showList;
   $("player-march-name").oninput = () => {
