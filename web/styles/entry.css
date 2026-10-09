@@ -31,6 +31,33 @@
 .entry-card .entry-error {
   color: #ffb6a3;
 }
+.project-tabs {
+  padding: 0;
+  margin-top: 24px;
+}
+.project-tabs button {
+  font-size: 16px;
+  padding: 14px 18px;
+}
+.project-location {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.project-location input {
+  flex: 1;
+  min-width: 0;
+}
+.project-location button {
+  flex: 0 0 48px;
+  font-size: 24px;
+  padding: 0;
+}
+.project-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
 .entry-header {
   display: flex;
   align-items: center;
@@ -43,6 +70,9 @@
   text-align: center;
   padding: 8px 0;
 }
+#project-panel-open,
+#project-panel-open .project-actions,
+#project-panel-open > form,
 .account-menu {
   position: relative;
   flex-shrink: 0;

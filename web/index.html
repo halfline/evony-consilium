@@ -64,6 +64,55 @@
             who can open and save them.
           </p>
         </section>
+        <section id="projects-screen" hidden>
+          <div
+            class="tabs project-tabs"
+            role="tablist"
+            aria-label="Team workflow"
+          >
+            <button
+              id="project-tab-open"
+              type="button"
+              role="tab"
+              aria-selected="true"
+              aria-controls="project-panel-open"
+              class="active"
+            >
+              Open team
+            </button>
+          </div>
+          <section
+            id="project-panel-open"
+            role="tabpanel"
+            aria-labelledby="project-tab-open"
+          >
+            <p>Browse teams or paste a shared team link.</p>
+            <form id="project-join">
+              <label for="project-url">Team link</label>
+              <div class="project-location">
+                <input
+                  id="project-url"
+                  type="url"
+                  required
+                  placeholder="https://drive.google.com/…"
+                />
+                <button
+                  id="project-browse"
+                  type="button"
+                  aria-label="Browse teams"
+                  title="Browse teams"
+                >
+                  …
+                </button>
+              </div>
+            </form>
+            <div class="project-actions">
+              <button type="submit" form="project-join" class="primary">
+                Open team
+              </button>
+            </div>
+          </section>
+        </section>
         <div id="entry-progress" class="entry-progress" role="status" hidden>
           <span class="progress-spinner" aria-hidden="true"></span>
           <span id="entry-progress-text"></span>
