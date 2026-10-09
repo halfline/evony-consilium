@@ -102,10 +102,6 @@ export function createPlayerWorkflow({
     status,
   });
   return {
-    open: (id) => {
-      select(id);
-      navigate("player");
-    },
     renderList: list.render,
     openAdd: dialog.open,
     draft: dialog.player,
