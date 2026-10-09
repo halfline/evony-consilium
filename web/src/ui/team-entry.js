@@ -141,6 +141,11 @@ export class TeamEntry {
     this.$("drive-save").onclick = () => this.run(() => this.workspace.save());
     this.$("project-browse").onclick = () =>
       this.run(() => this.join(true), "Opening team…");
+    this.$("project-reload").onclick = () =>
+      this.run(async () => {
+        await this.workspace.reload();
+        this.show("planner");
+      });
     if (!this.workspace.configured()) {
       this.$("google-login").disabled = true;
       this.$("login-detail").textContent =
