@@ -4,6 +4,9 @@ export function drawEntity(view, entity, plan, zoom, fixed = false) {
   const major = fixed &&
     (entity.skin === "map-kingdom" || entity.skin.endsWith("shrin"));
   const spriteZoom = major ? Math.max(zoom, 0.18) : zoom;
+  if (center.x < -250 * spriteZoom || center.y < -300 * spriteZoom ||
+      center.x > view.width + 250 * spriteZoom ||
+      center.y > view.height + 300 * spriteZoom) return;
   if (zoom < 0.16 && !major) {
     if (fixed) return;
     const selected = view.selected === entity.id || view.selectedIds?.has(entity.id);
