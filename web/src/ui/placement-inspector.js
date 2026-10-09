@@ -16,6 +16,10 @@ export function createPlacementInspector({
       const next = structuredClone(getPlan());
       const target = [...next.keeps, ...next.structures, ...next.obstacles]
         .find(({ id }) => id === entity.id);
+      if (!("level" in target)) {
+        target.name = $("placement-name").value.trim();
+        if (!target.name) throw new Error("Enter a name.");
+      }
       if (next.obstacles.some(({ id }) => id === target.id)) {
         target.w = Number($("entity-w").value);
         target.h = Number($("entity-h").value);
@@ -39,6 +43,9 @@ export function createPlacementInspector({
     root.hidden = !entity;
     if (!entity) return;
     $("entity-title").textContent = entity.name;
+    $("placement-name").value = entity.name;
+    $("placement-name").closest("label").hidden = "level" in entity;
+    $("placement-name").disabled = "level" in entity || !canEdit();
     $("entity-kind").textContent = "level" in entity
       ? "SELECTED KEEP" : "SELECTED TILE";
     $("entity-location").textContent = entity.x === null
@@ -54,7 +61,8 @@ export function createPlacementInspector({
       input.disabled = !obstacle || !canEdit();
     }
     for (const input of $("entity-form").querySelectorAll("input,button"))
-      if (!input.matches("#entity-w, #entity-h")) input.disabled = !canEdit();
+      if (!input.matches("#entity-w, #entity-h, #placement-name"))
+        input.disabled = !canEdit();
   }
   return { render };
 }
