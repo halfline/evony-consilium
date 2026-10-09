@@ -53,6 +53,15 @@ export function drawEntity(view, entity, plan, zoom) {
     ctx.strokeStyle = "#233529";
     ctx.stroke();
   }
+  if (rally) {
+    ctx.strokeStyle = "#e6cf86";
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.ellipse(center.x, center.y + 7 * zoom,
+      Math.max(10, 75 * zoom), Math.max(5, 18 * zoom),
+      0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
   view.hits.push({
     id: entity.id,
     left: center.x - width / 2,
