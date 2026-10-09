@@ -19,12 +19,29 @@ export function createPlayerDetails({ root, getPlayer }) {
       const active = button.dataset.playerTab === tab;
       button.classList.toggle("active", active);
       button.setAttribute("aria-selected", String(active));
+      button.tabIndex = active ? 0 : -1;
     }
     for (const panel of root.querySelectorAll("[data-player-panel]"))
       panel.hidden = panel.dataset.playerPanel !== tab;
   }
-  for (const button of root.querySelectorAll("[data-player-tab]"))
+  const tabs = [...root.querySelectorAll("[data-player-tab]")];
+  tabs.forEach((button, index) => {
     button.onclick = () => showTab(button.dataset.playerTab);
+    button.onkeydown = (event) => {
+      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key))
+        return;
+      event.preventDefault();
+      const next =
+        event.key === "Home"
+          ? 0
+          : event.key === "End"
+            ? tabs.length - 1
+            : (index + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) %
+              tabs.length;
+      tabs[next].click();
+      tabs[next].focus();
+    };
+  });
   $("player-form").querySelector('[data-player-tab="buffs"]').hidden = false;
   $("player-form").querySelector('[data-player-tab="march-size"]').hidden = false;
   $("player-form").querySelector('[data-player-tab="rally-capacity"]').hidden = false;
