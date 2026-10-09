@@ -256,10 +256,15 @@ export function createPlanner({ catalog, avatarCatalog, terrainCatalog }, { crea
     access.render();
   }
   store.subscribe(({ kind }) => {
+    if (kind === "replace") {
+      selection.id = null;
+      players?.resetTag();
+    }
+    selection.reconcile();
     if (["undo", "replace", "navigate"].includes(kind)) {
       mapInteraction?.cancel();
-      if (kind === "replace") selection.clear();
-      else selection.reconcile();
+      if (kind !== "undo") selection.ids.clear();
+      placementView.reset();
     }
     if (kind === "edit" || kind === "undo") workspace?.persist();
     render();
