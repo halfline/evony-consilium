@@ -160,3 +160,21 @@ test("dragging a keep outside the canvas removes only its placement", () => {
   assert.equal(plan.keeps[0].x, null);
   assert.equal(captures.size, 0);
 });
+
+test("Escape clears pending placement and selection without editing plan", () => {
+  const plan = createEmptyPlan();
+  const canvas = {};
+  let pending = "keep", selected = "keep", prevented = false;
+  const renderer = { preview: { id: "keep" }, draw() {} };
+  bindMapInteraction({
+    canvas, renderer, getPlan: () => plan, getPending: () => pending,
+    resetPending: () => { pending = null; },
+    select: (id) => { selected = id; },
+  });
+  canvas.onkeydown({ key: "Escape", preventDefault: () => { prevented = true; } });
+  assert.equal(prevented, true);
+  assert.equal(pending, null);
+  assert.equal(selected, null);
+  assert.equal(renderer.preview, null);
+  assert.deepEqual(plan.keeps, []);
+});
