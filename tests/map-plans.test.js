@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createEmptyPlan } from "../web/src/domain/plan.js";
 import { MAPS, MAP_ICONS } from "../web/src/domain/maps.js";
 import { createLayout } from "../web/src/domain/layout.js";
-import { syncMapLayouts, defaultFormationName, createMapPlan } from "../web/src/domain/map-plans.js";
+import { syncMapLayouts, defaultFormationName, createMapPlan, selectMapPlan } from "../web/src/domain/map-plans.js";
 
 test("new teams expose verified named map choices and a blank canvas", () => {
   const plan = createEmptyPlan();
@@ -13,6 +13,25 @@ test("new teams expose verified named map choices and a blank canvas", () => {
   assert.equal(plan.mapPresets.find(({ id }) => id === "blank").verified, false);
   assert.equal(plan.mapPresets.find(({ id }) => id === "server").verified, true);
   assert.ok(MAP_ICONS.server.endsWith("server.webp"));
+});
+
+test("switching maps restores positions while sharing player profiles", () => {
+  const plan = createEmptyPlan();
+  plan.keeps = [{ id: "one", name: "Original", x: null, y: null, w: 2, h: 2, locked: false }];
+  let next = createMapPlan(plan, "server", "Hive");
+  const first = next.activeMapId;
+  next.keeps[0].x = 50;
+  next.keeps[0].y = 60;
+  next = createMapPlan(next, "boc", "Battle");
+  const second = next.activeMapId;
+  next.keeps[0].name = "Shared profile";
+  assert.equal(next.keeps[0].x, null);
+  next = selectMapPlan(next, first);
+  assert.equal(next.keeps[0].x, 50);
+  assert.equal(next.keeps[0].name, "Shared profile");
+  next = selectMapPlan(next, second);
+  assert.equal(next.keeps[0].x, null);
+  assert.throws(() => selectMapPlan(next, "missing"), /Map not found/);
 });
 
 test("creating a map opens an independent layout and checks type and name", () => {
