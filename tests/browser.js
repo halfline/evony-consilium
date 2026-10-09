@@ -41,6 +41,7 @@ import { formationDrag } from "./browser/formation-drag.js";
 import { mapSubcityOpen } from "./browser/map-subcity-open.js";
 import { mapPlayerOpen } from "./browser/map-player-open.js";
 import { formationDelete } from "./browser/formation-delete.js";
+import { formationDragOff } from "./browser/formation-drag-off.js";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
@@ -125,10 +126,11 @@ try {
   await mapSubcityOpen({ page });
   await mapPlayerOpen({ page });
   await formationDelete({ page, driveFiles });
+  await formationDragOff({ page, driveFiles });
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
-    "Browser checks passed: team entry, linked players, subcities, maps, terrain, placement, navigation, drag, and Delete.",
+    "Browser checks passed: team entry, linked players, subcities, maps, terrain, navigation, drag, Delete, and drag-off.",
   );
 } catch (error) {
   console.error(
