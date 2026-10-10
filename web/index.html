@@ -429,7 +429,8 @@
       <section id="players-screen" class="players-screen" aria-label="Players">
         <div class="players-workspace">
           <section id="players-panel" class="players-panel">
-            <div id="players" class="players">
+            <div class="collection-actions">
+              <p id="players-empty" class="muted" hidden>No players yet.</p>
               <button
                 id="add-player"
                 class="add-player-icon"
@@ -439,7 +440,7 @@
                 ＋
               </button>
             </div>
-            <p id="players-empty" class="muted" hidden>No players yet.</p>
+            <div id="players" class="players"></div>
           </section>
         </div>
       </section>
