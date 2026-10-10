@@ -62,7 +62,7 @@ export function createPlayersScreen({
       account.textContent = "ID " + player.accountId;
       identity.append(account);
     }
-    if (alts && player.ownerId != null) {
+    if (player.ownerId != null) {
       const owner = document.createElement("span");
       owner.className = "detail";
       owner.textContent =
@@ -92,11 +92,9 @@ export function createPlayersScreen({
   function render() {
     const query = search.value.toLowerCase();
     const players = getPlan().keeps.filter((player) => {
-      const owner = alts
-        ? getPlan().keeps.find((item) => item.id === player.ownerId)
-        : null;
+      const owner = getPlan().keeps.find((item) => item.id === player.ownerId);
       return (
-        (!alts || player.ownerId != null) &&
+        (player.ownerId != null) === alts &&
         (player.name + " " + player.accountId + " " + (owner?.name || ""))
           .toLowerCase()
           .includes(query)
