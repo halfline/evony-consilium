@@ -78,6 +78,10 @@ export async function playerSharing({ browser }) {
     assert.equal(await p.locator("#player-access-status").isVisible(), false);
     assert.equal(grants.has(sources[0].file.id), true);
     assert.equal(grants.has(sources[1].file.id), false);
+    await p.locator('[data-player-tab="alts"]').click();
+    assert.equal(await p.locator("#player-add-alt").isVisible(), false);
+    assert.equal(await p.locator("#player-profile-actions").isVisible(), false);
+    await p.locator('[data-player-tab="overview"]').click();
     const cachedName = team.data.plan.keeps[0].name;
     await p.locator("#player-name").fill("Player changed their profile");
     await p.locator('[data-player-tab="buffs"]').click();
@@ -150,6 +154,17 @@ export async function playerSharing({ browser }) {
       document.getElementById("toast").textContent.includes("still read-only"),
     );
     assert.equal(await p.locator("#player-name").getAttribute("readonly"), "");
+    // Team editors can manage roster relationships even for read-only profiles.
+    await p.locator('[data-player-tab="alts"]').click();
+    assert.equal(await p.locator("#player-add-alt").isVisible(), true);
+    await p.locator("#player-add-alt").click();
+    await p.locator("#assign-alt-list button").click();
+    await p.locator("#assign-alt-confirm").click();
+    await p.locator("#assign-alt-dialog").waitFor({ state: "hidden" });
+    assert.equal(await p.locator("#player-alts .player-alt-row").count(), 1);
+    await p.locator("#player-alts summary").click();
+    await p.locator("[data-alt-unlink]").click();
+    await p.locator('[data-player-tab="overview"]').click();
     sources[1].file.capabilities.canEdit = true;
     const pickerCalls = await p.evaluate(
       () => (window.__pickerCalls || []).length,
