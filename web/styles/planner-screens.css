@@ -584,6 +584,63 @@
   height: 44px;
   padding: 0;
 }
+#team-share {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+}
+#team-share:hover {
+  color: var(--gold);
+}
+.plan-name {
+  flex: 0 1 auto;
+}
+.plan-name input {
+  field-sizing: content;
+  width: auto;
+  max-width: 100%;
+}
+#team-share-dialog {
+  width: min(480px, calc(100vw - 32px));
+}
+.team-drive-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  margin: 24px 0;
+  text-decoration: none;
+}
+.team-link-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.team-link-row input {
+  flex: 1;
+  min-width: 0;
+}
+.team-link-row button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+}
+#team-share-status {
+  min-height: 1.5em;
+  margin-bottom: 0;
+  color: var(--muted);
+}
 #undo span {
   font-size: 24px;
   line-height: 1;

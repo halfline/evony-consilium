@@ -206,6 +206,30 @@
           <div class="plan-name">
             <input id="plan-title" aria-label="Plan name" maxlength="120" />
           </div>
+          <button
+            id="team-share"
+            class="icon-action"
+            type="button"
+            aria-label="Share team"
+            title="Share team"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="18" cy="5" r="3" />
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="19" r="3" />
+              <path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4" />
+            </svg>
+          </button>
         </div>
         <div class="header-actions">
           <span id="team-save-status" class="save-status" role="status"></span>
@@ -426,26 +450,6 @@
               </button>
             </div>
           </div>
-          <details class="team-sharing">
-            <summary>Share this team</summary>
-            <div class="inspector-actions">
-              <button id="team-copy-link" type="button">Copy team link</button>
-              <a id="team-drive-link" target="_blank" rel="noopener noreferrer"
-                >Team document in Drive</a
-              >
-              <a id="team-folder-link" target="_blank" rel="noopener noreferrer"
-                >Team folder in Drive</a
-              >
-            </div>
-            <p class="muted">
-              Share the folder as Viewer with members, then grant each member
-              Editor access to their own player file. Grant trusted
-              administrators Editor access to the folder; this also lets them
-              edit its player files. Planners can receive Editor access to just
-              the team document.
-            </p>
-            <p id="team-access-status" class="muted"></p>
-          </details>
         </div>
       </section>
       <section id="players-screen" class="players-screen" aria-label="Players">
@@ -1318,6 +1322,64 @@
             Save selected values
           </button>
         </div>
+      </dialog>
+      <dialog id="team-share-dialog" aria-labelledby="team-share-title">
+        <div class="dialog-heading">
+          <h2 id="team-share-title">Share team</h2>
+          <button
+            type="button"
+            data-close="team-share-dialog"
+            aria-label="Close team sharing"
+          >
+            ×
+          </button>
+        </div>
+        <a
+          id="team-drive-link"
+          class="team-drive-action"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img
+            src="assets/branding/google-drive.svg"
+            width="28"
+            height="28"
+            alt=""
+          />Google Drive <span aria-hidden="true">↗</span>
+        </a>
+        <label for="team-link">Team link</label>
+        <div class="team-link-row">
+          <input
+            id="team-link"
+            type="text"
+            inputmode="url"
+            readonly
+            spellcheck="false"
+          />
+          <button
+            id="team-copy-link"
+            type="button"
+            class="icon-action"
+            aria-label="Copy team link"
+            title="Copy team link"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="9" y="3" width="12" height="12" rx="1" />
+              <path d="M5 9H3v12h12v-2" />
+            </svg>
+          </button>
+        </div>
+        <p id="team-share-status" role="status"></p>
       </dialog>
       <dialog id="team-activity-dialog" class="activity-dialog">
         <div class="dialog-heading">

@@ -29,6 +29,7 @@ import { TeamEntry } from "./team-entry.js";
 import { mergeTeamPlans } from "../domain/team-collaboration.js";
 import { createTeamConflictControls } from "./team-conflict-controls.js";
 import { bindTeamActivity } from "./team-activity.js";
+import { bindTeamSharing } from "./team-sharing.js";
 export function createPlanner(
   { catalog, avatarCatalog, terrainCatalog },
   { createWorkspace },
@@ -177,7 +178,6 @@ export function createPlanner(
       getPlan,
       mutate,
       context: () => workspace?.key(),
-      getWorkspace: () => workspace,
       navigate: (screen) => screens.show(screen),
       status: (...args) => toast(...args),
     });
@@ -462,6 +462,7 @@ export function createPlanner(
     },
     openPlan: (data, { preserveView = false } = {}) => {
       teamConflicts.cancel();
+      if ($("team-share-dialog").open) $("team-share-dialog").close();
       const previousScreen = screens.current();
       const previousPlayer = screens.isPlayer() ? placement.id : null;
       opening = true;
@@ -490,6 +491,11 @@ export function createPlanner(
     button: $("team-activity"),
     dialog: $("team-activity-dialog"),
     content: $("team-activity-content"),
+    getWorkspace: () => workspace,
+  });
+  bindTeamSharing({
+    button: $("team-share"),
+    dialog: $("team-share-dialog"),
     getWorkspace: () => workspace,
   });
   navigation = createNavigation({

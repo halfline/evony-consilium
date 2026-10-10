@@ -1028,17 +1028,6 @@ code {
   display: none !important;
 }
 
-/* Personal-file editing leaves team and map controls read-only. */
-.team-sharing {
-  margin-top: 18px;
-}
-.team-sharing .inspector-actions {
-  flex-wrap: wrap;
-  align-items: center;
-}
-.team-sharing p {
-  max-width: 70ch;
-}
 #player-save-status {
   flex-basis: 100%;
 }
@@ -1163,7 +1152,7 @@ code {
 }
 
 /* Fields reflect their own access, including individually locked players. */
-#planner :is(input[readonly], textarea[readonly]),
+#planner :is(input[readonly]:not(#team-link), textarea[readonly]),
 #planner.read-only
   :is(#project-screen, #subcity-form, #entity-form, #panel-formation)
   select:disabled,
