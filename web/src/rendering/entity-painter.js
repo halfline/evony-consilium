@@ -116,6 +116,14 @@ export function drawEntity(view, e, p, z, fixed) {
       top: top - 10,
       bottom: center.y + Math.max(25, 35 * z),
     });
+  drawEntityLabel(view, { e, p, z, major, spriteZoom, center, top, rally });
+}
+
+export function drawEntityLabel(
+  view,
+  { e, p, z, major, spriteZoom, center, top, rally },
+) {
+  const c = view.ctx;
   if (p.labels && (z > 0.16 || major)) {
     const label =
       (rally ? "★ " : "") +
