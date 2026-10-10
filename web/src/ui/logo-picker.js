@@ -24,6 +24,7 @@ export function createLogoPicker({
   );
   const { upload, preview, placeholder, file: fileInput, remove } = nodes;
   upload.setAttribute("aria-label", uploadLabel);
+  upload.title = uploadLabel;
   const controls = upload.parentElement;
   let generation = 0;
   bindTileActions(controls, {
