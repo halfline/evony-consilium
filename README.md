@@ -18,7 +18,7 @@ Open `http://127.0.0.1:4173`. The entry flow is Google sign-in → team selector
 
 ## Delegating player editing
 
-New players get individual JSON files in the central team Drive folder. The team JSON retains complete cached profiles, so viewing the roster and maps requires authorizing only the team file. Existing embedded players get a central file when an administrator first unlocks them.
+New players get individual JSON files in the central team Drive folder. The team JSON retains complete cached profiles, so viewing the roster and maps requires authorizing only the team file. Existing embedded players get a central file when an administrator first unlocks them. Before the Add form opens, the app checks access to the central folder and requests folder authorization only if needed.
 
 An administrator uses Google Drive’s normal Share dialog to grant a member write access to selected player files and sends their links, or lets Drive send its sharing notification. No Consilium sharing action is required. The member opens the team and selects a delegated profile. If Drive already authorizes access for the app, editing becomes available automatically. Otherwise **Unlock player** authorizes that individual file through Picker. Unlocking authorizes the file for that signed-in account and checks its Drive permissions; it does not grant permission. The profile's Drive link opens the sharing controls. Give ordinary members read access to the central folder and write access only to their assigned files.
 
