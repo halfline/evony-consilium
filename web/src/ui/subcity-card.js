@@ -1,5 +1,6 @@
 import { renderSubcityArt } from "./subcity-browser.js";
 import { SUBCITY_COLORS } from "../domain/subcities.js";
+import { labelWithIcon } from "./icons.js";
 
 // Shared presentation for the team registry, player ownership, and assignment picker.
 export function createSubcityCard({
@@ -31,6 +32,8 @@ export function createSubcityCard({
   renderSubcityArt(portrait, asset);
   const caption = document.createElement("strong");
   caption.textContent = customName || cityName;
+  caption.title = caption.textContent;
+  button.title = `${caption.textContent} · ${city.culture} · ${color.name}`;
   const details = document.createElement("span");
   details.className = "subcity-details";
   details.textContent = `${customName ? cityName + " · " : ""}${color.name}`;
@@ -53,7 +56,7 @@ export function createSubcityCard({
     const action = document.createElement("button");
     action.type = "button";
     action.className = "player-remove subcity-remove";
-    action.textContent = "×";
+    labelWithIcon(action, "close");
     action.title = removeLabel || `Remove ${customName || cityName} subcity`;
     action.setAttribute("aria-label", action.title);
     action.onclick = remove;
