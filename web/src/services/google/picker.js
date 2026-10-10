@@ -1,4 +1,5 @@
 import { OperationCancelled } from "../cancellation.js";
+import { TEAM_MIME, PLAYER_MIME } from "../../domain/drive-documents.js";
 
 class PickerCancelled extends OperationCancelled {
   constructor() {
@@ -58,14 +59,29 @@ export class DrivePicker {
     }
     await loadPicker();
     const p = globalThis.google.picker;
+    const mime = folders
+      ? "application/vnd.google-apps.folder"
+      : player
+        ? PLAYER_MIME
+        : TEAM_MIME;
     const view = new p.DocsView(p.ViewId.DOCS)
+      .setLabel(
+        folders
+          ? "Team folder"
+          : file
+            ? "Linked file"
+            : player
+              ? "Player files"
+              : "Team files",
+      )
+      .setMode(p.DocsViewMode.LIST)
       .setIncludeFolders(true)
       .setSelectFolderEnabled(folders);
     if (folders) {
-      view.setMimeTypes("application/vnd.google-apps.folder");
+      view.setMimeTypes(mime);
       if (folder) view.setFileIds(folder.id);
     } else {
-      view.setMimeTypes("application/json");
+      view.setMimeTypes(file ? `${mime},application/json` : mime);
       if (file) view.setFileIds(file.id);
       else if (folder) view.setParent(folder.id);
     }
@@ -73,16 +89,20 @@ export class DrivePicker {
       let picker;
       const builder = new p.PickerBuilder()
         .addView(view)
+        .setSelectableMimeTypes(folders ? mime : `${mime},application/json`)
+        .setMaxItems(1)
         .setOAuthToken(this.token())
         .setDeveloperKey(this.config.apiKey)
         .setAppId(this.config.appId)
         .setOrigin(location.origin)
         .setTitle(
           folders
-            ? "Authorize the team folder"
+            ? `Add player: select the ${folder?.name || "team"} folder`
             : player
-              ? "Unlock player"
-              : "Choose team.consilium.json",
+              ? file
+                ? `Connect ${file.name || "this player"}: select the linked Player file`
+                : "Add existing player: select a Player file"
+              : "Open team: select a Team file",
         )
         .setCallback((data) => {
           if (data.action === p.Action.CANCEL) {
@@ -105,6 +125,14 @@ export class DrivePicker {
                 new Error("Select the team folder from the link you supplied."),
               );
             if (!selected.length) return reject(new PickerCancelled());
+            if (file && selected[0].id !== file.id)
+              return reject(
+                new Error(
+                  player
+                    ? `Choose the linked Player file for ${file.name || "this player"}.`
+                    : "Choose the Team file from the link you opened.",
+                ),
+              );
             if (selected.length !== 1)
               return reject(
                 new Error(
@@ -123,32 +151,38 @@ export class DrivePicker {
               .setLabel("My Drive")
               .setIncludeFolders(true)
               .setSelectFolderEnabled(true)
-              .setMimeTypes("application/vnd.google-apps.folder"),
+              .setMimeTypes(mime),
           );
         builder.addView(
           new p.DocsView(p.ViewId.DOCS)
             .setLabel("Shared with me")
+            .setMode(p.DocsViewMode.LIST)
             .setIncludeFolders(true)
             .setSelectFolderEnabled(folders)
-            .setMimeTypes(
-              folders
-                ? "application/vnd.google-apps.folder"
-                : "application/json",
-            )
+            .setMimeTypes(mime)
             .setOwnedByMe(false),
         );
         builder.addView(
           new p.DocsView(p.ViewId.DOCS)
             .setLabel("Shared drives")
+            .setMode(p.DocsViewMode.LIST)
             .setIncludeFolders(true)
             .setSelectFolderEnabled(folders)
-            .setMimeTypes(
-              folders
-                ? "application/vnd.google-apps.folder"
-                : "application/json",
-            )
+            .setMimeTypes(mime)
             .setEnableDrives(true),
         );
+      }
+
+      if (!folders && !file) {
+        const legacy = new p.DocsView(p.ViewId.DOCS)
+          .setLabel(player ? "Older player files" : "Older team files")
+          .setMode(p.DocsViewMode.LIST)
+          .setIncludeFolders(true)
+          .setSelectFolderEnabled(false)
+          .setMimeTypes("application/json")
+          .setQuery(player ? "player.consilium.json" : "team.consilium.json");
+        if (folder) legacy.setParent(folder.id);
+        builder.addView(legacy);
       }
 
       picker = builder.build();
