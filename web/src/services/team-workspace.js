@@ -2,7 +2,7 @@ import { PlayerProfiles } from "./player-profiles.js";
 import { PlayerCacheSync } from "./player-cache-sync.js";
 import { PlayerFiles } from "./player-files.js";
 import { OperationCancelled } from "./cancellation.js";
-import { loadTeamFiles } from "./team-files.js";
+import { loadTeamFiles, loadPlayerFolder } from "./team-files.js";
 import { ProjectSync } from "./project-sync.js";
 import { DraftQueue } from "../persistence/draft-queue.js";
 import { teamDraftKey, resolveTeamDraft } from "../persistence/team-draft.js";
@@ -249,41 +249,28 @@ export class TeamWorkspace {
     await this.sync.checkRemote();
     current();
   }
-  async playerFolder() {
+  async playerFolder({ interactive = true } = {}) {
     this.authorize();
-    const current = this.#begin();
     if (!this.sync.file?.capabilities?.canEdit)
       throw new Error("Team write access is needed to manage player files.");
-    const team = await this.drive.metadata(this.sync.file);
+    const current = this.players.captureContext();
+    const file = await this.drive.metadata(this.sync.file);
     current();
-    const id = team.parents?.[0] || this.project.folder.id;
-    if (!id || id === team.id)
-      throw new Error(
-        "Move the team file into a Drive folder before creating player files.",
-      );
-    let folder;
-    try {
-      folder = await this.drive.metadata({
-        id,
-        resourceKey: this.project.folder.resourceKey || "",
-      });
-    } catch (error) {
-      if (![403, 404].includes(error.status)) throw error;
-      this.status("Open the central team folder to manage player files.");
-      const selected = await this.picker.folder({ id });
-      current();
-      if (selected.id !== id)
-        throw new Error("Choose the central team folder.");
-      folder = await this.drive.metadata(selected);
-    }
+    const folder = await loadPlayerFolder({
+      drive: this.drive,
+      picker: this.picker,
+      project: this.project,
+      file,
+      current,
+      status: this.status,
+      interactive,
+    });
     current();
-    if (
-      folder.mimeType !== "application/vnd.google-apps.folder" ||
-      !folder.capabilities?.canAddChildren
-    )
+    if (!folder.capabilities?.canAddChildren)
       throw new Error(
         "You need permission to add player files to the central team folder.",
       );
+    this.project.folder = folder;
     return folder;
   }
   async create(name, logo) {
