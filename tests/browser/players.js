@@ -112,6 +112,13 @@ export async function playerCreation({ page, playersScreen }) {
     /Radiant Goddess/,
   );
   await playersScreen();
+  await page.locator("#players-search").fill("ONE");
+  assert.equal(await page.locator("#players .player-card").count(), 1);
+  assert.match(
+    await page.locator("#players .player-card").textContent(),
+    /First player/,
+  );
+  await page.locator("#players-search").fill("");
   await page.screenshot({ path: "test-results/player-cards.png" });
   const removablePlayer = page
     .locator("#players .player-tile")

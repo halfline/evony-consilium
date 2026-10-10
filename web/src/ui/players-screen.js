@@ -100,12 +100,20 @@ export function createPlayersScreen({
     return tile;
   }
   function render() {
-    const query = search.value.toLowerCase();
+    const query = search.value.trim().toLowerCase();
     const players = getPlan().keeps.filter((player) => {
       const owner = getPlan().keeps.find((item) => item.id === player.ownerId);
       return (
         (player.ownerId != null) === alts &&
-        (player.name + " " + player.accountId + " " + (owner?.name || ""))
+        (
+          player.name +
+          " " +
+          player.accountId +
+          " " +
+          player.allianceTag +
+          " " +
+          (owner?.name || "")
+        )
           .toLowerCase()
           .includes(query)
       );
