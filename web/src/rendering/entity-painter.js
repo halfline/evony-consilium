@@ -1,4 +1,4 @@
-export function drawEntity(view, e, p, z, fixed) {
+export function drawEntity(view, e, p, z, fixed, { deferLabel = false } = {}) {
   const c = view.ctx;
   const center = view.screen(e.x + e.w / 2, e.y + e.h / 2);
   const asset = view.assets.get(e.skin);
@@ -116,7 +116,9 @@ export function drawEntity(view, e, p, z, fixed) {
       top: top - 10,
       bottom: center.y + Math.max(25, 35 * z),
     });
-  drawEntityLabel(view, { e, p, z, major, spriteZoom, center, top, rally });
+  const labelData = { e, p, z, major, spriteZoom, center, top, rally };
+  if (!deferLabel) drawEntityLabel(view, labelData);
+  return labelData;
 }
 
 export function drawEntityLabel(

@@ -1,6 +1,6 @@
 import { drawSubcities } from "./subcity-painter.js";
 import { drawTerrain, drawMoatOverlay } from "./terrain-painter.js";
-import { drawEntity } from "./entity-painter.js";
+import { drawEntity, drawEntityLabel } from "./entity-painter.js";
 import { ImageCache } from "./image-cache.js";
 import { project, unproject } from "../domain/geometry.js";
 export class MapRenderer {
@@ -243,7 +243,11 @@ export class MapRenderer {
       this.drawMoatOverlay(landmark, p, z);
     this.hits = [];
     const landmarks = new Set(terrain?.landmarks || []);
-    for (const e of all) this.entity(e, p, z, landmarks.has(e));
+    const labels = [];
+    for (const e of all) {
+      const label = this.entity(e, p, z, landmarks.has(e), true);
+      if (label?.p) labels.push(label);
+    }
     drawSubcities(this, p, this.subcityTypes);
     for (const e of this.previews || (this.preview ? [this.preview] : [])) {
       this.path(e);
@@ -265,6 +269,7 @@ export class MapRenderer {
     vignette.addColorStop(1, "#14241b55");
     c.fillStyle = vignette;
     c.fillRect(0, 0, this.width, this.height);
+    for (const label of labels) drawEntityLabel(this, label);
     if (this.selectionBox) {
       const { x, y, w, h } = this.selectionBox;
       c.fillStyle = "#e7d59722";
@@ -275,8 +280,8 @@ export class MapRenderer {
     }
     this.onDraw({ zoom: z });
   }
-  entity(e, p, z, fixed = false) {
-    drawEntity(this, e, p, z, fixed);
+  entity(e, p, z, fixed = false, deferLabel = false) {
+    return drawEntity(this, e, p, z, fixed, { deferLabel });
   }
   hitSubcity(x, y) {
     return (
