@@ -7,6 +7,7 @@ export function createSearchablePicker({
   items,
   matches,
   renderCard,
+  closeOnSelect = true,
   prepare = () => {},
   filters = [],
 }) {
@@ -22,7 +23,14 @@ export function createSearchablePicker({
         button.classList.toggle("selected", selected);
         button.setAttribute("aria-pressed", String(selected));
         button.onclick = () => {
-          dialog.close();
+          selectedId = item.id;
+          if (closeOnSelect) dialog.close();
+          else
+            for (const card of grid.querySelectorAll("button")) {
+              const active = card === button;
+              card.classList.toggle("selected", active);
+              card.setAttribute("aria-pressed", String(active));
+            }
           choose(item);
         };
         return button;
@@ -42,6 +50,7 @@ export function createSearchablePicker({
       dialog.showModal();
       search.focus();
     },
+    render,
     close: () => dialog.close(),
   };
 }
