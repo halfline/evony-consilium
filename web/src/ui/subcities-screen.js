@@ -106,7 +106,7 @@ export function createSubcitiesScreen({
     $("subcities-empty").textContent = getPlan().subcities?.length
       ? "No matching subcities."
       : "No subcities yet.";
-    grid.replaceChildren(...cities.map(tile), addButton);
+    grid.replaceChildren(...cities.map(tile));
   }
   return {
     render,
