@@ -9,6 +9,10 @@ export function createTeamScreen({
   mutate,
   status,
   navigate,
+  openMap,
+  openPlayer,
+  getAvatars,
+  assets,
   context,
   canEdit = () => true,
   unlock = async () => {},
@@ -41,6 +45,10 @@ export function createTeamScreen({
     root,
     getPlan,
     navigate,
+    openMap,
+    openPlayer,
+    getAvatars,
+    assets,
   });
   $("team-discord-url").oninput = () =>
     $("team-discord-url").removeAttribute("aria-invalid");

@@ -521,6 +521,235 @@ h2 {
   right: 14px;
 }
 
+/* A team identity area and useful previews give the dashboard a composition. */
+#project-screen {
+  max-width: 1240px;
+  padding: 40px 32px;
+}
+.project-settings {
+  max-width: 640px;
+  gap: 18px;
+}
+.project-settings [data-logo="upload"] {
+  width: 120px;
+  height: 120px;
+  padding: 7px;
+}
+.project-settings
+  [data-logo="upload"]:has([data-logo="placeholder"]:not([hidden])) {
+  width: 120px;
+  height: 120px;
+}
+.project-settings [data-logo="placeholder"] {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 46px;
+  letter-spacing: 1px;
+}
+#edit-project-name {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(30px, 4vw, 42px);
+  padding: 4px 12px;
+  min-height: 50px;
+}
+.team-stats {
+  gap: 12px;
+}
+.team-stat {
+  padding: 16px 12px;
+  min-height: 96px;
+  border-color: var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+}
+.team-stat:hover {
+  border-color: var(--gold);
+  background: var(--panel-raised);
+}
+.team-stat strong {
+  font-size: 30px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.team-stat span {
+  font-size: 13px;
+}
+.team-discord {
+  max-width: 420px;
+  padding-top: 4px;
+}
+.team-discord-label {
+  margin-bottom: 8px;
+}
+.team-discord:has(#team-discord-tile:not([hidden])) .team-discord-label {
+  text-align: center;
+}
+.discord-open {
+  min-height: 44px;
+  padding-right: 18px;
+  font-size: 14px;
+}
+.discord-icon {
+  width: 44px;
+  height: 44px;
+  flex-basis: 44px;
+  padding: 10px;
+}
+.discord-remove {
+  top: -10px;
+  left: auto;
+  right: -10px;
+  min-height: 32px;
+}
+.dashboard-overview {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 24px;
+  margin-top: 40px;
+}
+.dashboard-panel {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  overflow: hidden;
+  background: var(--panel);
+}
+.dashboard-panel > header {
+  padding: 22px 24px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.dashboard-panel h2 {
+  font-size: 26px;
+  margin-top: 7px;
+}
+.dashboard-panel > header button {
+  border: 0;
+  background: transparent;
+  color: var(--gold);
+  padding: 6px 0;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.formation-preview {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background:
+    repeating-linear-gradient(30deg, transparent 0 29px, #dbc0870b 30px 31px),
+    repeating-linear-gradient(-30deg, transparent 0 29px, #dbc0870b 30px 31px),
+    radial-gradient(ellipse, #38523f, #172b20);
+}
+.formation-preview:hover {
+  background-color: #274333;
+}
+.formation-preview > svg {
+  width: 100%;
+  height: 210px;
+}
+.formation-preview-emblem {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 210px;
+  color: var(--gold);
+}
+.formation-preview-emblem img {
+  width: 112px;
+  height: 112px;
+  object-fit: contain;
+}
+.formation-preview-emblem svg {
+  width: 64px;
+  height: 64px;
+}
+.formation-preview-caption {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  width: 100%;
+  padding: 16px 24px;
+  gap: 3px 12px;
+  text-align: left;
+  background: #15291eee;
+}
+.formation-preview-caption strong {
+  font-size: 15px;
+}
+.formation-preview-caption > span {
+  grid-column: 1;
+  color: var(--muted);
+  font-size: 12px;
+}
+.formation-preview-caption svg {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  transform: rotate(180deg);
+  color: var(--gold);
+}
+#team-roster-preview {
+  padding: 0 16px 12px;
+}
+.roster-preview-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 8px;
+  text-align: left;
+  background: transparent;
+  border: 0;
+}
+.roster-preview-portrait {
+  display: block;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--panel-raised);
+}
+.roster-preview-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.roster-preview-row strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+}
+.roster-preview-level {
+  margin-left: auto;
+  color: var(--gold);
+  font-size: 13px;
+}
+.dashboard-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  min-height: 240px;
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+}
+.dashboard-empty > svg {
+  color: var(--gold);
+  width: 36px;
+  height: 36px;
+}
+.dashboard-empty button {
+  color: var(--gold);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

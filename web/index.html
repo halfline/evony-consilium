@@ -412,6 +412,7 @@
             Check editing access
           </button>
           <div id="edit-project-logo" class="project-logo-field"></div>
+          <span class="eyebrow">YOUR ALLIANCE</span>
           <input
             id="edit-project-name"
             aria-label="Team name"
@@ -434,6 +435,9 @@
             </button>
           </div>
           <div class="team-discord">
+            <label for="team-discord-url" class="team-discord-label"
+              >Alliance chat</label
+            >
             <div id="team-discord-entry">
               <input
                 id="team-discord-url"
@@ -468,6 +472,38 @@
               </button>
             </div>
           </div>
+        </div>
+        <div class="dashboard-overview">
+          <section
+            class="dashboard-panel"
+            aria-labelledby="team-map-preview-title"
+          >
+            <header>
+              <div>
+                <span class="eyebrow">THE NEXT MOVE</span>
+                <h2 id="team-map-preview-title">Your formation</h2>
+              </div>
+              <button id="team-map-browse" type="button">
+                All maps <span aria-hidden="true">→</span>
+              </button>
+            </header>
+            <div id="team-map-preview"></div>
+          </section>
+          <section
+            class="dashboard-panel"
+            aria-labelledby="team-roster-preview-title"
+          >
+            <header>
+              <div>
+                <span class="eyebrow">YOUR PEOPLE</span>
+                <h2 id="team-roster-preview-title">Alliance roster</h2>
+              </div>
+              <button id="team-roster-browse" type="button">
+                All players <span aria-hidden="true">→</span>
+              </button>
+            </header>
+            <div id="team-roster-preview"></div>
+          </section>
         </div>
       </section>
       <section id="players-screen" class="players-screen" aria-label="Players">

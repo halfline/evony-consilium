@@ -179,6 +179,18 @@ export function createPlanner(
       mutate,
       context: () => workspace?.key(),
       navigate: (screen) => screens.show(screen),
+      openMap: (id) => {
+        placement.id = null;
+        store.openMap(id);
+        resetPending();
+        screens.show("formation");
+      },
+      openPlayer: (id) => {
+        select(id);
+        screens.show("player");
+      },
+      getAvatars: () => avatarCatalog,
+      assets,
       status: (...args) => toast(...args),
     });
   }
