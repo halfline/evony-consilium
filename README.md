@@ -18,7 +18,7 @@ Open `http://127.0.0.1:4173`. The entry flow is Google sign-in → team selector
 
 ## Delegating player editing
 
-New teams use `Team - <name>.team.consilium.json`; profiles use `Player - <name>.player.consilium.json`. Separate Drive MIME types keep the team picker from listing player profiles and the player picker from listing teams. Picker uses a list so names stay visible. Older JSON files remain available in a separate compatibility view and are renamed/retyped on their next save.
+New teams use `Team - <name>.team.consilium.json`; profiles use `Player - <name>.player.consilium.json`. Picker uses a list so names stay visible. Each file list includes existing JSON files and the new Drive types together, with a filename search for team or player documents. Existing files need no manual renaming and adopt the new name/type on their next save.
 
 Open a team through its Consilium link, its Drive file link, or **Browse team files**. Only the team document needs authorization to view the roster and maps. Selecting a profile automatically checks existing access; **Connect player file** opens Picker only if that linked file needs authorization. **Check editing access** rechecks Drive permissions directly. Picker does not grant Editor access. Administrators see a targeted folder picker only when creating a player requires authorizing the central folder. Opening an empty roster does not start creation. **Add existing player file** explicitly imports one profile; background refresh never creates roster membership or reverses Undo.
 
