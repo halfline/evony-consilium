@@ -17,6 +17,30 @@ export function createFormationControls({
   status,
 }) {
   const $ = view(root, toolbar);
+  const size = $("hive-size"),
+    customSize = $("hive-size-custom");
+  function commitHiveSize(value) {
+    if (!canEdit()) return;
+    const next = structuredClone(getPlan());
+    next.hiveSize = value;
+    commit(next);
+  }
+  size.onchange = () => {
+    if (size.value === "custom") {
+      customSize.hidden = false;
+      customSize.focus();
+    } else commitHiveSize(Number(size.value));
+  };
+  customSize.oninput = () => customSize.setCustomValidity("");
+  customSize.onchange = () => {
+    const value = Number(customSize.value);
+    if (!Number.isInteger(value) || value < 2 || value > 60 || value % 2) {
+      customSize.setCustomValidity("Enter an even number from 2 to 60.");
+      customSize.reportValidity();
+      return;
+    }
+    commitHiveSize(value);
+  };
   $("auto-place").onclick = () => {
     if (!canEdit()) return;
     try {
@@ -66,6 +90,11 @@ export function createFormationControls({
   };
   function render() {
     $("auto-place").disabled = !canEdit() || !getPlan().keeps.length;
+    const value = getPlan().hiveSize ?? 18;
+    size.value = [18, 20].includes(value) ? String(value) : "custom";
+    customSize.hidden = size.value !== "custom";
+    customSize.value = String(value);
+    size.disabled = customSize.disabled = !canEdit();
   }
   return { render };
 }

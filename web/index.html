@@ -842,6 +842,23 @@
           </section>
           <section id="panel-hive" class="panel" hidden>
             <div class="section-line"><h2>Alliance buildings</h2></div>
+            <div class="hive-size-control">
+              <label for="hive-size">Hive boundary</label>
+              <select id="hive-size">
+                <option value="18">18 × 18 tiles</option>
+                <option value="20">20 × 20 tiles</option>
+                <option value="custom">Custom…</option>
+              </select>
+              <input
+                id="hive-size-custom"
+                type="number"
+                min="2"
+                max="60"
+                step="2"
+                aria-label="Custom hive width in tiles"
+                hidden
+              />
+            </div>
             <p class="muted">
               Choose a building, then click a free tile on the map. Edit its
               location and footprint below.

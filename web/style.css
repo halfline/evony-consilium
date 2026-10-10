@@ -575,6 +575,27 @@ canvas:focus-visible {
   grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
+.hive-size-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0;
+}
+.hive-size-control label {
+  white-space: nowrap;
+}
+.hive-size-control select {
+  width: 130px;
+}
+.hive-size-control input {
+  grid-column: 2;
+  justify-self: end;
+  width: 64px;
+}
+.hive-size-control input[hidden] {
+  display: none;
+}
 .building-tools button {
   font-size: 11px;
   padding: 14px 8px;

@@ -214,6 +214,16 @@ export async function mapEditing({
   await page.locator("#entity-y").fill("620");
   await page.locator("#entity-form [type=submit]").click();
   assert.equal(await page.locator("#structure-list button").count(), 1);
+  await page.locator("#hive-size").selectOption("20");
+  assert.equal(await page.locator("#hive-size").inputValue(), "20");
+  await page.locator("#reset-view").click();
+  for (let i = 0; i < 4; i++) await page.locator("#zoom-out").click();
+  await page.locator("#map").screenshot({ path: "test-results/hive-boundary.png" });
+  await page.locator("#hive-size").selectOption("custom");
+  await page.locator("#hive-size-custom").fill("22");
+  await page.locator("#hive-size-custom").blur();
+  assert.equal(await page.locator("#hive-size-custom").inputValue(), "22");
+  await page.locator("#hive-size").selectOption("18");
   await page.locator("[data-building=warehouse]").click();
   await page.locator(".castle-card").first().click();
   await formationScreen();
