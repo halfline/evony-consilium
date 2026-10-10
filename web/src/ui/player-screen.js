@@ -135,7 +135,8 @@ export function createPlayerScreen({
       );
   for (const event of ["input", "change"])
     form.addEventListener(event, (event) => {
-      if (!teamAction(event)) queueMicrotask(capture);
+      if (!teamAction(event) && event.target.id !== "player-section-select")
+        queueMicrotask(capture);
     });
   form.addEventListener("click", (event) => {
     const button = event.target.closest("button");
