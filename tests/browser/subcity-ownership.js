@@ -19,7 +19,10 @@ export async function subcityOwnership({ browser }) {
       if (!(await page.locator("#add-player-dialog").isVisible()))
         await page.locator("#add-player").click();
       await page.locator("#new-player-name").fill(name);
-      if (name === "Alice") await page.locator("#new-player-tag").fill("AVN");
+      if (name === "Alice") {
+        await page.locator("#new-player-tag").fill("AVN");
+        await page.locator("#new-player-account").fill("319846102");
+      }
       await page.locator("#new-player-form [type=submit]").click();
       await page.locator("#add-player-dialog").waitFor({ state: "hidden" });
     }
@@ -51,7 +54,20 @@ export async function subcityOwnership({ browser }) {
     await page.locator("#add-subcity").click();
     await page.locator("#subcity-name").fill("First city");
     await page.locator("#subcity-owner").click();
+    assert.doesNotMatch(
+      await page.locator("#subcity-owner-grid").textContent(),
+      /319846102/,
+    );
+    await page.locator("#subcity-owner-search").fill("319846102");
+    assert.match(
+      await page.locator("#subcity-owner-grid").textContent(),
+      /ID 319846102/,
+    );
     await page.locator("#subcity-owner-search").fill("Alice");
+    assert.doesNotMatch(
+      await page.locator("#subcity-owner-grid").textContent(),
+      /319846102/,
+    );
     assert.equal(await page.locator("#subcity-owner-grid button").count(), 1);
     const alice = await page
       .locator("#subcity-owner-grid button")

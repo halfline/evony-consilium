@@ -20,9 +20,11 @@ export function createSubcityOwnerPicker({ root, getPlan, getAvatars }) {
     empty: $("subcity-owner-empty"),
     items: () => getPlan().keeps,
     matches: (player, query) =>
-      `${player.name} ${player.allianceTag}`.toLowerCase().includes(query),
-    renderCard(player) {
-      const card = playerPickerCard(player, getAvatars);
+      `${player.name} ${player.allianceTag} ${player.accountId}`
+        .toLowerCase()
+        .includes(query),
+    renderCard(player, query) {
+      const card = playerPickerCard(player, getAvatars, { query });
       card.dataset.owner = player.id;
       return card;
     },
