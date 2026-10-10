@@ -692,17 +692,12 @@
   width: 100%;
 }
 #maps-list {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(164px, 1fr));
+  align-items: start;
   gap: 24px 18px;
   max-height: none;
   overflow: visible;
-}
-.map-list-row {
-  flex: 0 0 168px;
 }
 #players,
 #alts {
@@ -725,10 +720,15 @@
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   }
 }
-#players .add-player-icon,
-#alts .add-player-icon,
 #maps-list .add-map-icon {
-  flex: 0 0 44px;
+  justify-self: center;
+  align-self: start;
+  margin-top: 54px;
+}
+@media (max-width: 600px) {
+  #maps-list {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
 }
 
 .team-stats {
