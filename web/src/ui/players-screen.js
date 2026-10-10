@@ -2,6 +2,7 @@ import { renderPortrait, initialsFor } from "./portrait.js";
 import { view } from "./dom.js";
 import { bindTileActions } from "./tile-actions.js";
 import { paintStatusBadge } from "./status-badge.js";
+import { labelWithIcon } from "./icons.js";
 
 export function createPlayersScreen({
   root,
@@ -111,7 +112,7 @@ export function createPlayersScreen({
     const removeButton = document.createElement("button");
     removeButton.type = "button";
     removeButton.className = "player-remove";
-    removeButton.textContent = "×";
+    labelWithIcon(removeButton, "close");
     removeButton.title = "Remove " + player.name;
     removeButton.setAttribute("aria-label", removeButton.title);
     removeButton.onclick = () => remove(player.id);
