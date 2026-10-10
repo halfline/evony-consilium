@@ -61,15 +61,10 @@ export async function mapSelection({ page, playersScreen, driveFiles }) {
     await page
       .locator("#add-map")
       .evaluate((button) => button.parentElement.id),
-    "maps-list",
+    "maps-actions",
   );
-  const mapAddGap = await page.locator("#add-map").evaluate((button) => {
-    const portrait = button.previousElementSibling
-      .querySelector(".map-portrait")
-      .getBoundingClientRect();
-    return button.getBoundingClientRect().left - portrait.right;
-  });
-  assert.ok(mapAddGap >= 0 && mapAddGap <= 48);
+  assert.equal(await page.locator("#add-map").isVisible(), true);
+  assert.match(await page.locator("#add-map").textContent(), /Add map/);
   await page.screenshot({ path: "test-results/maps-screen.png" });
   await page.locator("#maps-list .map-row").first().click();
   await page
@@ -94,8 +89,11 @@ export async function mapSelection({ page, playersScreen, driveFiles }) {
     "Temple taking",
   );
   assert.equal(
-    await page.locator("#maps-list .map-caption > span").first().textContent(),
-    "→",
+    await page
+      .locator("#maps-list .map-caption > svg")
+      .first()
+      .getAttribute("aria-hidden"),
+    "true",
   );
   await page.locator("#add-map").click();
   await page.locator("#new-formation-type").selectOption("blank");

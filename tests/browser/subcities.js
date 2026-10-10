@@ -34,7 +34,18 @@ export async function subcities({ browser }) {
     );
     assert.deepEqual(
       await page.locator("#subcities-type option").allTextContents(),
-      ["All types", "Culture", "Historic", "Famous"],
+      [
+        "All types",
+        "Europe",
+        "China",
+        "Japan",
+        "Korea",
+        "America",
+        "Russia",
+        "Arabia",
+        "Historic",
+        "Famous",
+      ],
     );
     const desktopFilters = await page.evaluate(() =>
       ["subcities-search-control", "subcities-type", "subcities-color"].map(
@@ -123,17 +134,13 @@ export async function subcities({ browser }) {
       await page
         .locator("#add-subcity")
         .evaluate((button) => button.parentElement.id),
-      "subcities",
+      "subcities-actions",
     );
-    const subcityAddGap = await page
-      .locator("#add-subcity")
-      .evaluate((button) => {
-        const portrait = button.previousElementSibling
-          .querySelector(".subcity-portrait")
-          .getBoundingClientRect();
-        return button.getBoundingClientRect().left - portrait.right;
-      });
-    assert.ok(subcityAddGap >= 0 && subcityAddGap <= 48);
+    assert.equal(await page.locator("#add-subcity").isVisible(), true);
+    assert.match(
+      await page.locator("#add-subcity").textContent(),
+      /Add subcity/,
+    );
     await page.locator("#subcities-search").fill("no such city");
     assert.equal(
       await page.locator("#subcities-empty").textContent(),
@@ -147,7 +154,7 @@ export async function subcities({ browser }) {
       await cards.nth(2).locator("img").getAttribute("src"),
     );
     for (const [type, expected] of [
-      ["culture", "Japan"],
+      ["Japan", "Japan"],
       ["historic", "Rostock"],
       ["famous", "Germany Famous City"],
     ]) {
@@ -155,6 +162,8 @@ export async function subcities({ browser }) {
       assert.equal(await cards.count(), 1);
       assert.match(await cards.first().textContent(), new RegExp(expected));
     }
+    await page.locator("#subcities-type").selectOption("Europe");
+    assert.equal(await cards.count(), 0);
     await page.locator("#subcities-type").selectOption("");
     await cards.first().click();
     await page.locator("#subcity-castle").click();

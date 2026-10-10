@@ -142,12 +142,9 @@ export async function playerCreation({ page, playersScreen }) {
     await page
       .locator("#add-player")
       .evaluate((button) => button.parentElement.id),
-    "players",
+    "players-actions",
   );
-  assert.equal(
-    await page.locator("#players").evaluate((grid) => grid.lastElementChild.id),
-    "add-player",
-  );
+  assert.equal(await page.locator("#players #add-player").count(), 0);
   for (const width of [390, 392]) {
     await page.setViewportSize({ width, height: 844 });
     const cards = await page
@@ -164,13 +161,8 @@ export async function playerCreation({ page, playersScreen }) {
     );
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
-  const playerAddGap = await page.locator("#add-player").evaluate((button) => {
-    const portrait = button.previousElementSibling
-      .querySelector(".player-portrait")
-      .getBoundingClientRect();
-    return button.getBoundingClientRect().left - portrait.right;
-  });
-  assert.ok(playerAddGap >= 0 && playerAddGap <= 48);
+  assert.equal(await page.locator("#add-player").isVisible(), true);
+  assert.match(await page.locator("#add-player").textContent(), /Add player/);
   await page.screenshot({ path: "test-results/player-cards.png" });
   await page.locator("#players .player-card").first().focus();
   await page.waitForFunction(
