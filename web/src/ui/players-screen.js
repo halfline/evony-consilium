@@ -1,6 +1,7 @@
 import { renderPortrait, initialsFor } from "./portrait.js";
 import { view } from "./dom.js";
 import { bindTileActions } from "./tile-actions.js";
+import { paintStatusBadge } from "./status-badge.js";
 
 export function createPlayersScreen({
   root,
@@ -80,8 +81,19 @@ export function createPlayersScreen({
     const state = fileState(player);
     if (state?.hasDraft) {
       const draft = document.createElement("span");
-      draft.className = "detail";
-      draft.textContent = state.label;
+      draft.className = "detail draft-badge";
+      paintStatusBadge(
+        draft,
+        state.label?.includes("review")
+          ? "Review"
+          : state.label?.includes("not saved")
+            ? "Not saved"
+            : "Draft",
+        state.label?.includes("review") || state.label?.includes("not saved")
+          ? "warning"
+          : "draft",
+        state.label,
+      );
       identity.append(draft);
     }
     if (state && player.playerSource && !state.canEdit) {
