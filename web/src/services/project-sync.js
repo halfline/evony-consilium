@@ -93,7 +93,7 @@ export class ProjectSync {
           ? "Updating players…"
           : "Saving team…"
         : reload
-          ? "Review updates"
+          ? "Load latest team"
           : "Save team",
       saving: this.saving,
       conflict: this.remoteChanged,
@@ -163,7 +163,9 @@ export class ProjectSync {
       }
       if (!this.remoteChanged)
         this.status(
-          "Team changes need review. Your draft is kept locally; Save team lets you resolve the conflicting changes.",
+          this.dirty
+            ? "Team changes need review. Your draft is kept locally; Save team lets you resolve the conflicting changes."
+            : "A newer team version is available. Load latest team to see it.",
         );
       this.remoteChanged = true;
       this.notify();

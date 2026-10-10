@@ -8,7 +8,9 @@ export function createSaveControls({ button, reload, status }) {
     reload.hidden = !conflict;
     if (status)
       status.textContent = conflict
-        ? "New team version"
+        ? dirty
+          ? "Team changes need review · Save team"
+          : "New team version available"
         : saving
           ? "Saving team…"
           : dirty

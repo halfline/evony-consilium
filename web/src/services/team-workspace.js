@@ -48,7 +48,7 @@ export class TeamWorkspace {
     return this.sync.save();
   }
   reload() {
-    return this.open(this.project.folder, true);
+    return this.open(this.project.folder, true, true);
   }
 
   constructor({
@@ -111,7 +111,7 @@ export class TeamWorkspace {
       flush: () => this.flush(),
       writeDraft: (data, key) => this.drafts.writeNow(data, key),
       key: () => this.key(),
-      reload: () => this.open(this.project.folder, true),
+      reload: () => this.reload(),
       saved: () => this.remember(),
       changed: (state) => {
         changed(state);
@@ -239,7 +239,7 @@ export class TeamWorkspace {
     this.project.folder.logo = plan.projectLogo || "";
     this.repository.remember(this.account.sub, this.project.folder);
   }
-  async open(resource, discardDraft = false) {
+  async open(resource, discardDraft = false, preserveView = false) {
     this.authorize();
     const current = this.#begin();
     const account = this.account;
@@ -264,7 +264,7 @@ export class TeamWorkspace {
     });
     this.players.reset();
     this.playerCache.reset();
-    this.openPlan(draft.plan);
+    this.openPlan(draft.plan, { preserveView });
     this.setReadOnly(readOnly);
     this.project = project;
     if (discardDraft)

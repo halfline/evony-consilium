@@ -66,7 +66,7 @@ test("remote-only changes use Reload without uploading, including view-only proj
     sync.remoteChanged = false;
   };
   await sync.checkRemote();
-  assert.equal(sync.state().label, "Review updates");
+  assert.equal(sync.state().label, "Load latest team");
   assert.equal(sync.state().disabled, false);
   await sync.save();
   assert.equal(reloads, 1);

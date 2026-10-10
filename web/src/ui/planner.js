@@ -456,11 +456,18 @@ export function createPlanner(
         mapInteraction?.cancel();
       }
     },
-    openPlan: (data) => {
+    openPlan: (data, { preserveView = false } = {}) => {
       teamConflicts.cancel();
+      const previousScreen = screens.current();
+      const previousPlayer = screens.isPlayer() ? placement.id : null;
       opening = true;
       store.replace(data, { force: true });
-      screens.show("project");
+      if (preserveView && previousScreen === "player") {
+        if (data.keeps.some((player) => player.id === previousPlayer)) {
+          placement.id = previousPlayer;
+          screens.show("player");
+        } else screens.show("players");
+      } else screens.show(preserveView ? previousScreen : "project");
       requestAnimationFrame(() => {
         renderer.resize();
         renderer.fit();
