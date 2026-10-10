@@ -1,6 +1,6 @@
 import { OperationCancelled } from "./cancellation.js";
 import { addPlayer } from "../domain/players.js";
-import { applyPlayerProfile } from "../domain/player-document.js";
+import { applyPlayerProfile, linkedPlayer } from "../domain/player-document.js";
 
 // Coordinates authoritative profile files and their read-only team cache.
 // Views supply only presentation decisions; plan mutations use injected transactions.
@@ -110,6 +110,61 @@ export class PlayerProfiles {
       next.keeps[index] = applyPlayerProfile(next.keeps[index], profile);
       this.validatePlan(next);
     });
+  }
+  async collectFolder(before, current) {
+    const folder = this.workspace.project?.folder;
+    if (!folder || folder.id === this.workspace.sync.file?.id) return [];
+    let files;
+    try {
+      files = await this.workspace.drive.children(folder);
+      current();
+    } catch (error) {
+      current();
+      if ([403, 404].includes(error.status)) return [];
+      throw error;
+    }
+    const known = new Set([
+      ...before.keeps.map((player) => player.playerSource?.fileId),
+      ...(before.excludedPlayerFileIds || []),
+    ]);
+    const additions = [];
+    let candidate = before;
+    for (const file of files) {
+      current();
+      if (!file.name?.endsWith(".player.consilium.json") || known.has(file.id))
+        continue;
+      try {
+        const loaded = await this.workspace.drive.loadPlayer(file);
+        current();
+        const player = linkedPlayer(
+          {
+            id: crypto.randomUUID(),
+            w: 2,
+            h: 2,
+            x: null,
+            y: null,
+            locked: false,
+          },
+          loaded.profile,
+          loaded.file,
+        );
+        const next = addPlayer(candidate, player);
+        // Validation resolves the profile's castle and statistics at the trust boundary.
+        this.validatePlan(next);
+        additions.push(player);
+        candidate = next;
+        known.add(file.id);
+      } catch (error) {
+        current();
+        if (error instanceof OperationCancelled || error.status === 401)
+          throw error;
+        this.workspace.status(
+          `Could not load ${file.name}: ${error.message}`,
+          true,
+        );
+      }
+    }
+    return additions;
   }
   commitCaches(before, updates) {
     if (!this.canEditTeam() || this.isEditing() || this.getPlan() !== before)
