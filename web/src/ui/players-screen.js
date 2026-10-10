@@ -1,4 +1,4 @@
-import { renderPortrait } from "./portrait.js";
+import { renderPortrait, initialsFor } from "./portrait.js";
 import { view } from "./dom.js";
 import { bindTileActions } from "./tile-actions.js";
 
@@ -57,6 +57,12 @@ export function createPlayersScreen({
     name.className = "name";
     name.textContent = player.name;
     identity.append(name);
+    const initials = document.createElement("span");
+    initials.className = "portrait-initials";
+    initials.className = "portrait-initials";
+    initials.textContent = initialsFor(player.name);
+    initials.setAttribute("aria-hidden", "true");
+    portrait.append(initials);
     if (query && player.accountId?.toLowerCase().includes(query)) {
       const account = document.createElement("span");
       account.className = "detail";
