@@ -7,6 +7,7 @@ import {
   validateProfile,
 } from "../domain/player-document.js";
 import { OperationCancelled } from "./cancellation.js";
+import { isFileAccessError } from "./google/drive.js";
 
 // Grants and downloaded profiles belong to one signed-in workspace, never the team JSON.
 export class PlayerFiles {
@@ -36,6 +37,7 @@ export class PlayerFiles {
     this.pending = new Map();
     this.created = new Map();
     this.checked = new Map();
+    this.retryAfter = new Map();
     this.operations = new Map();
   }
   state(player) {
@@ -44,12 +46,12 @@ export class PlayerFiles {
     const state = this.#files.get(player.playerSource.fileId);
     return {
       label: state?.error
-        ? "Player file unavailable · Unlock player to reconnect"
+        ? "Cached profile · Connect file to retry"
         : !state
-          ? "Team copy · Unlock player to edit or sync"
+          ? "Cached profile · Connect player file"
           : state.file.capabilities?.canEdit
-            ? "Player unlocked"
-            : "Player locked · Read-only file",
+            ? "Profile editable"
+            : "Profile read-only",
       connected: !!state && !state.error,
       canEdit: !!state && !state.error && !!state.file.capabilities?.canEdit,
       busy: this.busy.has(player.playerSource.fileId),
@@ -69,6 +71,16 @@ export class PlayerFiles {
     return () => {
       if (generation !== this.generation) throw new OperationCancelled();
     };
+  }
+  async discardDraft(player) {
+    const id = player.playerSource?.fileId;
+    if (!id) return;
+    const current = this.captureContext();
+    await this.writeDraft(id, null);
+    current();
+    const entry = this.#files.get(id);
+    if (entry) entry.draft = null;
+    this.changed();
   }
   cachedPlayer(player) {
     const entry = this.#files.get(player.playerSource?.fileId);
@@ -96,7 +108,7 @@ export class PlayerFiles {
     try {
       return await task(current);
     } catch (error) {
-      if (generation === this.generation && [403, 404].includes(error.status))
+      if (generation === this.generation && isFileAccessError(error))
         this.#files.set(id, { ...this.#files.get(id), error: true });
       throw error;
     } finally {
@@ -112,6 +124,7 @@ export class PlayerFiles {
     const source = player?.playerSource;
     if (!source || this.busy.has(source.fileId)) return;
     const id = source.fileId;
+    if (!force && Date.now() < (this.retryAfter.get(id) || 0)) return;
     if (!force && Date.now() - (this.checked.get(id) || 0) < 30000) return;
     this.checked.set(id, Date.now());
     const generation = this.generation;
@@ -127,6 +140,8 @@ export class PlayerFiles {
         resourceKey: source.resourceKey,
       });
       if (!current()) return;
+      file.resourceKey ||= source.resourceKey || "";
+      this.retryAfter.delete(id);
       const previous = this.#files.get(id);
       if (previous?.profile && !previous.error) {
         const changed =
@@ -134,11 +149,6 @@ export class PlayerFiles {
           !!file.capabilities?.canEdit;
         previous.file.capabilities = file.capabilities;
         if (changed) this.changed();
-        return;
-      }
-      if (!file.capabilities?.canEdit) {
-        this.#files.set(id, { ...previous, file, error: false });
-        if (!previous || previous.error) this.changed();
         return;
       }
       const loaded = await this.drive.loadPlayer(file);
@@ -150,7 +160,8 @@ export class PlayerFiles {
       this.changed();
     } catch (error) {
       // A Drive share may supply both access layers; Picker remains a fallback.
-      if (!current() || ![403, 404].includes(error.status)) return;
+      if (!current() || !isFileAccessError(error)) return;
+      this.retryAfter.set(id, Date.now() + 5 * 60000);
       const previous = this.#files.get(id);
       if (previous && !previous.error) {
         this.#files.set(id, { ...previous, error: true });
@@ -164,7 +175,7 @@ export class PlayerFiles {
       async (current) => {
         const source = player?.playerSource;
         const [selected] = await this.picker.player(
-          source ? { id: source.fileId } : null,
+          source ? { id: source.fileId, name: player.name } : null,
           folder,
         );
         current();
@@ -211,7 +222,7 @@ export class PlayerFiles {
       return linkedPlayer(player, profile, file);
     });
   }
-  async saveOwn(player, resolveConflicts) {
+  async saveOwn(player, resolveConflicts = async () => null, baseline = null) {
     const id = player.playerSource?.fileId;
     return this.run(id, async (current) => {
       const entry = this.#files.get(id);
@@ -219,36 +230,45 @@ export class PlayerFiles {
         throw new Error("Open player before saving its file.");
       const draft = {
         profile: validateProfile(player),
-        baseline: entry.draft?.baseline || entry.profile,
+        baseline: entry.draft?.baseline || baseline || entry.profile,
       };
       entry.draft = draft;
       await this.writeDraft(id, draft);
       current();
-      const loaded = await this.drive.loadPlayer(entry.file);
-      current();
-      let result = mergePlayerProfiles(
-        draft.baseline,
-        draft.profile,
-        loaded.profile,
-      );
-      if (result.conflicts.length) {
-        const resolution = await resolveConflicts(result.conflicts);
+      for (let attempt = 0; attempt < 4; attempt++) {
+        const loaded = await this.drive.loadPlayer(entry.file);
         current();
-        if (!resolution) throw new OperationCancelled();
-        result = mergePlayerProfiles(
+        let result = mergePlayerProfiles(
           draft.baseline,
           draft.profile,
           loaded.profile,
-          resolution,
         );
+        if (result.conflicts.length) {
+          const resolution = await resolveConflicts(result.conflicts);
+          current();
+          if (!resolution) throw new OperationCancelled();
+          result = mergePlayerProfiles(
+            draft.baseline,
+            draft.profile,
+            loaded.profile,
+            resolution,
+          );
+        }
+        const profile = validateProfile(result.profile);
+        let file;
+        try {
+          file = await this.drive.savePlayer(loaded.file, profile);
+        } catch (error) {
+          current();
+          if (![409, 412].includes(error.status) || attempt === 3) throw error;
+          continue;
+        }
+        current();
+        this.#files.set(id, { file, profile });
+        await this.writeDraft(id, null);
+        current();
+        return profile;
       }
-      const profile = validateProfile(result.profile);
-      const file = await this.drive.savePlayer(loaded.file, profile);
-      current();
-      this.#files.set(id, { file, profile });
-      await this.writeDraft(id, null);
-      current();
-      return profile;
     });
   }
   async refreshCache(player, validate = () => {}) {
@@ -256,10 +276,17 @@ export class PlayerFiles {
     if (!source || !this.state(player).connected)
       throw new Error("Player file access is needed to refresh its cache.");
     return this.run(source.fileId, async (current) => {
-      const loaded = await this.drive.loadPlayer({
+      const file = await this.drive.metadata({
         id: source.fileId,
         resourceKey: source.resourceKey,
       });
+      current();
+      file.resourceKey ||= source.resourceKey || "";
+      const entry = this.#files.get(source.fileId);
+      const loaded =
+        entry?.profile && !entry.error && entry.file.version === file.version
+          ? { file, profile: entry.profile }
+          : await this.drive.loadPlayer(file);
       current();
       const profile = validateProfile(loaded.profile);
       validate(profile);
