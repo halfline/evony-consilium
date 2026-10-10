@@ -57,6 +57,8 @@ The plan retains shared player records and team metadata outside map layouts. Na
 
 `services/player-cache-sync.js` refreshes accessible roster sources for viewers and editors, including when planning edits are unsaved. It never discovers new membership. Updates enter through `TeamStore.refresh`, which refreshes cached fields in Undo history without adding an edit. Editor publication transforms only the shared baseline; local formations cannot leak into a cache publication. Explicit imports use the player picker; creating or importing a player attempts to publish membership immediately. Deleted or undone additions remain absent until deliberately imported again.
 
+`ui/player-alts.js` manages team-level alt relationships from the owning player's Alts tab. A searchable confirmation dialog assigns existing regular players, including transfer of their owned alts. Returning an alt to the regular roster is a secondary row action. Neither operation writes player profile files; team capabilities gate both actions.
+
 Drive writes obtain v2's strong metadata ETag and version, then use multipart v2 PUT with `If-Match`. Missing/weak tokens fail closed. Reads and creation remain v3. A stale preflight or 412 triggers a stable read, merge, and retry (at most four attempts). Edits arriving during an upload remain local against the resulting baseline. All results are scoped to the current workspace generation. Tokens remain in memory and public configuration lives in `web/google-config.js`.
 
 ## Player statistics
