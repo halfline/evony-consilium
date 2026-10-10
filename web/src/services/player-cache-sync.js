@@ -2,16 +2,7 @@ import { OperationCancelled } from "./cancellation.js";
 
 // One background pass per workspace, independent of the selected profile.
 export class PlayerCacheSync {
-  constructor({
-    players,
-    profiles,
-    sync,
-    getPlan,
-    isEditing,
-    save,
-    status,
-    discover = async () => [],
-  }) {
+  constructor({ players, profiles, sync, getPlan, isEditing, save, status }) {
     Object.assign(this, {
       players,
       profiles,
@@ -20,7 +11,6 @@ export class PlayerCacheSync {
       isEditing,
       save,
       status,
-      discover,
     });
     this.reset();
   }
@@ -32,30 +22,20 @@ export class PlayerCacheSync {
     return (
       !this.isEditing() &&
       this.sync.canCheck() &&
-      !!this.sync.file?.capabilities?.canEdit &&
+      !!this.sync.file &&
       !this.sync.saving &&
-      !this.sync.remoteChanged &&
-      !this.sync.dirty
+      !this.sync.remoteChanged
     );
   }
   async refresh() {
-    if (this.running || !this.profiles.commitPlan || !this.canRefresh()) return;
+    if (this.running || !this.profiles.refreshPlan || !this.canRefresh())
+      return;
     const generation = this.generation,
       pass = {};
     this.running = pass;
     try {
       const before = this.getPlan(),
         updates = [];
-      const current = () => {
-        if (
-          generation !== this.generation ||
-          !this.canRefresh() ||
-          this.getPlan() !== before
-        )
-          throw new OperationCancelled();
-      };
-      const additions = await this.discover(before, current);
-      current();
       for (const player of before.keeps) {
         if (
           generation !== this.generation ||
@@ -64,6 +44,13 @@ export class PlayerCacheSync {
         )
           return;
         if (!player.playerSource) continue;
+        // Members refresh connected files; reading a roster does not probe
+        // every other member's unconnected source. Editors publish all accessible caches.
+        if (
+          !this.sync.file.capabilities?.canEdit &&
+          !this.players.state(player).connected
+        )
+          continue;
         try {
           await this.players.probe(player);
           if (
@@ -90,8 +77,10 @@ export class PlayerCacheSync {
         this.getPlan() !== before
       )
         return;
-      if (this.profiles.commitCaches(before, updates, additions))
-        await this.save();
+      this.profiles.commitCaches(before, updates);
+      // Also retry a previous publication even if the visible cache is current.
+      if (updates.length && this.sync.file.capabilities?.canEdit)
+        await this.save(updates);
     } catch (error) {
       if (
         generation === this.generation &&
