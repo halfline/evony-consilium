@@ -77,7 +77,9 @@ export function createFormationList({
   }
   function render() {
     const plan = getPlan();
-    $("formation-players").replaceChildren(...plan.keeps.map(row));
+    $("formation-players").replaceChildren(
+      ...plan.keeps.filter((player) => player.ownerId == null).map(row),
+    );
     $("structure-list").replaceChildren(
       ...[...plan.structures, ...plan.obstacles].map(row),
     );
