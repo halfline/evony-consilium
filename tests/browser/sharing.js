@@ -6,7 +6,7 @@ export async function sharingAndRecovery({ page, driveFiles }) {
   await page.locator("#plan-title").fill("Unsaved team draft");
   await page.locator("#plan-title").dispatchEvent("change");
   const sharedFormation = [...driveFiles.values()].find(
-    (r) => r.file.name === "team.consilium.json",
+    (r) => r.data?.format === "evony-consilium-team",
   );
   const remoteTitle = "Teammate updated the shared project";
   sharedFormation.data.plan.title = remoteTitle;
@@ -14,14 +14,12 @@ export async function sharingAndRecovery({ page, driveFiles }) {
     Number(sharedFormation.file.version) + 1,
   );
   await page.locator("#drive-save").click();
+  await page.locator("#team-conflict-dialog").waitFor({ state: "visible" });
+  await page.locator('[data-team-resolution="cancel"]').click();
   await page.waitForFunction(
     () => document.getElementById("project-reload").hidden === false,
   );
   assert.equal(sharedFormation.data.plan.title, remoteTitle);
-  assert.match(
-    await page.locator("#toast").textContent(),
-    /teammate (changed|updated)/,
-  );
   await page.locator("#project-back").click();
   await page.locator("#project-list .project-row button").first().click();
   await page.locator("#planner").waitFor({ state: "visible" });
@@ -29,6 +27,7 @@ export async function sharingAndRecovery({ page, driveFiles }) {
     await page.locator("#plan-title").inputValue(),
     "Unsaved team draft",
   );
+  page.once("dialog", (dialog) => dialog.accept());
   await page.locator("#project-reload").click();
   await page.waitForFunction(
     (title) => document.getElementById("plan-title").value === title,

@@ -3,7 +3,7 @@ import { assetFile } from "./asset-file.js";
 
 export async function teamDashboard({ page, driveFiles, projectLogo }) {
   const watchedFormation = [...driveFiles.values()].find(
-    (r) => r.file.name === "team.consilium.json",
+    (r) => r.data?.format === "evony-consilium-team",
   );
   // A revision-only change after our upload must leave Save disabled.
   watchedFormation.file.version = String(
@@ -16,7 +16,7 @@ export async function teamDashboard({ page, driveFiles, projectLogo }) {
   await page.waitForTimeout(100);
   assert.equal(
     await page.locator("#drive-save").getAttribute("aria-label"),
-    "Save",
+    "Save team",
   );
   assert.equal(await page.locator("#drive-save").isDisabled(), true);
   const remoteVersion = String(Number(watchedFormation.file.version) + 1);
@@ -24,19 +24,20 @@ export async function teamDashboard({ page, driveFiles, projectLogo }) {
   watchedFormation.file.version = remoteVersion;
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
   await page.waitForFunction(
-    () => !document.getElementById("drive-save").disabled,
+    () =>
+      document.getElementById("plan-title").value === "Teammate formation" &&
+      document.getElementById("drive-save").disabled,
   );
   assert.equal(
     await page.locator("#drive-save").getAttribute("aria-label"),
-    "Reload",
+    "Save team",
   );
-  assert.equal(await page.locator("#project-reload").isVisible(), true);
-  await page.locator("#drive-save").click();
+  assert.equal(await page.locator("#project-reload").isVisible(), false);
   await page.waitForFunction(
     () =>
       document.getElementById("drive-save").disabled &&
       document.getElementById("drive-save").getAttribute("aria-label") ===
-        "Save",
+        "Save team",
   );
   assert.equal(watchedFormation.file.version, remoteVersion);
   assert.equal(await page.locator("#project-reload").isVisible(), false);
@@ -121,7 +122,7 @@ export async function teamDashboard({ page, driveFiles, projectLogo }) {
     () =>
       document.getElementById("drive-save").disabled &&
       document.getElementById("drive-save").getAttribute("aria-label") ===
-        "Save",
+        "Save team",
   );
   await page.locator("#project-back").click();
   assert.equal(

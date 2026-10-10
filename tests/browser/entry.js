@@ -85,7 +85,7 @@ export async function entryWorkflow({ page, context }) {
   assert.equal(await page.locator("#project-reload").isVisible(), false);
   assert.equal(
     await page.locator("#drive-save").getAttribute("aria-label"),
-    "Save",
+    "Save team",
   );
   assert.equal(await page.locator("#drive-save").isDisabled(), true);
   assert.equal(await page.locator("#players .player-card").count(), 0);
