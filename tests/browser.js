@@ -94,7 +94,7 @@ try {
   assert.deepEqual(errors, []);
   assert.deepEqual(badResponses, []);
   console.log(
-    "Browser checks passed: Google entry flow (mocked), folder projects, Drive saves/conflicts, drafts, sharing, view-only access, setup state, editing, sprites, collisions, player defaults/tags, and mobile.",
+    "Browser checks passed: Google entry flow (mocked), folder projects, Drive saves/conflicts, 30-second autosave, drafts, alt relationships, sharing, view-only access, setup state, editing, sprites, collisions, player defaults/tags, and mobile.",
   );
 } catch (error) {
   console.error(
