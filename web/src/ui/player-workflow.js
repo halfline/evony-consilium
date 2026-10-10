@@ -30,6 +30,7 @@ export function createPlayerWorkflow({
   const dialog = createAddPlayerDialog({
     root: roots.add,
     assets,
+    getPlan,
     getAvatars,
     browseAvatar: avatars.open,
     browse: browseCastle,

@@ -12,11 +12,13 @@ export function createAddPlayerDialog({
   add,
   getAvatars,
   browseAvatar,
+  getPlan,
 }) {
   const $ = view(root);
   const dialog = $("add-player-dialog");
   let draft,
-    busy = false;
+    busy = false,
+    addingAlt = false;
   $("new-player-castle").onclick = () =>
     browse("keep", (asset) => {
       draft.skin = asset.id;
@@ -49,13 +51,23 @@ export function createAddPlayerDialog({
         allianceTag: $("new-player-tag").value.trim(),
         level: Number($("new-player-level").value),
       };
+      if (addingAlt) {
+        const ownerId = $("new-player-owner").value;
+        if (
+          !getPlan().keeps.some(
+            (owner) => owner.id === ownerId && owner.ownerId == null,
+          )
+        )
+          throw new Error("Choose a regular player as the owner.");
+        player.ownerId = ownerId;
+      }
       if (!player.name) throw new Error("Enter a player name.");
       await add(player);
       dialog.close();
     } catch (error) {
       $("new-player-error").textContent = error.message;
     } finally {
-      busy = false;
+      ((busy = false), (addingAlt = false));
       submit.disabled = false;
     }
   };
@@ -64,12 +76,29 @@ export function createAddPlayerDialog({
       dialog.open
         ? { ...draft, level: Number($("new-player-level").value) }
         : null,
-    open() {
+    open(alt = false) {
       if (dialog.open || busy) return;
+      addingAlt = alt;
       draft = newPlayer(assets, lastTag());
       draft.avatarId = getAvatars().defaultId;
       renderAvatarButton($("new-player-avatar"), getAvatars(), draft.avatarId);
       $("new-player-form").reset();
+      $("new-player-title").textContent = alt ? "Add alt" : "Add player";
+      $("new-player-form").querySelector("[type=submit]").textContent = alt
+        ? "Add alt"
+        : "Add player";
+      $("new-player-owner-control").hidden = !alt;
+      $("new-player-owner").required = alt;
+      $("new-player-owner").replaceChildren(
+        ...getPlan()
+          .keeps.filter((player) => player.ownerId == null)
+          .map((player) => {
+            const option = document.createElement("option");
+            option.value = player.id;
+            option.textContent = player.name;
+            return option;
+          }),
+      );
       $("new-player-tag").value = draft.allianceTag;
       $("new-player-level").value = draft.level;
       renderCastleButton($("new-player-castle"), assets.get(draft.skin));

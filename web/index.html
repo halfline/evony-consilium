@@ -978,7 +978,7 @@
       </dialog>
       <dialog id="add-player-dialog">
         <div class="dialog-heading">
-          <h2>Add player</h2>
+          <h2 id="new-player-title">Add player</h2>
           <button data-close="add-player-dialog" aria-label="Close Add player">
             ×
           </button>
@@ -999,6 +999,10 @@
               aria-label="Choose avatar"
             ></button>
           </div>
+          <label id="new-player-owner-control" hidden
+            >Owner
+            <select id="new-player-owner" aria-label="Alt owner"></select>
+          </label>
           <label
             >Name<input id="new-player-name" maxlength="100" required
           /></label>
