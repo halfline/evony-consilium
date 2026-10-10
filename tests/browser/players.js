@@ -84,6 +84,7 @@ export async function playerCreation({ page, playersScreen }) {
   );
   await playersScreen();
   await page.locator("#add-player").click();
+  await page.locator("#add-player-dialog").waitFor({ state: "visible" });
   assert.doesNotMatch(
     await page.locator("#new-player-avatar").getAttribute("aria-label"),
     /Radiant Goddess|Thunder Lord/,

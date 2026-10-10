@@ -7,6 +7,7 @@ import { createAvatarBrowser } from "./avatar-browser.js";
 export function createPlayerWorkflow({
   roots,
   search,
+  canEditTeam,
   getPlan,
   getAvatars,
   assets,
@@ -41,6 +42,26 @@ export function createPlayerWorkflow({
       return linked;
     },
   });
+  let preparingAdd = false;
+  async function openAdd(alt = false) {
+    if (preparingAdd || !canEditTeam()) return;
+    preparingAdd = true;
+    try {
+      const workspace = getWorkspace();
+      const current = workspace.players.captureContext();
+      await workspace.playerFolder();
+      current();
+      if (!canEditTeam())
+        throw new Error(
+          "Team access changed. Reopen the team before adding players.",
+        );
+      dialog.open(alt);
+    } catch (error) {
+      status(error.message, true);
+    } finally {
+      preparingAdd = false;
+    }
+  }
   const list = createPlayersScreen({
     root: roots.list,
     search,
@@ -52,7 +73,7 @@ export function createPlayerWorkflow({
       navigate("player");
     },
     remove,
-    add: dialog.open,
+    add: () => openAdd(),
     fileState: (player) => getWorkspace()?.players.state(player),
   });
   const cachedPlayer = () =>
@@ -116,7 +137,7 @@ export function createPlayerWorkflow({
     },
     canEditPlayer: () =>
       !!getWorkspace()?.players.state(cachedPlayer()).canEdit,
-    openAdd: dialog.open,
+    openAdd: () => openAdd(),
     draft: dialog.player,
     resetTag: () => {
       lastTag = getPlan().keeps.at(-1)?.allianceTag || "";

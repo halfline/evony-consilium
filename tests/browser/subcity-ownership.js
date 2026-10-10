@@ -16,6 +16,8 @@ export async function subcityOwnership({ browser }) {
     await page.locator("#planner").waitFor({ state: "visible" });
     for (const name of ["Alice", "Bob"]) {
       await page.locator('[data-screen="players"]').click();
+      if ((await page.locator("#players .player-card").count()) === 0)
+        await page.locator("#add-player-dialog").waitFor({ state: "visible" });
       if (!(await page.locator("#add-player-dialog").isVisible()))
         await page.locator("#add-player").click();
       await page.locator("#new-player-name").fill(name);

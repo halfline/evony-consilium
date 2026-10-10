@@ -338,6 +338,7 @@ export function createPlanner(
         sync: $("player-sync-dialog"),
       },
       search: $("players-search"),
+      canEditTeam: () => !store.readOnly,
       getWorkspace: () => workspace,
       refreshAccess: () => readOnlyView.render(),
       getPlan,

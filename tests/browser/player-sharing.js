@@ -19,6 +19,8 @@ export async function playerSharing({ browser }) {
     await a.locator("#planner").waitFor({ state: "visible" });
     await a.locator('[data-screen="players"]').click();
     for (const name of ["Managed account", "Other account"]) {
+      if ((await a.locator("#players .player-card").count()) === 0)
+        await a.locator("#add-player-dialog").waitFor({ state: "visible" });
       if (!(await a.locator("#add-player-dialog").isVisible()))
         await a.locator("#add-player").click();
       await a.locator("#new-player-name").fill(name);
