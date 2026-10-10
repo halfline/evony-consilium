@@ -1,8 +1,9 @@
 import { renderPortrait, initialsFor } from "./portrait.js";
 import { view } from "./dom.js";
 import { bindTileActions } from "./tile-actions.js";
-import { paintStatusBadge } from "./status-badge.js";
+import { createCollectionControls } from "./collection-controls.js";
 import { labelWithIcon } from "./icons.js";
+import { paintStatusBadge } from "./status-badge.js";
 
 export function createPlayersScreen({
   root,
@@ -19,7 +20,18 @@ export function createPlayersScreen({
   const $ = view(root);
   const grid = $(alts ? "alts" : "players");
   const addButton = $(alts ? "add-alt" : "add-player");
-  const actionRow = addButton.parentElement;
+  const collection = createCollectionControls({
+    root,
+    grid,
+    add: addButton,
+    views: true,
+    title: alts ? "Alts" : "Players",
+    description: alts
+      ? "Your alliance’s linked accounts"
+      : "The people behind your formation",
+    label: alts ? "Add alt" : "Add player",
+    kind: alts ? "alts" : "players",
+  });
   addButton.onclick = add;
   search.oninput = render;
   bindTileActions(grid, {
@@ -36,6 +48,7 @@ export function createPlayersScreen({
       "players-row player-card" +
       (getSelection() === player.id ? " selected" : "");
     button.dataset.entity = player.id;
+    button.title = `${player.name} · K${player.level}${player.allianceTag ? ` · [${player.allianceTag}]` : ""}`;
     const portrait = document.createElement("span");
     portrait.className = "player-portrait";
     const catalog = getAvatars();
@@ -60,7 +73,6 @@ export function createPlayersScreen({
     name.textContent = player.name;
     identity.append(name);
     const initials = document.createElement("span");
-    initials.className = "portrait-initials";
     initials.className = "portrait-initials";
     initials.textContent = initialsFor(player.name);
     initials.setAttribute("aria-hidden", "true");
@@ -146,18 +158,31 @@ export function createPlayersScreen({
       $("alts-list-empty").textContent = query
         ? "No matching alts."
         : "No alts yet.";
-      actionRow.hidden = hasOwner && players.length > 0;
     } else {
       $("players-empty").hidden = players.length > 0;
       $("players-empty").textContent = query
         ? "No matching players."
         : "No players yet.";
-      actionRow.hidden = players.length > 0;
     }
-    grid.replaceChildren(
-      ...players.map((player) => tile(player, query)),
-      addButton,
-    );
+    const total = getPlan().keeps.filter(
+      (player) => (player.ownerId != null) === alts,
+    ).length;
+    collection.render({
+      count: players.length,
+      total,
+      filtered: !!query,
+      help: query
+        ? "Try another name, alliance tag, or account ID."
+        : alts
+          ? "Create a regular player first, then link their alternate accounts here."
+          : "Add your first player to start building your alliance roster.",
+      clear: () => {
+        search.value = "";
+        render();
+        search.focus();
+      },
+    });
+    grid.replaceChildren(...players.map((player) => tile(player, query)));
   }
   return { render };
 }
