@@ -9,6 +9,7 @@ export function createPlannerScreens(
   let current = "project";
   function show(screen, notify = true) {
     current = screen;
+    root.dataset.currentScreen = screen;
     $("maps-return-arrow").hidden = screen !== "formation";
     root
       .querySelector('[data-screen="maps"]')
