@@ -681,7 +681,8 @@
 #alts-screen,
 #maps-screen {
   display: grid;
-  place-items: center;
+  align-content: start;
+  justify-items: center;
   flex: 1;
   width: 100%;
 }
