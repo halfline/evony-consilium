@@ -4,11 +4,29 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
   await playersScreen();
   await page.locator("#players .player-card").first().click();
   await page.waitForFunction(
-    () => document.getElementById("player-save-status").textContent === "",
+    () =>
+      document.getElementById("player-save-status").textContent ===
+      "Player · Saved",
   );
-  assert.equal(await page.locator("#player-save-status").textContent(), "");
+  assert.equal(
+    await page.locator("#player-save-status").textContent(),
+    "Player · Saved",
+  );
   assert.equal(await page.locator("#player-save").isDisabled(), true);
   await page.locator('[data-player-tab="buffs"]').click();
+  const focusedBuff = () =>
+    page.evaluate(() => document.activeElement?.dataset.buff);
+  await page.locator('[data-buff="city.ground.attack"]').focus();
+  for (const key of [
+    "city.ground.defense",
+    "city.ground.hp",
+    "city.ranged.attack",
+  ]) {
+    await page.keyboard.press("Tab");
+    assert.equal(await focusedBuff(), key);
+  }
+  await page.keyboard.press("Shift+Tab");
+  assert.equal(await focusedBuff(), "city.ground.hp");
   await page.locator('[data-buff="city.ground.attack"]').fill("-1");
   await page.locator('[data-player-tab="overview"]').click();
   await page.locator("#player-save").click();
@@ -89,7 +107,8 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
     .boundingBox();
   assert.ok(tierCell.width < 100);
   assert.ok(tierCell.width < countCell.width);
-  assert.ok(tierCell.height <= 40);
+  // Larger numeric inputs remain compact enough for a dense march table.
+  assert.ok(tierCell.height <= 56);
   await page.locator("#player-march-type").selectOption("mounted");
   assert.equal(await page.locator('[data-count="ground"]').count(), 0);
   await page.locator("#player-march-type").selectOption("ground");

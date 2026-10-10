@@ -43,7 +43,7 @@ export async function teamImprovements({ browser }) {
     await page.locator('[data-screen="project"]').click();
     assert.equal(await page.locator("#team-subcity-count").textContent(), "1");
     assert.match(
-      await page.locator("#team-save-status").textContent(),
+      await page.locator("#team-save-status").getAttribute("title"),
       /autosaving/,
     );
     // Navigation changes neither data nor save state.

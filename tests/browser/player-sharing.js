@@ -92,7 +92,7 @@ export async function playerSharing({ browser }) {
     await p.locator('[data-buff="city.ground.attack"]').fill("1234");
     await p.locator('[data-screen="players"]').click();
     assert.match(
-      await p.locator("#players .player-card").first().textContent(),
+      await p.locator("#players .draft-badge").first().getAttribute("title"),
       /autosaving/,
     );
     assert.equal(sources[0].data.profile.name, cachedName);

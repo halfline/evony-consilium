@@ -62,7 +62,7 @@ export async function autosave({ browser }) {
     assert.equal(team.data.plan.title, "Automatically saved team");
     assert.equal(
       await page.locator("#team-save-status").textContent(),
-      "Team saved",
+      "Team · Saved",
     );
 
     // Typing continues during an upload. Only newer input remains a draft,
@@ -146,11 +146,11 @@ export async function autosave({ browser }) {
     );
     assert.match(
       await page.locator("#player-save-status").textContent(),
-      /need review/,
+      /Review/,
     );
     assert.match(
       await page.locator("#team-save-status").textContent(),
-      /need review/,
+      /Review/,
     );
     const conflictedVersion = sources[0].file.version;
     await tick();
