@@ -182,6 +182,7 @@ export async function playerAppearance({
   await page.locator("#catalog-grid .castle-card").click();
   assert.equal(await page.locator("#variant-grid .castle-card").count(), 3);
   await page.locator("#variant-grid .castle-card").last().click();
+  await page.locator("#player-save").click();
   await page.waitForFunction(
     () =>
       document.getElementById("player-screen").getAttribute("aria-busy") !==

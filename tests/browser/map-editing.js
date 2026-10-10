@@ -261,11 +261,11 @@ export async function mapEditing({
     () =>
       document.getElementById("drive-save").disabled &&
       document.getElementById("drive-save").getAttribute("aria-label") ===
-        "Save",
+        "Save team",
   );
   assert.equal(
     [...driveFiles.values()]
-      .find((r) => r.file.name === "team.consilium.json")
+      .find((r) => r.data?.format === "evony-consilium-team")
       .data.plan.structures.some(
         (r) =>
           r.asset === "map-battlefield-knighthall" ||

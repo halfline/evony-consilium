@@ -19,8 +19,6 @@ export async function playerSharing({ browser }) {
     await a.locator("#planner").waitFor({ state: "visible" });
     await a.locator('[data-screen="players"]').click();
     for (const name of ["Managed account", "Other account"]) {
-      if ((await a.locator("#players .player-card").count()) === 0)
-        await a.locator("#add-player-dialog").waitFor({ state: "visible" });
       if (!(await a.locator("#add-player-dialog").isVisible()))
         await a.locator("#add-player").click();
       await a.locator("#new-player-name").fill(name);
@@ -72,6 +70,33 @@ export async function playerSharing({ browser }) {
     assert.equal(grants.has(sources[1].file.id), false);
     const cachedName = team.data.plan.keeps[0].name;
     await p.locator("#player-name").fill("Player changed their profile");
+    await p.locator('[data-player-tab="buffs"]').click();
+    await p.locator('[data-buff="city.ground.attack"]').fill("1234");
+    await p.locator('[data-screen="players"]').click();
+    assert.match(
+      await p.locator("#players .player-card").first().textContent(),
+      /draft unsaved/,
+    );
+    assert.equal(sources[0].data.profile.name, cachedName);
+    assert.equal(await p.locator("#drive-save").isDisabled(), true);
+    // Reload restores the form draft, including its original source baseline.
+    await p.reload();
+    await p.locator("#google-login:not([disabled])").click();
+    await p.locator("#planner").waitFor({ state: "visible" });
+    await p.locator("#players .player-card").first().click();
+    await p.waitForFunction(
+      () =>
+        document.getElementById("player-name").value ===
+          "Player changed their profile" &&
+        !document.getElementById("player-name").readOnly,
+    );
+    await p.locator('[data-player-tab="buffs"]').click();
+    assert.equal(
+      await p.locator('[data-buff="city.ground.attack"]').inputValue(),
+      "1234",
+    );
+    sources[0].data.profile.allianceTag = "NEW";
+    sources[0].file.version = String(Number(sources[0].file.version) + 1);
     await p.locator("#player-form [type=submit]").click();
     await p.waitForFunction(
       () =>
@@ -79,9 +104,17 @@ export async function playerSharing({ browser }) {
         "Player changed their profile",
     );
     assert.equal(sources[0].data.profile.name, "Player changed their profile");
+    assert.equal(sources[0].data.profile.allianceTag, "NEW");
+    assert.equal(
+      sources[0].data.profile.details.buffs.city.ground.attack,
+      1234,
+    );
     assert.equal(team.data.plan.keeps[0].name, cachedName);
     assert.equal(await p.locator("#drive-save").isDisabled(), true);
     await p.locator('[data-screen="project"]').click();
+    const beforeAccessCheck = await p.evaluate(
+      () => (window.__pickerCalls || []).length,
+    );
     await p.locator("#team-unlock").click();
     await p.waitForFunction(() =>
       document.getElementById("toast").textContent.includes("still read-only"),
@@ -95,6 +128,10 @@ export async function playerSharing({ browser }) {
     await p.waitForFunction(
       () => !document.getElementById("edit-project-name").readOnly,
     );
+    assert.equal(
+      await p.evaluate(() => (window.__pickerCalls || []).length),
+      beforeAccessCheck,
+    );
     await p.locator('[data-screen="players"]').click();
     await p.locator("#players .player-card").last().click();
     assert.equal(await p.locator("#player-name").getAttribute("readonly"), "");
@@ -104,13 +141,15 @@ export async function playerSharing({ browser }) {
     );
     assert.equal(await p.locator("#player-name").getAttribute("readonly"), "");
     sources[1].file.capabilities.canEdit = true;
-    const pickerCalls = await p.evaluate(() => window.__pickerCalls.length);
+    const pickerCalls = await p.evaluate(
+      () => (window.__pickerCalls || []).length,
+    );
     await p.evaluate(() => window.dispatchEvent(new Event("focus")));
     await p.waitForFunction(
       () => !document.getElementById("player-name").readOnly,
     );
     assert.equal(
-      await p.evaluate(() => window.__pickerCalls.length),
+      await p.evaluate(() => (window.__pickerCalls || []).length),
       pickerCalls,
     );
     await p.waitForFunction(
@@ -126,7 +165,6 @@ export async function playerSharing({ browser }) {
         document.getElementById("player-title").textContent ===
         "Admin cached edit",
     );
-    await p.locator("#drive-save").click();
     await p.waitForFunction(
       () =>
         document.getElementById("drive-save").disabled &&
@@ -151,6 +189,25 @@ export async function playerSharing({ browser }) {
     );
     assert.equal(await p.locator("#player-sync-dialog").isVisible(), false);
     assert.equal(team.data.plan.keeps[1].name, "Concurrent player edit");
+    // Background refresh cannot replace a dirty profile form; Discard clears it.
+    await p.locator("#player-name").fill("Unsaved player draft");
+    sources[1].data.profile.name = "Later source edit";
+    sources[1].file.version = String(Number(sources[1].file.version) + 1);
+    await p.evaluate(() => window.dispatchEvent(new Event("focus")));
+    await p.waitForFunction(
+      () =>
+        document.getElementById("player-title").textContent ===
+        "Later source edit",
+    );
+    assert.equal(
+      await p.locator("#player-name").inputValue(),
+      "Unsaved player draft",
+    );
+    await p.locator("#player-discard-draft").click();
+    await p.waitForFunction(
+      () =>
+        document.getElementById("player-name").value === "Later source edit",
+    );
     // A freshly signed-in user whose Drive/app grants already permit the file
     // gets editing automatically, without a local remembered grant or Picker.
     const automatic = await browser.newContext({

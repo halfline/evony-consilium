@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 
 export async function playerCreation({ page, playersScreen }) {
+  await playersScreen();
+  await page.locator("#add-player").click();
   await page.locator("#add-player-dialog").waitFor({ state: "visible" });
   assert.equal(await page.locator("#new-player-level").inputValue(), "42");
   assert.match(

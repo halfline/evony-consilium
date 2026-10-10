@@ -111,6 +111,8 @@ export async function mapSelection({ page, playersScreen, driveFiles }) {
     1,
   );
   assert.ok(
-    [...driveFiles.values()].some((r) => r.file.name === "team.consilium.json"),
+    [...driveFiles.values()].some(
+      (r) => r.data?.format === "evony-consilium-team",
+    ),
   );
 }

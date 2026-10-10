@@ -1,4 +1,5 @@
-import { playerDiscovery } from "./browser/player-discovery.js";
+import { playerImport } from "./browser/player-import.js";
+import { teamCollaboration } from "./browser/team-collaboration.js";
 import { altOwnership } from "./browser/alts.js";
 import { teamImprovements } from "./browser/team-improvements.js";
 import { subcityOwnership } from "./browser/subcity-ownership.js";
@@ -81,7 +82,8 @@ try {
   await terrainAndMobile({ page, formationScreen });
   await sharingAndRecovery({ page, driveFiles });
   await playerSharing({ browser });
-  await playerDiscovery({ browser });
+  await playerImport({ browser });
+  await teamCollaboration({ browser });
   await subcities({ browser });
   await subcityOwnership({ browser });
   await teamImprovements({ browser });

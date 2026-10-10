@@ -231,10 +231,10 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
     () =>
       document.getElementById("drive-save").disabled &&
       document.getElementById("drive-save").getAttribute("aria-label") ===
-        "Save",
+        "Save team",
   );
   const shared = [...driveFiles.values()].find(
-    (record) => record.file.name === "team.consilium.json",
+    (record) => record.data?.format === "evony-consilium-team",
   );
   const details = shared.data.plan.keeps[0].details;
   assert.equal(details.rallyCapacity, 12000000);
@@ -298,7 +298,8 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
     await page.locator('.march-card[aria-label="Ground"]').click();
     assert.equal(await page.locator(`[data-tier-row="${highest}"]`).count(), 1);
   }
-  await page.locator("#undo").click();
+  await page.locator("#plan-title").fill("Temporary team edit");
+  await page.locator("#plan-title").dispatchEvent("change");
   await page.locator("#undo").click();
   await playersScreen();
 }

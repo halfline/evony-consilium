@@ -17,6 +17,7 @@ export async function teamImprovements({ browser }) {
     await page.locator("[form=project-create]").click();
     await page.locator("#planner").waitFor({ state: "visible" });
     await page.locator("#team-players").click();
+    await page.locator("#add-player").click();
     await page
       .locator("#new-player-name")
       .fill("An owner with a considerably longer name");
