@@ -133,6 +133,24 @@ export async function teamImprovements({ browser }) {
       path: "test-results/dashboard-overview.png",
       fullPage: true,
     });
+    if (!(await page.locator("#drive-save").isDisabled()))
+      await page.locator("#drive-save").click();
+    await page.waitForFunction(
+      () => document.getElementById("drive-save").disabled,
+    );
+    await page.locator('[data-screen="players"]').click();
+    await page.locator("#players .player-card").first().click();
+    const currentPlayer = await page.locator("#player-title").textContent();
+    await page.locator("#project-reload").evaluate((button) => {
+      button.hidden = false;
+    });
+    await page.locator("#project-reload").click();
+    await page.locator("#player-screen").waitFor({ state: "visible" });
+    assert.equal(
+      await page.locator("#player-title").textContent(),
+      currentPlayer,
+    );
+    assert.match(page.url(), /screen=player/);
     await page.locator("#project-back").click();
     for (const width of [390, 600, 800]) {
       await page.setViewportSize({ width, height: 1000 });
