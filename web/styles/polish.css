@@ -1,0 +1,76 @@
+/* Shared visual language: forest surfaces, ivory type, and brass emphasis. */
+:root {
+  --radius-control: 9px;
+  --radius-panel: 18px;
+  --shadow-float: 0 18px 48px #0005;
+  --success: #b6d3a6;
+  --focus: #f0d69a;
+}
+body {
+  background:
+    radial-gradient(ellipse at 45% 0, #20372a50, transparent 60%), var(--bg);
+  line-height: 1.5;
+}
+button {
+  min-height: 40px;
+  font-weight: 500;
+}
+button svg,
+a svg {
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+button:active:not(:disabled) {
+  filter: brightness(1.12);
+}
+:is(button, a, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+}
+input,
+select {
+  min-height: 42px;
+}
+input::placeholder {
+  color: #a1b09f;
+  opacity: 1;
+}
+input[type="number"] {
+  font-variant-numeric: tabular-nums;
+}
+input[aria-invalid="true"] {
+  border-color: var(--red);
+}
+input[type="checkbox"] {
+  min-height: 0;
+  width: 17px;
+  height: 17px;
+}
+label {
+  line-height: 1.4;
+}
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 1.8px;
+}
+.muted,
+.note {
+  font-size: 13px;
+  line-height: 1.6;
+}
+h1 {
+  font-size: clamp(30px, 3vw, 38px);
+  line-height: 1.15;
+}
+h2 {
+  line-height: 1.2;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

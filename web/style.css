@@ -1,16 +1,19 @@
 @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap");
 :root {
   color-scheme: dark;
-  --bg: #15201c;
-  --panel: #1b2722;
-  --line: #344139;
-  --text: #e7e7da;
-  --muted: #9ca99c;
-  --gold: #cfb57a;
+  --bg: #111d17;
+  --panel: #1b2b23;
+  --panel-raised: #263b30;
+  --line: #40574a;
+  --control-line: #718675;
+  --text: #f0eee2;
+  --muted: #acbaad;
+  --gold: #dbc087;
+  --gold-hover: #ead19d;
   --gold-dim: #746544;
   --red: #e2a18c;
   font-family: "DM Sans", system-ui, sans-serif;
-  font-size: 13px;
+  font-size: 14px;
 }
 * {
   box-sizing: border-box;
@@ -35,19 +38,19 @@ button {
   cursor: pointer;
   border: 1px solid var(--line);
   color: var(--text);
-  border-radius: 5px;
-  background: #27362e;
+  border-radius: 9px;
+  background: var(--panel-raised);
   padding: 9px 12px;
   transition:
     background 0.15s,
     border-color 0.15s;
 }
 button:hover {
-  background: #35443b;
+  background: #334b3d;
   border-color: #6a7768;
 }
 button:disabled {
-  opacity: 0.4;
+  opacity: 0.55;
   cursor: default;
 }
 .primary {
@@ -57,16 +60,16 @@ button:disabled {
   font-weight: 700;
 }
 .primary:hover {
-  background: #e0c48b;
-  border-color: #e0c48b;
+  background: var(--gold-hover);
+  border-color: var(--gold-hover);
 }
 
 input,
 select {
-  background: #15201b;
-  border: 1px solid #3b4a40;
+  background: #122219;
+  border: 1px solid var(--control-line);
   color: var(--text);
-  border-radius: 4px;
+  border-radius: 9px;
   padding: 9px 10px;
   min-width: 0;
   width: 100%;
@@ -91,14 +94,14 @@ input[type="color"] {
 }
 label {
   display: block;
-  font-size: 11px;
+  font-size: 13px;
   color: var(--muted);
   letter-spacing: 0.2px;
 }
 label input,
 label select {
   margin-top: 6px;
-  font-size: 13px;
+  font-size: 14px;
 }
 h1,
 h2,
