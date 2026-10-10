@@ -400,6 +400,11 @@
     border-color 160ms,
     box-shadow 160ms;
 }
+.project-settings
+  [data-logo="upload"]:has([data-logo="placeholder"]:not([hidden])) {
+  width: 112px;
+  height: 112px;
+}
 .project-settings [data-logo="upload"]:hover {
   border-color: var(--gold);
   box-shadow:
@@ -411,7 +416,7 @@
 }
 .project-settings [data-logo="placeholder"] {
   color: var(--gold);
-  font-size: 44px;
+  font-size: 36px;
 }
 .project-settings [data-logo="remove"] {
   font-size: 12px;
@@ -544,9 +549,7 @@
   pointer-events: none;
   transition: opacity 150ms;
 }
-.project-settings
-  .project-logo-controls.logo-actions-open
-  [data-logo="remove"],
+.project-settings .project-logo-controls.logo-actions-open [data-logo="remove"],
 .project-settings .project-logo-controls:focus-within [data-logo="remove"] {
   opacity: 1;
   pointer-events: auto;
