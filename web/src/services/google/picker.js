@@ -61,27 +61,33 @@ export class DrivePicker {
     const p = globalThis.google.picker;
     const mime = folders
       ? "application/vnd.google-apps.folder"
-      : player
-        ? PLAYER_MIME
-        : TEAM_MIME;
-    const view = new p.DocsView(p.ViewId.DOCS)
-      .setLabel(
-        folders
-          ? "Team folder"
-          : file
-            ? "Linked file"
-            : player
-              ? "Player files"
-              : "Team files",
-      )
-      .setMode(p.DocsViewMode.LIST)
-      .setIncludeFolders(true)
-      .setSelectFolderEnabled(folders);
+      : `${player ? PLAYER_MIME : TEAM_MIME},application/json`;
+    // File format is an implementation detail. Search both content types in
+    // the same view; the common filename identifies the intended document.
+    const documentView = (label) => {
+      const view = new p.DocsView(p.ViewId.DOCS)
+        .setLabel(label)
+        .setMode(p.DocsViewMode.LIST)
+        .setIncludeFolders(true)
+        .setSelectFolderEnabled(folders)
+        .setMimeTypes(mime);
+      // A linked file may have been renamed in Drive. Its ID is sufficient.
+      if (!folders && !file)
+        view.setQuery(player ? "player.consilium.json" : "team.consilium.json");
+      return view;
+    };
+    const view = documentView(
+      folders
+        ? "Team folder"
+        : file
+          ? "Linked file"
+          : player
+            ? "Player files"
+            : "Team files",
+    );
     if (folders) {
-      view.setMimeTypes(mime);
       if (folder) view.setFileIds(folder.id);
     } else {
-      view.setMimeTypes(file ? `${mime},application/json` : mime);
       if (file) view.setFileIds(file.id);
       else if (folder) view.setParent(folder.id);
     }
@@ -89,7 +95,7 @@ export class DrivePicker {
       let picker;
       const builder = new p.PickerBuilder()
         .addView(view)
-        .setSelectableMimeTypes(folders ? mime : `${mime},application/json`)
+        .setSelectableMimeTypes(mime)
         .setMaxItems(1)
         .setOAuthToken(this.token())
         .setDeveloperKey(this.config.apiKey)
@@ -145,44 +151,9 @@ export class DrivePicker {
       // Personal sharing and Workspace shared drives are different locations.
       // Keep these views separate: enabling shared drives overrides parent/ID filters.
       if ((!folder && !file) || folders) {
-        if (folders && folder)
-          builder.addView(
-            new p.DocsView(p.ViewId.DOCS)
-              .setLabel("My Drive")
-              .setIncludeFolders(true)
-              .setSelectFolderEnabled(true)
-              .setMimeTypes(mime),
-          );
-        builder.addView(
-          new p.DocsView(p.ViewId.DOCS)
-            .setLabel("Shared with me")
-            .setMode(p.DocsViewMode.LIST)
-            .setIncludeFolders(true)
-            .setSelectFolderEnabled(folders)
-            .setMimeTypes(mime)
-            .setOwnedByMe(false),
-        );
-        builder.addView(
-          new p.DocsView(p.ViewId.DOCS)
-            .setLabel("Shared drives")
-            .setMode(p.DocsViewMode.LIST)
-            .setIncludeFolders(true)
-            .setSelectFolderEnabled(folders)
-            .setMimeTypes(mime)
-            .setEnableDrives(true),
-        );
-      }
-
-      if (!folders && !file) {
-        const legacy = new p.DocsView(p.ViewId.DOCS)
-          .setLabel(player ? "Older player files" : "Older team files")
-          .setMode(p.DocsViewMode.LIST)
-          .setIncludeFolders(true)
-          .setSelectFolderEnabled(false)
-          .setMimeTypes("application/json")
-          .setQuery(player ? "player.consilium.json" : "team.consilium.json");
-        if (folder) legacy.setParent(folder.id);
-        builder.addView(legacy);
+        if (folders && folder) builder.addView(documentView("My Drive"));
+        builder.addView(documentView("Shared with me").setOwnedByMe(false));
+        builder.addView(documentView("Shared drives").setEnableDrives(true));
       }
 
       picker = builder.build();
