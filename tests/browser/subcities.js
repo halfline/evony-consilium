@@ -150,6 +150,11 @@ export async function subcities({ browser }) {
     );
     assert.equal(team.data.plan.subcities.length, 3);
     await page.setViewportSize({ width: 390, height: 844 });
+    const mobileCards = await cards.evaluateAll((elements) =>
+      elements.map((element) => element.getBoundingClientRect().toJSON()),
+    );
+    assert.equal(mobileCards[0].x, mobileCards[2].x);
+    assert.equal(mobileCards[0].y, mobileCards[1].y);
     const mobileFilters = await page.evaluate(() =>
       ["subcities-search-control", "subcities-type", "subcities-color"].map(
         (id) => document.getElementById(id).getBoundingClientRect().toJSON(),
