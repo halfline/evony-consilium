@@ -5,6 +5,7 @@ import { createSubcityDialog } from "./subcity-dialog.js";
 import { view, option } from "./dom.js";
 import { bindTileActions } from "./tile-actions.js";
 import { removeSubcity, SUBCITY_CULTURES } from "../domain/subcities.js";
+import { createCollectionControls } from "./collection-controls.js";
 
 export function createSubcitiesScreen({
   root,
@@ -24,7 +25,15 @@ export function createSubcitiesScreen({
   const $ = view(root);
   const grid = $("subcities"),
     addButton = $("add-subcity");
-  const actionRow = addButton.parentElement;
+  const collection = createCollectionControls({
+    root,
+    grid,
+    add: addButton,
+    title: "Subcities",
+    description: "Your cities, coordinates, and owners",
+    label: "Add subcity",
+    kind: "subcities",
+  });
   const filter = view(root.closest("#planner"));
   filter("subcities-type").replaceChildren(
     option("", "All types"),
@@ -113,8 +122,27 @@ export function createSubcitiesScreen({
     $("subcities-empty").textContent = getPlan().subcities?.length
       ? "No matching subcities."
       : "No subcities yet.";
-    actionRow.hidden = cities.length > 0;
-    grid.replaceChildren(...cities.map(tile), addButton);
+    const filtered = !!(
+      query ||
+      filter("subcities-type").value ||
+      filter("subcities-color").value
+    );
+    collection.render({
+      count: cities.length,
+      total: getPlan().subcities?.length || 0,
+      filtered,
+      help: filtered
+        ? "Try a different name, city type, or color."
+        : "Keep your alliance’s subcities and their owners in one place.",
+      clear: () => {
+        search.value = "";
+        filter("subcities-type").value = "";
+        filter("subcities-color").value = "";
+        render();
+        search.focus();
+      },
+    });
+    grid.replaceChildren(...cities.map(tile));
   }
   return {
     render,
