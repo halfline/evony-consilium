@@ -30,10 +30,12 @@ export async function mockGoogleDrive(
         addView(v){(this.views ||= []).push(v);this.view ||= v;return this;} setSelectableMimeTypes(v){this.selectable=v;return this;} setMaxItems(v){return this;} setOAuthToken(v){return this;} setDeveloperKey(v){return this;} setAppId(v){return this;} setOrigin(v){return this;} setTitle(v){this.title=v;return this;} setCallback(v){this.callback=v;return this;} enableFeature(v){return this;}
         build(){const builder=this;return {dispose(){},setVisible:async()=>{
           window.__pickerModalStates=(window.__pickerModalStates||[]);window.__pickerModalStates.push(!!document.querySelector("dialog:modal"));
-          window.__pickerCalls=(window.__pickerCalls||[]);window.__pickerCalls.push({...builder.view.options,title:builder.title,selectable:builder.selectable});
+          window.__pickerCalls=(window.__pickerCalls||[]);window.__pickerCalls.push({...builder.view.options,title:builder.title,selectable:builder.selectable,views:builder.views.map(view=>view.options)});
           if(window.__pickerCancelNext){window.__pickerCancelNext=false;return builder.callback({action:"cancel"});}
-          let docs=[];
-          for (const view of builder.views) { const query=new URLSearchParams(view.options);docs=await fetch("https://picker.test/select?"+query).then(r=>r.json());if(docs.length)break; }
+          // Opening Picker shows its first view; it does not visit other tabs
+          // automatically when that view is empty.
+          const query=new URLSearchParams(builder.view.options);
+          const docs=await fetch("https://picker.test/select?"+query).then(r=>r.json());
           builder.callback(docs.length?{action:"picked",docs}:{action:"cancel"});
         }}}
       }
