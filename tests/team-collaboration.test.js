@@ -84,6 +84,24 @@ test("two moves of the same player are one conflict; resolving preserves indepen
   assert.equal(result.plan.title, local.title);
   assert.equal(result.plan.discordUrl, remote.discordUrl);
 });
+test("conflicting team fields can be resolved independently", () => {
+  const base = fixture(),
+    local = clone(base),
+    remote = clone(base);
+  local.title = "My title";
+  remote.title = "Shared title";
+  local.discordUrl = "https://discord.gg/mine";
+  remote.discordUrl = "https://discord.gg/shared";
+  const result = mergeTeamPlans(base, local, remote, {
+    resolution: { title: "remote", discordUrl: "local" },
+  });
+  assert.deepEqual(
+    result.conflicts.map((conflict) => conflict.path).sort(),
+    ["discordUrl", "title"],
+  );
+  assert.equal(result.plan.title, remote.title);
+  assert.equal(result.plan.discordUrl, local.discordUrl);
+});
 test("removing a player wins over cache refresh, but conflicts with an ownership edit", () => {
   const base = fixture(),
     local = removePlayer(base, base.keeps[0].id),

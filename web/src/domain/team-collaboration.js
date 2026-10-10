@@ -71,6 +71,8 @@ export function mergeTeamPlans(
   { resolution = null } = {},
 ) {
   const conflicts = [];
+  const choiceFor = (path) =>
+    typeof resolution === "string" ? resolution : resolution?.[path];
   function merge(before, mine, theirs, path = "") {
     if (path.endsWith("profileCache")) {
       const newest = newerCache(mine, theirs);
@@ -156,7 +158,7 @@ export function mergeTeamPlans(
       local: copy(mine),
       remote: copy(theirs),
     });
-    return copy(resolution === "remote" ? theirs : mine);
+    return copy(choiceFor(path) === "remote" ? theirs : mine);
   }
   const original = canonical(base),
     ours = canonical(local),
@@ -196,13 +198,16 @@ export function mergeTeamPlans(
     const mine = ours.maps?.find((item) => item.id === map.id),
       theirs = shared.maps?.find((item) => item.id === map.id);
     if (!mine || !theirs) continue;
+    const path = `maps[${map.id}].layout (overlapping or out-of-bounds tiles)`;
     conflicts.push({
-      path: `maps[${map.id}].layout (overlapping or out-of-bounds tiles)`,
+      path,
       base: copy(original.maps?.find((item) => item.id === map.id)?.layout),
       local: copy(mine.layout),
       remote: copy(theirs.layout),
     });
-    map.layout = copy(resolution === "remote" ? theirs.layout : mine.layout);
+    map.layout = copy(
+      choiceFor(path) === "remote" ? theirs.layout : mine.layout,
+    );
     map.type = map.layout.map;
   }
   if (plan.maps?.length) {
