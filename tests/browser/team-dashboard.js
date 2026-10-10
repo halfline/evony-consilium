@@ -167,7 +167,10 @@ export async function teamDashboard({ page, driveFiles, projectLogo }) {
     projectLogo,
   );
   await page.mouse.click(0, 0);
-  assert.equal(await page.locator(".team-forget").first().textContent(), "×");
+  assert.equal(
+    await page.locator(".team-forget").first().locator("svg").count(),
+    1,
+  );
   assert.equal(
     await page
       .locator(".team-forget")
