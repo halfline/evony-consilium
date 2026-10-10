@@ -52,50 +52,56 @@ export function createPlanner(
     placementView,
     navigation,
     opening = false;
-  const screens = createPlannerScreens($("planner"), () => {
-    navigation?.changed();
-    if (!renderer) return;
-    mapInteraction?.cancel();
-    const plan = getPlan();
-    if (screens.isProject()) {
-      resetPending();
-      teamScreen.render();
-      return;
-    }
-    if (screens.isSubcities()) {
-      resetPending();
-      subcitiesScreen.render();
-      return;
-    }
-    if (screens.isMaps()) {
-      mapsScreen.enter();
-      return;
-    }
-    resetPending();
-    if (
-      !store.readOnly &&
-      screens.isPlayers() &&
-      !screens.isPlayer() &&
-      !plan.keeps.length
-    )
-      players.openAdd();
-    if (screens.isPlayers() && selected() && !("level" in selected()))
-      placement.id = null;
-    const entity = selected();
-    if (!screens.isPlayers() && entity?.x === null) {
-      placementView.place(entity);
-    }
-    renderInspector();
-    requestAnimationFrame(() => {
-      renderer.resize();
-      if (!screens.isPlayers()) {
-        if (entity?.x != null) {
-          renderer.camera.zoom = 1;
-          renderer.center(entity.x + entity.w / 2, entity.y + entity.h / 2);
-        } else renderer.fit();
+  const playerList = () => (selected()?.ownerId != null ? "alts" : "players");
+  const screens = createPlannerScreens(
+    $("planner"),
+    () => {
+      navigation?.changed();
+      if (!renderer) return;
+      mapInteraction?.cancel();
+      const plan = getPlan();
+      if (screens.isProject()) {
+        resetPending();
+        teamScreen.render();
+        return;
       }
-    });
-  });
+      if (screens.isSubcities()) {
+        resetPending();
+        subcitiesScreen.render();
+        return;
+      }
+      if (screens.isMaps()) {
+        mapsScreen.enter();
+        return;
+      }
+      resetPending();
+      if (
+        !store.readOnly &&
+        screens.isPlayers() &&
+        !screens.isPlayer() &&
+        screens.current() === "players" &&
+        !plan.keeps.some((player) => player.ownerId == null)
+      )
+        players.openAdd();
+      if (screens.isPlayers() && selected() && !("level" in selected()))
+        placement.id = null;
+      const entity = selected();
+      if (!screens.isPlayers() && entity?.x === null) {
+        placementView.place(entity);
+      }
+      renderInspector();
+      requestAnimationFrame(() => {
+        renderer.resize();
+        if (!screens.isPlayers()) {
+          if (entity?.x != null) {
+            renderer.camera.zoom = 1;
+            renderer.center(entity.x + entity.w / 2, entity.y + entity.h / 2);
+          } else renderer.fit();
+        }
+      });
+    },
+    playerList,
+  );
   const subcitiesScreen = createSubcitiesScreen({
     root: $("subcities-screen"),
     search: $("subcities-search"),
@@ -237,9 +243,10 @@ export function createPlanner(
       screens.isPlayer() &&
       !getPlan().keeps.some((player) => player.id === placement.id)
     ) {
-      screens.show("players");
+      screens.show(playerList());
       return;
     }
+    screens.refresh();
     players.renderProfile();
     playerSubcities.render();
     placementInspector.render();
@@ -332,12 +339,14 @@ export function createPlanner(
     players = createPlayerWorkflow({
       roots: {
         list: $("players-screen"),
+        alts: $("alts-screen"),
         profile: $("player-screen"),
         add: $("add-player-dialog"),
         avatars: $("avatar-dialog"),
         sync: $("player-sync-dialog"),
       },
       search: $("players-search"),
+      altSearch: $("alts-search"),
       canEditTeam: () => !store.readOnly,
       getWorkspace: () => workspace,
       refreshAccess: () => readOnlyView.render(),

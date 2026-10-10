@@ -1,6 +1,7 @@
 const SCREENS = new Set([
   "project",
   "players",
+  "alts",
   "player",
   "subcities",
   "maps",

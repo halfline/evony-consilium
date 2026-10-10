@@ -237,6 +237,9 @@
           <span id="players-return-arrow" aria-hidden="true" hidden>← </span
           >Players
         </button>
+        <button data-screen="alts" aria-pressed="false">
+          <span id="alts-return-arrow" aria-hidden="true" hidden>← </span>Alts
+        </button>
         <button data-screen="subcities" aria-pressed="false">Subcities</button>
         <button data-screen="maps" aria-pressed="false">
           <span id="maps-return-arrow" aria-hidden="true" hidden>← </span>Maps
@@ -260,6 +263,14 @@
             type="search"
             placeholder="Find a player…"
             aria-label="Search players"
+          />
+        </label>
+        <label id="alts-search-control" class="tab-search" hidden>
+          <input
+            id="alts-search"
+            type="search"
+            placeholder="Find an alt…"
+            aria-label="Search alts"
           />
         </label>
         <label id="subcities-search-control" class="tab-search" hidden>

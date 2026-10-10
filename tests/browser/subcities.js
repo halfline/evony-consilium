@@ -17,7 +17,7 @@ export async function subcities({ browser }) {
     const tabs = await page
       .locator(".workflow-nav > button[data-screen]")
       .evaluateAll((buttons) => buttons.map((button) => button.dataset.screen));
-    assert.deepEqual(tabs, ["project", "players", "subcities", "maps"]);
+    assert.deepEqual(tabs, ["project", "players", "alts", "subcities", "maps"]);
     await page.locator('[data-screen="subcities"]').click();
     assert.equal(await page.locator("#subcities-screen").isVisible(), true);
     assert.equal(

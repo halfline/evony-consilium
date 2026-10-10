@@ -946,6 +946,7 @@ code {
   :is(
     #undo,
     #add-player,
+    #add-alt,
     #add-map,
     #add-subcity,
     #subcity-save,

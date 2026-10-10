@@ -7,6 +7,7 @@ import { createAvatarBrowser } from "./avatar-browser.js";
 export function createPlayerWorkflow({
   roots,
   search,
+  altSearch,
   canEditTeam,
   getPlan,
   getAvatars,
@@ -29,8 +30,8 @@ export function createPlayerWorkflow({
   });
   const dialog = createAddPlayerDialog({
     root: roots.add,
-    assets,
     getPlan,
+    assets,
     getAvatars,
     browseAvatar: avatars.open,
     browse: browseCastle,
@@ -77,6 +78,21 @@ export function createPlayerWorkflow({
     add: () => openAdd(),
     fileState: (player) => getWorkspace()?.players.state(player),
   });
+  const alts = createPlayersScreen({
+    root: roots.alts,
+    search: altSearch,
+    getPlan,
+    getAvatars,
+    getSelection: () => selection.id,
+    open: (id) => {
+      select(id);
+      navigate("player");
+    },
+    remove,
+    add: () => openAdd(true),
+    alts: true,
+    fileState: (player) => getWorkspace()?.players.state(player),
+  });
   const cachedPlayer = () =>
     getPlan().keeps.find((player) => player.id === selection.id);
   const editingPlan = () =>
@@ -91,6 +107,7 @@ export function createPlayerWorkflow({
     refresh: () => {
       profile.render();
       list.render();
+      alts.render();
       fileControls.render();
       refreshAccess();
     },
@@ -124,7 +141,10 @@ export function createPlayerWorkflow({
     },
   });
   return {
-    renderList: list.render,
+    renderList: () => {
+      list.render();
+      alts.render();
+    },
     renderProfile: () => {
       const focused = roots.profile.ownerDocument.activeElement;
       if (

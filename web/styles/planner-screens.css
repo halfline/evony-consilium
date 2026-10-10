@@ -454,7 +454,8 @@
   }
 }
 
-#players-screen .players-workspace {
+#players-screen .players-workspace,
+#alts-screen .players-workspace {
   grid-template-columns: minmax(0, 1fr);
 }
 #player-screen {
@@ -480,7 +481,8 @@
   line-height: 1;
 }
 
-#players .add-player-icon {
+#players .add-player-icon,
+#alts .add-player-icon {
   width: 44px;
   height: 44px;
   padding: 0;
@@ -573,6 +575,7 @@
   min-height: 100dvh;
 }
 #players-screen,
+#alts-screen,
 #maps-screen {
   display: grid;
   place-items: center;
@@ -580,10 +583,12 @@
   width: 100%;
 }
 #players-screen .players-workspace,
+#alts-screen .players-workspace,
 #maps-screen .players-workspace {
   width: 100%;
 }
 #players,
+#alts,
 #maps-list {
   display: flex;
   flex-direction: row;
@@ -599,6 +604,7 @@
   flex: 0 0 168px;
 }
 #players .add-player-icon,
+#alts .add-player-icon,
 #maps-list .add-map-icon {
   flex: 0 0 44px;
 }
