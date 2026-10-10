@@ -447,7 +447,11 @@
       <section id="alts-screen" class="players-screen" aria-label="Alts" hidden>
         <div class="players-workspace">
           <section class="players-panel">
-            <div id="alts" class="players">
+            <div class="collection-actions">
+              <p id="alts-empty" class="muted" hidden>
+                Add a regular player before creating an alt.
+              </p>
+              <p id="alts-list-empty" class="muted" hidden>No alts yet.</p>
               <button
                 id="add-alt"
                 class="add-player-icon"
@@ -457,10 +461,7 @@
                 ＋
               </button>
             </div>
-            <p id="alts-empty" class="muted" hidden>
-              Add a regular player before creating an alt.
-            </p>
-            <p id="alts-list-empty" class="muted" hidden>No alts yet.</p>
+            <div id="alts" class="players"></div>
           </section>
         </div>
       </section>

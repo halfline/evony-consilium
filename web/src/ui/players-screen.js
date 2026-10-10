@@ -132,7 +132,7 @@ export function createPlayersScreen({
         ? "No matching players."
         : "No players yet.";
     }
-    grid.replaceChildren(...players.map(tile), ...(alts ? [addButton] : []));
+    grid.replaceChildren(...players.map(tile));
   }
   return { render };
 }
