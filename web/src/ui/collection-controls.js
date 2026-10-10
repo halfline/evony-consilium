@@ -70,13 +70,46 @@ export function createCollectionControls({
   actions.append(add);
   heading.append(copy, actions);
   root.prepend(heading);
+  const empty = root.querySelector(".collection-actions");
+  empty.classList.add("collection-empty");
+  const art = document.createElement("div");
+  art.className = "empty-emblem";
+  art.append(
+    icon(kind === "maps" ? "map" : kind === "subcities" ? "castle" : "people"),
+  );
+  art.setAttribute("aria-hidden", "true");
+  const help = document.createElement("p");
+  help.className = "empty-description";
+  empty.prepend(art);
+  empty.append(help);
+  const clear = document.createElement("button");
+  clear.type = "button";
+  clear.textContent = "Clear filters";
+  clear.className = "text-button";
+  clear.hidden = true;
+  empty.append(clear);
   return {
-    render({ count, total, filtered = false }) {
+    render({ count, total, filtered = false, help: message, clear: reset }) {
       const singular =
         kind === "subcities"
           ? "subcity"
           : title.toLowerCase().replace(/s$/, "");
       summary.textContent = `${count}${filtered ? ` of ${total}` : ""} ${count === 1 ? singular : title.toLowerCase()} · ${description}`;
+      help.textContent = message;
+      empty.hidden = count > 0;
+      art.replaceChildren(
+        icon(
+          filtered
+            ? "search"
+            : kind === "maps"
+              ? "map"
+              : kind === "subcities"
+                ? "castle"
+                : "people",
+        ),
+      );
+      clear.hidden = !filtered;
+      clear.onclick = reset;
     },
   };
 }
