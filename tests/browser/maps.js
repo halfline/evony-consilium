@@ -115,4 +115,29 @@ export async function mapSelection({ page, playersScreen, driveFiles }) {
       (r) => r.data?.format === "evony-consilium-team",
     ),
   );
+
+  await page.locator('[data-screen="alts"]').click();
+  await page.locator("#add-alt").click();
+  await page.locator("#new-player-name").fill("Map list alt");
+  await page.locator("#new-player-owner-choice").click();
+  await page.locator("#new-player-owner-grid button").first().click();
+  await page.locator("#new-player-form [type=submit]").click();
+  await page.locator("#add-player-dialog").waitFor({ state: "hidden" });
+  await page.locator('[data-screen="maps"]').click();
+  await page.locator("#maps-list .map-row").first().click();
+  assert.equal(
+    await page.locator("#formation-players .players-row").count(),
+    2,
+  );
+  assert.doesNotMatch(
+    await page.locator("#formation-players").textContent(),
+    /Map list alt/,
+  );
+  await page.locator('[data-screen="alts"]').click();
+  const altTile = page
+    .locator("#alts .player-tile")
+    .filter({ hasText: "Map list alt" });
+  await altTile.hover();
+  await altTile.locator(".player-remove").click();
+  await playersScreen();
 }
