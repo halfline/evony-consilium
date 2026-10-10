@@ -68,7 +68,10 @@ export async function playerImport({ browser }) {
       "Existing player",
     );
     await page.waitForFunction(
-      () => document.getElementById("drive-save").disabled,
+      () =>
+        document.getElementById("drive-save").disabled &&
+        document.getElementById("drive-save").getAttribute("aria-busy") ===
+          "false",
     );
     assert.equal(team.data.plan.keeps.length, 1);
     assert.equal(files.grants.has(folderId), false);
