@@ -5,8 +5,12 @@ import { updateKeepAppearances } from "../domain/castles.js";
 import { view } from "./dom.js";
 import { newPlayer } from "../domain/players.js";
 import { OperationCancelled } from "../services/cancellation.js";
+import { renderPortrait } from "./portrait.js";
+import { createSearchablePicker } from "./searchable-picker.js";
+import { playerPickerCard } from "./player-picker-card.js";
 export function createAddPlayerDialog({
   root,
+  ownerDialog,
   assets,
   lastTag,
   browse,
@@ -17,12 +21,59 @@ export function createAddPlayerDialog({
   getPlan,
   context = () => null,
 }) {
-  const $ = view(root);
+  const $ = view(root, ownerDialog);
   const dialog = $("add-player-dialog");
   let openedContext,
     draft,
     busy = false,
     addingAlt = false;
+  const owners = () =>
+    getPlan().keeps.filter((player) => player.ownerId == null);
+  function avatarFor(player) {
+    const catalog = getAvatars();
+    return (
+      catalog.avatars.find((item) => item.id === player.avatarId) ||
+      catalog.avatars.find((item) => item.id === catalog.defaultId)
+    );
+  }
+  function renderOwner(player) {
+    $("new-player-owner").value = player?.id || "";
+    $("new-player-owner-name").textContent = player?.name || "Choose player";
+    const avatar = player && avatarFor(player);
+    renderPortrait(
+      $("new-player-owner-portrait"),
+      avatar && (avatar.previewSrc || avatar.src),
+    );
+    $("new-player-owner-choice").setAttribute(
+      "aria-label",
+      player ? `Change owner: ${player.name}` : "Choose alt owner",
+    );
+  }
+  const ownerPicker = createSearchablePicker({
+    dialog: ownerDialog,
+    search: $("new-player-owner-search"),
+    grid: $("new-player-owner-grid"),
+    empty: $("new-player-owner-empty"),
+    items: owners,
+    matches: (player, query) =>
+      `${player.name} ${player.allianceTag} ${player.accountId}`
+        .toLowerCase()
+        .includes(query),
+    renderCard: (player) => playerPickerCard(player, getAvatars),
+  });
+  $("new-player-owner-choice").onclick = () => {
+    if (busy || !addingAlt) return;
+    dialog.close();
+    ownerPicker.open($("new-player-owner").value, (player) =>
+      renderOwner(player),
+    );
+  };
+  ownerDialog.addEventListener("close", () => {
+    if (addingAlt && openedContext === context() && !dialog.open) {
+      dialog.showModal();
+      $("new-player-owner-choice").focus();
+    }
+  });
   $("new-player-castle").onclick = () =>
     browse("keep", (asset) => {
       draft.skin = asset.id;
@@ -57,11 +108,8 @@ export function createAddPlayerDialog({
       };
       if (addingAlt) {
         const ownerId = $("new-player-owner").value;
-        if (
-          !getPlan().keeps.some(
-            (owner) => owner.id === ownerId && owner.ownerId == null,
-          )
-        )
+        if (!ownerId) throw new Error("Choose an owner for this alt.");
+        if (!owners().some((owner) => owner.id === ownerId))
           throw new Error("Choose a regular player as the owner.");
         player.ownerId = ownerId;
       }
@@ -120,17 +168,7 @@ export function createAddPlayerDialog({
         : "Add player";
       $("import-player-file").hidden = alt;
       $("new-player-owner-control").hidden = !alt;
-      $("new-player-owner").required = alt;
-      $("new-player-owner").replaceChildren(
-        ...getPlan()
-          .keeps.filter((player) => player.ownerId == null)
-          .map((player) => {
-            const option = document.createElement("option");
-            option.value = player.id;
-            option.textContent = player.name;
-            return option;
-          }),
-      );
+      renderOwner(null);
       $("new-player-tag").value = draft.allianceTag;
       $("new-player-level").value = draft.level;
       renderCastleButton($("new-player-castle"), assets.get(draft.skin));

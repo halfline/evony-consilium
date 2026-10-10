@@ -34,6 +34,7 @@ export function createPlayerWorkflow({
   });
   const dialog = createAddPlayerDialog({
     root: roots.add,
+    ownerDialog: roots.ownerPicker,
     getPlan,
     assets,
     getAvatars,

@@ -337,6 +337,7 @@ export function createPlanner(
         alts: $("alts-screen"),
         profile: $("player-screen"),
         add: $("add-player-dialog"),
+        ownerPicker: $("new-player-owner-dialog"),
         avatars: $("avatar-dialog"),
         sync: $("player-sync-dialog"),
       },

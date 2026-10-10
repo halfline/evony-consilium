@@ -1061,6 +1061,22 @@
         </div>
         <p id="new-player-error" class="entry-error" role="alert"></p>
         <form id="new-player-form">
+          <div
+            id="new-player-owner-control"
+            class="new-player-owner-control"
+            hidden
+          >
+            <span>Owner</span>
+            <button
+              id="new-player-owner-choice"
+              type="button"
+              aria-label="Choose alt owner"
+            >
+              <span id="new-player-owner-portrait" aria-hidden="true">+</span>
+            </button>
+            <strong id="new-player-owner-name">Choose player</strong>
+            <input id="new-player-owner" type="hidden" />
+          </div>
           <div class="player-appearance">
             <button
               id="new-player-castle"
@@ -1075,10 +1091,6 @@
               aria-label="Choose avatar"
             ></button>
           </div>
-          <label id="new-player-owner-control" hidden
-            >Owner
-            <select id="new-player-owner" aria-label="Alt owner"></select>
-          </label>
           <label
             >Name<input id="new-player-name" maxlength="100" required
           /></label>
@@ -1128,6 +1140,24 @@
             ><button class="primary" type="submit">Add player</button>
           </div>
         </form>
+      </dialog>
+      <dialog id="new-player-owner-dialog" class="catalog-dialog">
+        <div class="dialog-heading">
+          <h2>Choose owner</h2>
+          <button
+            data-close="new-player-owner-dialog"
+            aria-label="Close owner picker"
+          >
+            ×
+          </button>
+        </div>
+        <label
+          >Search players<input id="new-player-owner-search" type="search"
+        /></label>
+        <div id="new-player-owner-grid" class="catalog-grid"></div>
+        <p id="new-player-owner-empty" class="muted" hidden>
+          No matching players.
+        </p>
       </dialog>
       <dialog id="player-sync-dialog">
         <div class="dialog-heading"><h2>Player edits conflict</h2></div>

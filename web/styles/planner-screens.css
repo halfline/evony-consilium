@@ -78,6 +78,62 @@
   flex-direction: column;
   gap: 16px;
 }
+#new-player-form > label {
+  margin: 0;
+}
+.new-player-owner-control {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+.new-player-owner-control[hidden] {
+  display: none;
+}
+#new-player-owner-choice {
+  display: grid;
+  place-items: center;
+  width: 108px;
+  height: 108px;
+  padding: 5px;
+  border: 1px solid var(--gold);
+  border-radius: 28px;
+  background: #29392f;
+  color: var(--gold);
+}
+#new-player-owner-choice:hover,
+#new-player-owner-choice:focus-visible {
+  background: #344739;
+}
+#new-player-owner-portrait {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 22px;
+  font-size: 42px;
+  line-height: 1;
+}
+#new-player-owner-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+#new-player-owner-name {
+  max-width: 100%;
+  color: var(--text);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+#new-player-owner-dialog {
+  width: min(560px, calc(100vw - 32px));
+}
+#new-player-owner-grid {
+  max-height: 50dvh;
+  overflow-y: auto;
+}
 .player-picker-card .avatar-choice {
   width: 72px;
   height: 72px;
@@ -136,6 +192,17 @@
   display: block;
 }
 #new-player-form .castle-choice {
+  margin-bottom: 0;
+  width: 80px;
+  height: 80px;
+  padding: 4px;
+}
+#new-player-form .avatar-choice {
+  width: 48px;
+  height: 48px;
+  padding: 2px;
+}
+#new-player-form .player-appearance {
   margin-bottom: 0;
 }
 
