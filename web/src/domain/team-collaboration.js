@@ -162,11 +162,19 @@ export function mergeTeamPlans(
     ours = canonical(local),
     shared = canonical(remote);
   const plan = merge(original, ours, shared);
+  // The fingerprint omits unplaced map positions, including their footprints.
+  // Restore those dimensions from the source player before applying a layout.
+  const sourcePlayers = new Map(
+    [...local.keeps, ...remote.keeps].map((player) => [player.id, player]),
+  );
   for (const player of plan.keeps || []) {
     if (player.profileCache) {
       Object.assign(player, player.profileCache);
       delete player.profileCache;
     }
+    const source = sourcePlayers.get(player.id);
+    player.w ??= source?.w ?? 2;
+    player.h ??= source?.h ?? 2;
   }
   // Independent moves can still collide; review the affected formation as a unit.
   const players = new Set(plan.keeps.map((player) => player.id));
