@@ -12,10 +12,11 @@ export function createPlayersScreen({
   remove,
   add,
   fileState = () => null,
+  alts = false,
 }) {
   const $ = view(root);
-  const grid = $("players");
-  const addButton = $("add-player");
+  const grid = $(alts ? "alts" : "players");
+  const addButton = $(alts ? "add-alt" : "add-player");
   addButton.onclick = add;
   search.oninput = render;
   bindTileActions(grid, {
@@ -61,6 +62,14 @@ export function createPlayersScreen({
       account.textContent = "ID " + player.accountId;
       identity.append(account);
     }
+    if (alts && player.ownerId != null) {
+      const owner = document.createElement("span");
+      owner.className = "detail";
+      owner.textContent =
+        "Owner: " +
+        getPlan().keeps.find((item) => item.id === player.ownerId)?.name;
+      identity.append(owner);
+    }
     const state = fileState(player);
     if (state && player.playerSource) {
       const sync = document.createElement("span");
@@ -82,9 +91,22 @@ export function createPlayersScreen({
   }
   function render() {
     const query = search.value.toLowerCase();
-    const players = getPlan().keeps.filter((player) =>
-      (player.name + " " + player.accountId).toLowerCase().includes(query),
-    );
+    const players = getPlan().keeps.filter((player) => {
+      const owner = alts
+        ? getPlan().keeps.find((item) => item.id === player.ownerId)
+        : null;
+      return (
+        (!alts || player.ownerId != null) &&
+        (player.name + " " + player.accountId + " " + (owner?.name || ""))
+          .toLowerCase()
+          .includes(query)
+      );
+    });
+    if (alts) {
+      const hasOwner = getPlan().keeps.some((player) => player.ownerId == null);
+      addButton.disabled = !hasOwner;
+      $("alts-empty").hidden = hasOwner;
+    }
     grid.replaceChildren(...players.map(tile), addButton);
   }
   return { render };
