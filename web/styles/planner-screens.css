@@ -1221,7 +1221,7 @@
 .subcity-details,
 .subcity-coordinates {
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 12px;
 }
 .add-subcity-icon {
   justify-self: center;
@@ -1313,7 +1313,7 @@
 
 .subcity-owner {
   color: var(--gold);
-  font-size: 0.8rem;
+  font-size: 12px;
 }
 #player-subcities {
   justify-content: flex-start;
