@@ -110,7 +110,7 @@ export function createAddPlayerDialog({
       if (dialog.open || busy) return;
       openedContext = context();
       addingAlt = alt;
-      draft = newPlayer(assets, lastTag());
+      draft = newPlayer(assets, lastTag(), alt ? 35 : 42);
       draft.avatarId = getAvatars().defaultId;
       renderAvatarButton($("new-player-avatar"), getAvatars(), draft.avatarId);
       $("new-player-form").reset();
