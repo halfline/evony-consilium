@@ -136,6 +136,12 @@ export async function playerCreation({ page, playersScreen }) {
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.screenshot({ path: "test-results/player-cards.png" });
+  await page.locator("#players .player-card").first().focus();
+  await page.waitForFunction(
+    () =>
+      getComputedStyle(document.querySelector("#players .player-remove"))
+        .opacity === "1",
+  );
   const removablePlayer = page
     .locator("#players .player-tile")
     .filter({ hasText: "Second player" });

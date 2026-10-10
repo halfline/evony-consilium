@@ -644,8 +644,8 @@
   right: calc(50% - 70px);
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   border-radius: 50%;
   background: #28392e;
@@ -661,7 +661,8 @@
   color: var(--gold);
   border-color: var(--gold);
 }
-.player-actions-open .player-remove {
+.player-actions-open .player-remove,
+.player-tile:focus-within .player-remove {
   opacity: 1;
   pointer-events: auto;
 }
