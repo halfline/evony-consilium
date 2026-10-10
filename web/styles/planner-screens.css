@@ -1282,6 +1282,9 @@
   color: var(--muted);
   max-width: 160px;
 }
+.save-status:empty {
+  display: none;
+}
 .subcity-filters {
   display: flex;
   width: min(100%, 720px);

@@ -3,6 +3,12 @@ import assert from "node:assert/strict";
 export async function playerDetails({ page, playersScreen, driveFiles }) {
   await playersScreen();
   await page.locator("#players .player-card").first().click();
+  await page.waitForFunction(
+    () => document.getElementById("player-save-status").textContent === "",
+  );
+  assert.equal(await page.locator("#player-access-status").isVisible(), false);
+  assert.equal(await page.locator("#player-save-status").textContent(), "");
+  assert.equal(await page.locator("#player-save").isDisabled(), true);
   assert.equal(await page.locator("#player-rally-capacity").isVisible(), false);
   await page.locator('[data-player-tab="rally-capacity"]').click();
   await page.locator("#player-rally-capacity").fill("12000000");

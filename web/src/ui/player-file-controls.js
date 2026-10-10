@@ -74,11 +74,15 @@ export function createPlayerFileControls({
     $("player-unlock").title = state.connected
       ? "Editor access must be granted by this file's owner in Drive"
       : "Choose this player's file so Consilium can access it";
-    $("player-access-status").textContent = !player.playerSource
-      ? "This legacy player is stored in the team. A team administrator can create its separate player file."
-      : state.connected
-        ? state.label
-        : `${state.label}. Showing the team's cached profile${player.playerSource ? `, last synced ${new Date(player.playerSource.syncedAt).toLocaleString()}` : ""}. Connect the linked file when you need to edit it.`;
+    const accessStatus = $("player-access-status");
+    accessStatus.hidden = !!state.canEdit;
+    accessStatus.textContent = state.canEdit
+      ? ""
+      : !player.playerSource
+        ? "This legacy player is stored in the team. A team administrator can create its separate player file."
+        : state.connected
+          ? state.label
+          : `${state.label}. Showing the team's cached profile${player.playerSource ? `, last synced ${new Date(player.playerSource.syncedAt).toLocaleString()}` : ""}. Connect the linked file when you need to edit it.`;
     const fileLink = $("player-drive-link");
     fileLink.hidden = !player.playerSource;
     if (player.playerSource) {
