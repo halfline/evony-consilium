@@ -121,6 +121,8 @@ export class TeamWorkspace {
       getPlan,
       isEditing: isEditingPlayer,
       save: () => this.save(),
+      discover: (before, current) =>
+        this.profiles.collectFolder(before, current),
       status,
     });
   }

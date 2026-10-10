@@ -28,6 +28,7 @@ function fixture({ canEdit = true, cached = null } = {}) {
     forget: (account) => remembered.delete(account),
   };
   const drive = {
+    children: async () => [],
     project: async () => ({ folder: { ...folder }, file: { ...file } }),
     load: async () => ({ file: { ...file }, plan: structuredClone(shared) }),
     createFolder: async (name) => ({ ...folder, name }),
