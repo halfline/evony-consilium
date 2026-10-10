@@ -14,6 +14,7 @@ export const LAYOUT_FIELDS = [
   "backgrounds",
   "labels",
   "showGrid",
+  "hiveSize",
 ];
 export function createLayout(type = "server", terrain = null) {
   const extent = terrain?.extent || 1200;
@@ -31,6 +32,7 @@ export function createLayout(type = "server", terrain = null) {
     backgrounds: {},
     labels: true,
     showGrid: true,
+    hiveSize: 18,
     positions: [],
   };
 }

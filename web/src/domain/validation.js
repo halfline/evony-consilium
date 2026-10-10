@@ -210,6 +210,10 @@ function validateDocument(plan) {
     throw new Error("Invalid excluded player files.");
   number(plan.extent, 10, 10000, "map extent");
   number(plan.spacing, 0, 10, "spacing");
+  plan.hiveSize ??= 18;
+  number(plan.hiveSize, 2, 60, "hive size");
+  if (plan.hiveSize % 2)
+    throw new Error("Hive size must be an even number of tiles.");
   if (typeof plan.rallyManual !== "boolean")
     throw new Error("Invalid rally setter preference.");
   if (!["rings", "diamond"].includes(plan.formation))

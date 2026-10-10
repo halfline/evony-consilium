@@ -33,6 +33,22 @@ test("maps keep independent placements and share player profiles", () => {
   assert.equal(plan.keeps[0].y, 60);
   assert.doesNotThrow(() => validatePlan(plan, catalog));
 });
+test("hive size belongs to each map and older layouts gain the standard size", () => {
+  let plan = validatePlan(createDemoPlan(catalog), catalog);
+  const first = plan.activeMapId;
+  plan.hiveSize = 20;
+  plan = createMapPlan(plan, "server", "Second hive");
+  assert.equal(plan.hiveSize, 18);
+  plan = selectMapPlan(plan, first);
+  assert.equal(plan.hiveSize, 20);
+  delete plan.hiveSize;
+  delete plan.maps[0].layout.hiveSize;
+  plan = validatePlan(plan, catalog);
+  assert.equal(plan.hiveSize, 18);
+  assert.equal(plan.maps[0].layout.hiveSize, 18);
+  plan.maps[0].layout.hiveSize = 19;
+  assert.throws(() => validatePlan(plan, catalog), /even number/);
+});
 test("new projects have no maps and defaults fit the selected type", () => {
   const plan = createEmptyPlan(catalog);
   assert.deepEqual(plan.maps, []);
