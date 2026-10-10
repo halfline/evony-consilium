@@ -17,6 +17,7 @@ export function numberInput(value, label, decimal = false) {
   input.step = decimal ? "any" : "1";
   input.value = value ?? "";
   input.placeholder = "—";
+  input.inputMode = decimal ? "decimal" : "numeric";
   input.setAttribute("aria-label", label);
   return input;
 }
