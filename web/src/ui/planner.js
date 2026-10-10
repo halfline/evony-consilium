@@ -26,6 +26,8 @@ import { validatePlan } from "../domain/validation.js";
 import { MapRenderer } from "../rendering/map-renderer.js";
 import { createReadOnlyView } from "./read-only-view.js";
 import { TeamEntry } from "./team-entry.js";
+import { mergeTeamPlans } from "../domain/team-collaboration.js";
+import { createTeamConflictControls } from "./team-conflict-controls.js";
 export function createPlanner(
   { catalog, avatarCatalog, terrainCatalog },
   { createWorkspace },
@@ -59,7 +61,6 @@ export function createPlanner(
       navigation?.changed();
       if (!renderer) return;
       mapInteraction?.cancel();
-      const plan = getPlan();
       if (screens.isProject()) {
         resetPending();
         teamScreen.render();
@@ -75,14 +76,6 @@ export function createPlanner(
         return;
       }
       resetPending();
-      if (
-        !store.readOnly &&
-        screens.isPlayers() &&
-        !screens.isPlayer() &&
-        screens.current() === "players" &&
-        !plan.keeps.some((player) => player.ownerId == null)
-      )
-        players.openAdd();
       if (screens.isPlayers() && selected() && !("level" in selected()))
         placement.id = null;
       const entity = selected();
@@ -183,6 +176,7 @@ export function createPlanner(
       getPlan,
       mutate,
       context: () => workspace?.key(),
+      getWorkspace: () => workspace,
       navigate: (screen) => screens.show(screen),
       status: (...args) => toast(...args),
     });
@@ -309,9 +303,9 @@ export function createPlanner(
       players.resetTag();
     }
     placement.reconcile();
-    if (["undo", "replace", "navigate"].includes(kind)) {
+    if (["undo", "replace", "navigate", "refresh"].includes(kind)) {
       mapInteraction?.cancel();
-      if (kind !== "undo") placement.ids.clear();
+      if (kind === "replace" || kind === "navigate") placement.ids.clear();
       resetPending();
     }
     if (kind === "edit" || kind === "undo") persist();
@@ -421,13 +415,23 @@ export function createPlanner(
   renderer.fit();
   $("loading").hidden = true;
   screens.show("project");
+  const teamConflicts = createTeamConflictControls(
+    $("team-conflict-dialog"),
+    getPlan,
+  );
   workspace = createWorkspace({
     getPlan,
     commitPlan: commit,
+    refreshPlan: (plan, rebaseHistory) => store.refresh(plan, rebaseHistory),
+    applyPlan: (plan, { base, remote }) =>
+      store.refresh(
+        plan,
+        (snapshot) =>
+          mergeTeamPlans(base, snapshot, remote, { resolution: "remote" }).plan,
+      ),
+    resolveTeamConflicts: teamConflicts.resolve,
     validatePlan: (plan) => validatePlan(plan, catalog),
-    isEditingPlayer: () =>
-      $("add-player-dialog").open ||
-      $("player-form").contains(document.activeElement),
+    isEditingPlayer: () => $("add-player-dialog").open,
     playersChanged: () => {
       teamScreen.render();
       players.renderList();
@@ -453,6 +457,7 @@ export function createPlanner(
       }
     },
     openPlan: (data) => {
+      teamConflicts.cancel();
       opening = true;
       store.replace(data, { force: true });
       screens.show("project");

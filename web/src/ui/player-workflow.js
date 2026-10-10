@@ -5,6 +5,7 @@ import { createAddPlayerDialog } from "./add-player-dialog.js";
 import { view } from "./dom.js";
 import { assignPlayerOwner } from "../domain/players.js";
 import { createAvatarBrowser } from "./avatar-browser.js";
+import { OperationCancelled } from "../services/cancellation.js";
 
 export function createPlayerWorkflow({
   roots,
@@ -48,6 +49,13 @@ export function createPlayerWorkflow({
     },
   });
   let preparingAdd = false;
+  let profile;
+  const fileState = (player) => ({
+    ...getWorkspace()?.players.state(player),
+    ...(profile?.hasDraft(player)
+      ? { label: "Player draft unsaved · open to Save player" }
+      : {}),
+  });
   async function openAdd(alt = false) {
     if (preparingAdd || !canEditTeam()) return;
     preparingAdd = true;
@@ -62,7 +70,7 @@ export function createPlayerWorkflow({
         );
       dialog.open(alt);
     } catch (error) {
-      status(error.message, true);
+      if (!(error instanceof OperationCancelled)) status(error.message, true);
     } finally {
       preparingAdd = false;
     }
@@ -79,7 +87,7 @@ export function createPlayerWorkflow({
     },
     remove,
     add: () => openAdd(),
-    fileState: (player) => getWorkspace()?.players.state(player),
+    fileState,
   });
   const alts = createPlayersScreen({
     root: roots.alts,
@@ -94,9 +102,20 @@ export function createPlayerWorkflow({
     remove,
     add: () => openAdd(true),
     alts: true,
-    fileState: (player) => getWorkspace()?.players.state(player),
+    fileState,
   });
   const $ = view(roots.profile);
+  roots.list.querySelector("#connect-player").onclick = async () => {
+    if (!canEditTeam()) return;
+    try {
+      const player = await getWorkspace().profiles.import();
+      select(player.id);
+      navigate("player");
+      status("Player added locally. Save team to publish roster membership.");
+    } catch (error) {
+      if (!(error instanceof OperationCancelled)) status(error.message, true);
+    }
+  };
   $("player-owner").onchange = () => {
     if (!canEditTeam()) return;
     try {
@@ -109,7 +128,7 @@ export function createPlayerWorkflow({
       );
       navigate("player");
       renderOwnership();
-      status("Player ownership saved.");
+      status("Player ownership changed. Save team to share it.");
     } catch (error) {
       status(error.message, true);
       renderOwnership();
@@ -160,9 +179,19 @@ export function createPlayerWorkflow({
       refreshAccess();
     },
   });
-  const profile = createPlayerScreen({
+  profile = createPlayerScreen({
     root: roots.profile,
     canEdit: () => !!getWorkspace()?.players.state(cachedPlayer()).canEdit,
+    context: () => getWorkspace()?.account?.sub,
+    readDraft: (player) => getWorkspace().readEditorDraft(player),
+    writeDraft: (player, draft) =>
+      getWorkspace().writeEditorDraft(player, draft),
+    discardDraft: (player) => getWorkspace().discardPlayerDraft(player),
+    draftChanged: () => {
+      list.render();
+      alts.render();
+      refreshAccess();
+    },
     getPlan: editingPlan,
     terrainFor,
     getPlayer: () =>
@@ -172,12 +201,15 @@ export function createPlayerWorkflow({
     getAvatars,
     browseCastle,
     browseAvatar: avatars.open,
-    commit: async (next) => {
+    commit: async (next, baseline) => {
       const player = next.keeps.find((player) => player.id === selection.id);
       roots.profile.setAttribute("aria-busy", "true");
       try {
-        await getWorkspace().profiles.save(player, fileControls.resolve);
-        status("Player saved.");
+        await getWorkspace().profiles.save(
+          player,
+          fileControls.resolve,
+          baseline,
+        );
       } finally {
         roots.profile.setAttribute("aria-busy", "false");
       }
@@ -194,19 +226,15 @@ export function createPlayerWorkflow({
       alts.render();
     },
     renderProfile: () => {
-      const focused = roots.profile.ownerDocument.activeElement;
-      if (
-        !focused?.matches("input, textarea, select") ||
-        !roots.profile.contains(focused)
-      )
-        profile.render();
+      profile.render();
       fileControls.render();
       refreshAccess();
       renderOwnership();
       getWorkspace()?.players.probe(cachedPlayer());
     },
     canEditPlayer: () =>
-      !!getWorkspace()?.players.state(cachedPlayer()).canEdit,
+      !!getWorkspace()?.players.state(cachedPlayer()).canEdit &&
+      profile.ready(),
     openAdd: () => openAdd(),
     draft: dialog.player,
     resetTag: () => {

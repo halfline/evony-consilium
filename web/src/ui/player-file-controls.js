@@ -51,9 +51,9 @@ export function createPlayerFileControls({
       const access = getFiles().state(getPlayer());
       if (!access.canEdit)
         throw new Error(
-          "This player is still read-only. Ask an admin to grant write access to its file in Drive, then unlock again.",
+          "This player file is still read-only. Ask its owner for Editor access in Drive, then check access again.",
         );
-      status("Player editing unlocked for your account.");
+      status("Player file connected with Editor access.");
     });
   $("player-unlock").onclick = unlockPlayer;
   function render() {
@@ -62,6 +62,33 @@ export function createPlayerFileControls({
     const state = getFiles()?.state(player) || { label: "Team copy" };
     $("player-unlock").hidden = !!state.canEdit;
     $("player-unlock").disabled = !!state.busy;
+    $("player-unlock").textContent = !player.playerSource
+      ? "Create player file"
+      : state.connected
+        ? "Check editing access"
+        : "Connect player file";
+    $("player-unlock").setAttribute(
+      "aria-label",
+      $("player-unlock").textContent,
+    );
+    $("player-unlock").title = state.connected
+      ? "Editor access must be granted by this file's owner in Drive"
+      : "Choose this player's file so Consilium can access it";
+    $("player-access-status").textContent = !player.playerSource
+      ? "This legacy player is stored in the team. A team administrator can create its separate player file."
+      : state.connected
+        ? state.label
+        : `${state.label}. Showing the team's cached profile${player.playerSource ? `, last synced ${new Date(player.playerSource.syncedAt).toLocaleString()}` : ""}. Connect the linked file when you need to edit it.`;
+    const fileLink = $("player-drive-link");
+    fileLink.hidden = !player.playerSource;
+    if (player.playerSource) {
+      const url = new URL(
+        `https://drive.google.com/file/d/${player.playerSource.fileId}/view`,
+      );
+      if (player.playerSource.resourceKey)
+        url.searchParams.set("resourcekey", player.playerSource.resourceKey);
+      fileLink.href = url.href;
+    }
   }
   return { render, resolve, unlock: unlockPlayer };
 }

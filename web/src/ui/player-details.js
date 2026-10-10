@@ -6,6 +6,7 @@ import { createPlayerMarchSizes } from "./player-march-sizes.js";
 export function createPlayerDetails({ root }) {
   const $ = view(root);
   let signature,
+    playerId,
     original = {};
   const buffs = createPlayerBuffs({ root }),
     marchSizes = createPlayerMarchSizes({ root }),
@@ -43,8 +44,8 @@ export function createPlayerDetails({ root }) {
       tabs[next].focus();
     };
   });
-  function read() {
-    marches.syncSizes();
+  function read({ sync = true } = {}) {
+    if (sync) marches.syncSizes();
     const result = {
       rallyCapacity: numeric($("player-rally-capacity")),
       ...buffs.read(),
@@ -68,7 +69,8 @@ export function createPlayerDetails({ root }) {
       player.level,
     ]);
     if (signature === nextSignature) return;
-    const changedPlayer = !signature || JSON.parse(signature)[0] !== player.id;
+    const changedPlayer = playerId !== player.id;
+    playerId = player.id;
     signature = nextSignature;
     original = structuredClone(player.details || {});
     $("player-rally-capacity").value = original.rallyCapacity ?? "";
@@ -77,5 +79,12 @@ export function createPlayerDetails({ root }) {
     marches.render(original, player.level);
     if (changedPlayer) showTab("overview");
   }
-  return { read, render };
+  return {
+    read,
+    snapshot: () => read({ sync: false }),
+    render,
+    reset: () => {
+      signature = null;
+    },
+  };
 }
