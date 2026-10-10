@@ -348,6 +348,7 @@ export function createPlanner(
       search: $("players-search"),
       altSearch: $("alts-search"),
       canEditTeam: () => !store.readOnly,
+      commitTeam: commit,
       getWorkspace: () => workspace,
       refreshAccess: () => readOnlyView.render(),
       getPlan,
@@ -441,6 +442,7 @@ export function createPlanner(
       readOnlyView.render();
       teamScreen.render();
       subcitiesScreen.render();
+      players.renderProfile();
       playerSubcities.render();
       placementInspector.render();
       formationControls.render();

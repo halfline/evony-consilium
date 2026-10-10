@@ -1270,3 +1270,10 @@
 #subcity-form .subcity-fields {
   grid-template-columns: repeat(2, max-content);
 }
+
+.player-ownership {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 16px;
+}
