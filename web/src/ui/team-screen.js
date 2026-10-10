@@ -80,6 +80,7 @@ export function createTeamScreen({
     root: $("edit-project-logo"),
     uploadLabel: "Change team logo",
     getValue: () => getPlan().projectLogo,
+    getName: () => getPlan().title,
     change: (logo) =>
       mutate((plan) => {
         plan.projectLogo = logo;

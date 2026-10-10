@@ -1,5 +1,7 @@
 import { isTeamLogo } from "../domain/team.js";
 import { bindTileActions } from "./tile-actions.js";
+import { initialsFor } from "./portrait.js";
+import { icon, labelWithIcon } from "./icons.js";
 
 export function createTeamList({
   root,
@@ -23,9 +25,7 @@ export function createTeamList({
       const open = document.createElement("button");
       const name = document.createElement("span");
       name.textContent = file.name;
-      const arrow = document.createElement("span");
-      arrow.textContent = "→";
-      arrow.setAttribute("aria-hidden", "true");
+      const arrow = icon("forward");
       const portrait = document.createElement("span");
       portrait.className = "team-portrait";
       if (isTeamLogo(file.logo)) {
@@ -37,13 +37,7 @@ export function createTeamList({
       } else {
         const initials = document.createElement("span");
         initials.className = "team-initials";
-        initials.textContent = file.name
-          .trim()
-          .split(/\s+/)
-          .slice(0, 2)
-          .map((word) => Array.from(word)[0] || "")
-          .join("")
-          .toUpperCase();
+        initials.textContent = initialsFor(file.name);
         initials.setAttribute("aria-hidden", "true");
         portrait.append(initials);
       }
@@ -54,7 +48,7 @@ export function createTeamList({
       open.append(portrait, caption);
       open.onclick = () => openTeam(file);
       const forget = document.createElement("button");
-      forget.textContent = "×";
+      labelWithIcon(forget, "close");
       forget.className = "team-forget";
       forget.title = `Forget ${file.name}`;
       forget.setAttribute("aria-label", `Forget ${file.name}`);

@@ -1,11 +1,14 @@
 import { isTeamLogo } from "../domain/team.js";
 import { readTeamLogo } from "../io/team-logo.js";
 import { bindTileActions } from "./tile-actions.js";
+import { initialsFor } from "./portrait.js";
+import { labelWithIcon } from "./icons.js";
 
 export function createLogoPicker({
   root,
   uploadLabel,
   getValue,
+  getName,
   change,
   status,
   context = () => null,
@@ -23,6 +26,8 @@ export function createLogoPicker({
     }),
   );
   const { upload, preview, placeholder, file: fileInput, remove } = nodes;
+  labelWithIcon(remove, "close");
+  labelWithIcon(placeholder, "plus");
   upload.setAttribute("aria-label", uploadLabel);
   upload.title = uploadLabel;
   const controls = upload.parentElement;
@@ -64,6 +69,10 @@ export function createLogoPicker({
     if (logo) preview.src = logo;
     else preview.removeAttribute("src");
     placeholder.hidden = !!logo;
+    if (getName) {
+      placeholder.textContent = initialsFor(getName()) || "EC";
+      placeholder.classList.add("team-initials");
+    }
     remove.hidden = !logo;
   }
   function reset() {
