@@ -134,6 +134,26 @@ export async function altOwnership({ page, playersScreen }) {
   await page.screenshot({ path: "test-results/player-alts-mobile.png" });
   await page.setViewportSize({ width: 1440, height: 1000 });
   await altsScreen();
+  const altLayout = await page
+    .locator("#alts .player-card")
+    .evaluate((card) => {
+      const portrait = card
+        .querySelector(".player-portrait")
+        .getBoundingClientRect();
+      const identity = card
+        .querySelector(".player-identity")
+        .getBoundingClientRect();
+      const bounds = card.getBoundingClientRect();
+      return {
+        portraitAboveIdentity: portrait.bottom <= identity.top,
+        identityWithinCard:
+          identity.left >= bounds.left && identity.right <= bounds.right,
+      };
+    });
+  assert.deepEqual(altLayout, {
+    portraitAboveIdentity: true,
+    identityWithinCard: true,
+  });
   assert.match(
     await page.locator("#alts .player-card").textContent(),
     /Owner: Second player/,
