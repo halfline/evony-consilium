@@ -147,6 +147,13 @@ export class TeamEntry {
       this.run(() => this.join(true), "Opening team…");
     this.$("project-reload").onclick = () =>
       this.run(async () => {
+        if (
+          this.workspace.sync.dirty &&
+          !window.confirm(
+            "Discard your unsaved team changes and open the shared version? Player drafts are kept.",
+          )
+        )
+          return;
         await this.workspace.reload();
         this.show("planner");
       });
@@ -191,7 +198,7 @@ export class TeamEntry {
     if (draft.restored)
       this.status(
         draft.stale
-          ? "The shared team has changed. Your edits are kept locally. Load latest replaces them with the shared version."
+          ? "The shared team has changed. Your draft is kept locally; Save team merges updates and lets you review conflicts."
           : "Restored unsaved changes.",
       );
   }

@@ -946,6 +946,7 @@ code {
   :is(
     #undo,
     #add-player,
+    #connect-player,
     #add-alt,
     #add-map,
     #add-subcity,
@@ -983,6 +984,28 @@ code {
 }
 
 /* Personal-file editing leaves team and map controls read-only. */
+.team-sharing {
+  margin-top: 18px;
+}
+.team-sharing .inspector-actions {
+  flex-wrap: wrap;
+  align-items: center;
+}
+.team-sharing p {
+  max-width: 70ch;
+}
+#player-save-status {
+  flex-basis: 100%;
+}
+#team-conflict-values {
+  max-height: 50vh;
+  overflow: auto;
+}
+#team-conflict-values pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .read-only.player-file-editable
   :is(
     #player-remove-march,
@@ -1020,15 +1043,11 @@ code {
   color: #fff;
   background: transparent;
   border: 0;
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  width: 2.5rem;
-  height: 2.5rem;
-  padding: 0;
+  float: right;
+  padding: 0.5rem;
 }
 #player-screen .player-heading {
-  padding-right: 2.75rem;
+  clear: both;
 }
 
 /* Fields reflect their own access, including individually locked players. */

@@ -136,15 +136,15 @@
   display: flex;
   gap: 8px;
   align-items: stretch;
+  flex-wrap: wrap;
 }
 .project-location input {
-  flex: 1;
+  flex: 1 1 240px;
   min-width: 0;
 }
 .project-location button {
-  flex: 0 0 48px;
-  font-size: 24px;
-  padding: 0;
+  flex: 0 0 auto;
+  padding: 10px 14px;
 }
 .project-actions {
   display: flex;

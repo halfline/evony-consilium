@@ -3,6 +3,7 @@ import { createLogoPicker } from "./logo-picker.js";
 import { bindTileActions } from "./tile-actions.js";
 import { normalizeDiscordUrl } from "../domain/team.js";
 import { view } from "./dom.js";
+import { routeHash } from "./navigation.js";
 export function createTeamScreen({
   root,
   getPlan,
@@ -12,6 +13,7 @@ export function createTeamScreen({
   context,
   canEdit = () => true,
   unlock = async () => {},
+  getWorkspace = () => null,
 }) {
   const $ = view(root);
   $("edit-project-name").onchange = () => {
@@ -29,12 +31,31 @@ export function createTeamScreen({
     $("team-unlock").disabled = true;
     try {
       await unlock();
-      status("Team administration unlocked.");
+      status("Team Editor access confirmed.");
     } catch (error) {
       status(error.message, true);
     } finally {
       $("team-unlock").disabled = false;
       render();
+    }
+  };
+  $("team-copy-link").onclick = async () => {
+    const file = getWorkspace()?.sync.file;
+    if (!file) return;
+    const url = new URL(location.href);
+    url.hash = routeHash({
+      team: file.id,
+      resourceKey: file.resourceKey,
+      screen: "project",
+    });
+    try {
+      await navigator.clipboard.writeText(url.href);
+      status("Team link copied. Grant access in Drive before sending it.");
+    } catch {
+      status(
+        "Could not copy the link. Copy this page's address from your browser.",
+        true,
+      );
     }
   };
   const dashboard = createTeamDashboard({
@@ -82,6 +103,30 @@ export function createTeamScreen({
   function render() {
     const plan = getPlan();
     $("team-unlock").hidden = canEdit();
+    const workspace = getWorkspace(),
+      file = workspace?.sync.file,
+      folder = workspace?.project?.folder;
+    $("team-copy-link").disabled = !file;
+    for (const [id, resource, folderLink] of [
+      ["team-drive-link", file, false],
+      ["team-folder-link", folder, true],
+    ]) {
+      const link = $(id);
+      link.hidden = !resource || (folderLink && folder.id === file?.id);
+      if (resource) {
+        const url = new URL(
+          folderLink
+            ? `https://drive.google.com/drive/folders/${resource.id}`
+            : `https://drive.google.com/file/d/${resource.id}/view`,
+        );
+        if (resource.resourceKey)
+          url.searchParams.set("resourcekey", resource.resourceKey);
+        link.href = url.href;
+      }
+    }
+    $("team-access-status").textContent = canEdit()
+      ? "You can edit the team. Player editing is controlled by each player file's Drive permissions."
+      : "You have read-only team access. You can still edit player files shared with you as Editor.";
     $("edit-project-name").value = plan.title;
     dashboard.render();
     const discordUrl = normalizeDiscordUrl(plan.discordUrl);

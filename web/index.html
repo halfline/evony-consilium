@@ -116,7 +116,9 @@
             role="tabpanel"
             aria-labelledby="project-tab-open"
           >
-            <p>Browse teams or paste a shared team link.</p>
+            <p>
+              Paste a shared team link or choose its Team file in Google Drive.
+            </p>
             <form id="project-join">
               <label for="project-url">Team link</label>
               <div class="project-location">
@@ -124,15 +126,15 @@
                   id="project-url"
                   type="url"
                   required
-                  placeholder="https://drive.google.com/…"
+                  placeholder="Consilium or Google Drive team link"
                 />
                 <button
                   id="project-browse"
                   type="button"
-                  aria-label="Browse teams"
-                  title="Browse teams"
+                  aria-label="Browse team files"
+                  title="Choose a Team file, not a folder or Player file"
                 >
-                  …
+                  Choose team file…
                 </button>
               </div>
             </form>
@@ -211,23 +213,23 @@
             id="undo"
             class="icon-action"
             aria-label="Undo"
-            title="Undo (Ctrl+Z)"
+            title="Undo team edit (Ctrl+Z)"
           >
             <span aria-hidden="true">↶</span>
           </button>
           <button
             id="drive-save"
             class="primary"
-            aria-label="Save"
-            title="Save"
+            aria-label="Save team"
+            title="Save team planning changes"
           >
-            Save</button
+            Save team</button
           ><button
             id="project-reload"
             hidden
-            title="Replace your local edits with the latest shared version"
+            title="Discard local team edits and load the shared version"
           >
-            Load latest
+            Discard team draft
           </button>
         </div>
       </header>
@@ -323,10 +325,10 @@
           <button
             id="team-unlock"
             type="button"
-            title="Unlock team administration"
-            aria-label="Unlock team administration"
+            title="Check team editing access"
+            aria-label="Check team editing access"
           >
-            🔓 Unlock team
+            Check editing access
           </button>
           <div id="edit-project-logo" class="project-logo-field"></div>
           <input
@@ -385,11 +387,34 @@
               </button>
             </div>
           </div>
+          <details class="team-sharing">
+            <summary>Share this team</summary>
+            <div class="inspector-actions">
+              <button id="team-copy-link" type="button">Copy team link</button>
+              <a id="team-drive-link" target="_blank" rel="noopener noreferrer"
+                >Team document in Drive</a
+              >
+              <a id="team-folder-link" target="_blank" rel="noopener noreferrer"
+                >Team folder in Drive</a
+              >
+            </div>
+            <p class="muted">
+              Share the folder as Viewer with members, then grant each member
+              Editor access to their own player file. Grant trusted
+              administrators Editor access to the folder; this also lets them
+              edit its player files. Planners can receive Editor access to just
+              the team document.
+            </p>
+            <p id="team-access-status" class="muted"></p>
+          </details>
         </div>
       </section>
       <section id="players-screen" class="players-screen" aria-label="Players">
         <div class="players-workspace">
           <section id="players-panel" class="players-panel">
+            <button id="connect-player" type="button">
+              Add existing player file
+            </button>
             <div id="players" class="players">
               <button
                 id="add-player"
@@ -506,6 +531,10 @@
                 </button>
               </div>
             </div>
+            <p id="player-access-status" class="muted"></p>
+            <a id="player-drive-link" target="_blank" rel="noopener noreferrer"
+              >Player file and sharing in Drive</a
+            >
             <label class="player-ownership"
               >Owner
               <select id="player-owner" aria-label="Player owner"></select>
@@ -678,8 +707,20 @@
                 </div>
               </div>
               <div id="player-profile-actions" class="inspector-actions">
-                <button class="primary apply-entity" type="submit">
-                  Apply
+                <span
+                  id="player-save-status"
+                  role="status"
+                  class="save-status"
+                ></span>
+                <button
+                  id="player-save"
+                  class="primary apply-entity"
+                  type="submit"
+                >
+                  Save player
+                </button>
+                <button id="player-discard-draft" type="button" hidden>
+                  Discard player draft
                 </button>
               </div>
             </form>
@@ -1084,6 +1125,25 @@
           </button>
         </div>
       </dialog>
+      <dialog id="team-conflict-dialog">
+        <div class="dialog-heading"><h2>Review team changes</h2></div>
+        <p>
+          These changes overlap with a teammate's edits. Independent changes are
+          merged automatically. Choose which conflicting values to keep.
+        </p>
+        <div id="team-conflict-values"></div>
+        <div class="dialog-actions">
+          <button data-team-resolution="cancel" type="button">
+            Keep draft for later
+          </button>
+          <button data-team-resolution="local" type="button">
+            Keep my conflicting values
+          </button>
+          <button data-team-resolution="remote" type="button">
+            Use shared conflicting values
+          </button>
+        </div>
+      </dialog>
       <dialog id="catalog-dialog" class="catalog-dialog">
         <div class="dialog-heading">
           <div>
@@ -1146,9 +1206,11 @@
             buildings and blocked tiles are avoided.
           </p>
           <p>
-            <strong>Save</strong> stores team changes. Player profile edits save
-            to their own Drive files. Keep level defaults to 42 and culture to
-            Japan.
+            <strong>Save team</strong> shares maps, roster membership, and team
+            settings. <strong>Save player</strong> shares that player's profile,
+            including appearance and statistics. Player drafts are kept on this
+            device when you navigate away. Undo applies to team edits. Keep
+            level defaults to 42 and culture to Japan.
           </p>
           <p>
             <strong>Appearance:</strong> bundled images are extracted original

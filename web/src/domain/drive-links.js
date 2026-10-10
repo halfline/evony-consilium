@@ -18,3 +18,27 @@ export function parseDriveLink(value) {
     resourceKey: url.searchParams.get("resourcekey") || "",
   };
 }
+// Shared app links and Drive links are both valid entry points to the team file.
+export function parseTeamLink(link, appUrl = globalThis.location?.href) {
+  if (appUrl) {
+    let url;
+    try {
+      url = new URL(link);
+    } catch {
+      return parseDriveLink(link);
+    }
+    const app = new URL(appUrl),
+      params = new URLSearchParams(url.hash.slice(1));
+    const id = params.get("team"),
+      resourceKey = params.get("resourceKey") || "";
+    const pathname = (value) => value.replace(/\/index\.html$/, "/");
+    if (
+      url.origin === app.origin &&
+      pathname(url.pathname) === pathname(app.pathname) &&
+      /^[\w-]{1,200}$/.test(id || "") &&
+      resourceKey.length <= 200
+    )
+      return { id, resourceKey, kind: "file" };
+  }
+  return parseDriveLink(link);
+}
