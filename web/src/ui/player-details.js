@@ -16,6 +16,7 @@ export function createPlayerDetails({ root }) {
     });
   $("player-march-sizes").onchange = () => marches.syncSizes();
   function showTab(tab) {
+    $("player-section-select").value = tab;
     for (const button of root.querySelectorAll("[data-player-tab]")) {
       const active = button.dataset.playerTab === tab;
       button.classList.toggle("active", active);
@@ -27,6 +28,7 @@ export function createPlayerDetails({ root }) {
       panel.hidden = panel.dataset.playerPanel !== tab;
   }
   const tabs = [...root.querySelectorAll("[data-player-tab]")];
+  $("player-section-select").onchange = (event) => showTab(event.target.value);
   tabs.forEach((button, index) => {
     button.onclick = () => showTab(button.dataset.playerTab);
     button.onkeydown = (event) => {

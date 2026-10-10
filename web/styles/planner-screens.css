@@ -862,6 +862,9 @@
 .player-detail-tabs button {
   white-space: nowrap;
 }
+.player-section-select {
+  display: none;
+}
 #players-editor .entity-fields {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -959,9 +962,17 @@
   .player-capacities {
     grid-template-columns: minmax(0, 1fr);
   }
-  .player-detail-tabs button {
-    padding: 12px;
-    font-size: 13px;
+  .player-detail-tabs {
+    display: none;
+  }
+  .player-section-select {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 24px;
+    font-size: 12px;
+  }
+  .player-section-select select {
+    height: 40px;
   }
   .player-march-toolbar input {
     flex-basis: 100%;

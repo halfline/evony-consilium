@@ -168,6 +168,11 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
   await page.locator("#player-march-highest").selectOption("15");
   await page.screenshot({ path: "test-results/player-generated-march.png" });
   await page.setViewportSize({ width: 390, height: 844 });
+  assert.equal(await page.locator("#player-section-select").isVisible(), true);
+  assert.equal(
+    await page.locator("#player-section-select").inputValue(),
+    "troops",
+  );
   assert.equal(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
