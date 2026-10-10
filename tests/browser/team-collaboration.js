@@ -29,6 +29,14 @@ export async function teamCollaboration({ browser }) {
       await page.locator("#edit-project-name").fill(value);
       await page.locator("#edit-project-name").dispatchEvent("change");
     }
+    async function discord(page, value) {
+      if (await page.locator("#team-discord-tile").isVisible()) {
+        await page.locator("#team-discord-open").focus();
+        await page.locator("#team-discord-remove").click();
+      }
+      await page.locator("#team-discord-url").fill(value);
+      await page.locator("#team-discord-url").dispatchEvent("change");
+    }
     async function saved(page) {
       await page.waitForFunction(
         () =>
@@ -38,8 +46,7 @@ export async function teamCollaboration({ browser }) {
       );
     }
     await title(a, "Alice's team name");
-    await b.locator("#team-discord-url").fill("https://discord.gg/shared");
-    await b.locator("#team-discord-url").dispatchEvent("change");
+    await discord(b, "https://discord.gg/shared");
     await a.locator("#drive-save").click();
     await saved(a);
     await b.locator("#drive-save").click();
@@ -55,11 +62,14 @@ export async function teamCollaboration({ browser }) {
     );
     await title(a, "Alice's conflicting name");
     await title(b, "Bob's conflicting name");
+    await discord(a, "https://discord.gg/alice");
+    await discord(b, "https://discord.gg/bob");
     await b.locator("#drive-save").click();
     await saved(b);
     await a.setViewportSize({ width: 390, height: 844 });
     await a.locator("#drive-save").click();
     await a.locator("#team-conflict-dialog").waitFor({ state: "visible" });
+    await a.screenshot({ path: "test-results/team-conflict-mobile.png" });
     const dialog = await a.locator("#team-conflict-dialog").boundingBox();
     assert.equal(dialog.x >= 0 && dialog.x + dialog.width <= 390, true);
     assert.equal(
@@ -68,22 +78,29 @@ export async function teamCollaboration({ browser }) {
         .evaluate((element) => element.scrollWidth <= element.clientWidth),
       true,
     );
-    const localButton = await a
-      .locator('[data-team-resolution="local"]')
+    const localOption = await a
+      .locator('.team-conflict-row:has-text("Team name") .team-conflict-option')
+      .first()
       .boundingBox();
-    const remoteButton = await a
-      .locator('[data-team-resolution="remote"]')
+    const remoteOption = await a
+      .locator('.team-conflict-row:has-text("Team name") .team-conflict-option')
+      .last()
       .boundingBox();
-    assert.equal(localButton.y < remoteButton.y, true);
+    assert.equal(localOption.y < remoteOption.y, true);
     assert.match(
       await a.locator("#team-conflict-values").textContent(),
       /Team name/,
     );
-    await a.locator('[data-team-resolution="local"]').click();
+    await a
+      .locator(
+        '.team-conflict-row:has-text("Discord link") input[value="remote"]',
+      )
+      .check();
+    await a.locator('[data-team-resolution="apply"]').click();
     await a.setViewportSize({ width: 1280, height: 720 });
     await saved(a);
     assert.equal(team.data.plan.title, "Alice's conflicting name");
-    assert.equal(team.data.plan.discordUrl, "https://discord.gg/shared");
+    assert.equal(team.data.plan.discordUrl, "https://discord.gg/bob");
     await a.locator("#undo").click();
     assert.equal(
       await a.locator("#plan-title").inputValue(),
@@ -91,7 +108,7 @@ export async function teamCollaboration({ browser }) {
     );
     assert.equal(
       await a.locator("#team-discord-open").getAttribute("href"),
-      "https://discord.gg/shared",
+      "https://discord.gg/bob",
     );
     assert.equal(
       await a.evaluate(() => (window.__pickerCalls || []).length),

@@ -1242,19 +1242,16 @@
       <dialog id="team-conflict-dialog">
         <div class="dialog-heading"><h2>Review team changes</h2></div>
         <p>
-          These changes overlap with a teammate's edits. Independent changes are
-          merged automatically. Choose which conflicting values to keep.
+          Choose a value for each overlapping change. Other changes merge
+          automatically.
         </p>
         <div id="team-conflict-values"></div>
         <div class="dialog-actions">
           <button data-team-resolution="cancel" type="button">
             Keep draft for later
           </button>
-          <button data-team-resolution="local" type="button">
-            Keep my conflicting values
-          </button>
-          <button data-team-resolution="remote" type="button">
-            Use shared conflicting values
+          <button data-team-resolution="apply" class="primary" type="button">
+            Save selected values
           </button>
         </div>
       </dialog>

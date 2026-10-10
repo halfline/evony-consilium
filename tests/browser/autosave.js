@@ -166,7 +166,7 @@ export async function autosave({ browser }) {
     );
     await page.locator("#drive-save").click();
     await page.locator("#team-conflict-dialog").waitFor({ state: "visible" });
-    await page.locator('[data-team-resolution="local"]').click();
+    await page.locator('[data-team-resolution="apply"]').click();
     await page.waitForFunction(
       () =>
         document.getElementById("drive-save").disabled &&

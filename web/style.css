@@ -1022,12 +1022,61 @@ code {
   flex-basis: 100%;
 }
 #team-conflict-values {
+  display: grid;
+  gap: 16px;
   max-height: 50vh;
   overflow: auto;
+  margin-top: 16px;
 }
-#team-conflict-values pre {
+#team-conflict-values .team-conflict-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 8px 0 0;
+  border: 0;
+}
+.team-conflict-row legend {
+  padding: 0;
+  font-weight: 700;
+}
+.team-conflict-option {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  align-content: start;
+  align-items: center;
+  gap: 6px 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.team-conflict-option:has(input:checked) {
+  border-color: var(--gold);
+  background: #29382d;
+}
+.team-conflict-option input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--gold);
+}
+.team-conflict-option strong {
+  color: var(--text);
+  font-size: 13px;
+}
+.team-conflict-value {
+  grid-column: 1 / -1;
+  max-height: 160px;
+  overflow: auto;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
 }
 @media (max-width: 600px) {
   #team-conflict-dialog {
@@ -1042,6 +1091,9 @@ code {
   #team-conflict-dialog .dialog-actions button {
     width: 100%;
     white-space: normal;
+  }
+  #team-conflict-values .team-conflict-row {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
