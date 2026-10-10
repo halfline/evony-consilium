@@ -3,6 +3,7 @@ import { autosave } from "./browser/autosave.js";
 import { teamCollaboration } from "./browser/team-collaboration.js";
 import { altOwnership } from "./browser/alts.js";
 import { teamImprovements } from "./browser/team-improvements.js";
+import { visualPolish } from "./browser/visual-polish.js";
 import { subcityOwnership } from "./browser/subcity-ownership.js";
 import { subcities } from "./browser/subcities.js";
 import { playerSharing } from "./browser/player-sharing.js";
@@ -91,6 +92,7 @@ try {
   await subcities({ browser });
   await subcityOwnership({ browser });
   await teamImprovements({ browser });
+  await visualPolish({ browser });
   await unconfiguredDeployment({ browser });
   await unavailableResources({ browser });
   assert.deepEqual(errors, []);
