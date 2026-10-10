@@ -2,6 +2,11 @@ import assert from "node:assert/strict";
 
 export async function playerCreation({ page, playersScreen }) {
   await playersScreen();
+  assert.equal(
+    await page.locator("#players-empty").textContent(),
+    "No players yet.",
+  );
+  assert.equal(await page.locator("#players-empty").isVisible(), true);
   await page.locator("#add-player").click();
   await page.locator("#add-player-dialog").waitFor({ state: "visible" });
   assert.equal(await page.locator("#new-player-level").inputValue(), "42");
@@ -117,6 +122,12 @@ export async function playerCreation({ page, playersScreen }) {
   assert.match(
     await page.locator("#players .player-card").textContent(),
     /First player/,
+  );
+  await page.locator("#players-search").fill("");
+  await page.locator("#players-search").fill("no such player");
+  assert.equal(
+    await page.locator("#players-empty").textContent(),
+    "No matching players.",
   );
   await page.locator("#players-search").fill("");
   for (const width of [390, 392]) {

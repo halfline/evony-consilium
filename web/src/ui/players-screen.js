@@ -122,6 +122,11 @@ export function createPlayersScreen({
       const hasOwner = getPlan().keeps.some((player) => player.ownerId == null);
       addButton.disabled = !hasOwner;
       $("alts-empty").hidden = hasOwner;
+    } else {
+      $("players-empty").hidden = players.length > 0;
+      $("players-empty").textContent = query
+        ? "No matching players."
+        : "No players yet.";
     }
     grid.replaceChildren(...players.map(tile), addButton);
   }
