@@ -525,6 +525,7 @@
 :is(#players, #alts) .player-identity .detail {
   flex-basis: 100%;
   margin-top: 0;
+  font-size: 12px;
 }
 
 .project-settings .project-logo-controls {
