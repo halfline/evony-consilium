@@ -25,7 +25,7 @@ export function createPlayersScreen({
     triggerSelector: ".player-card",
     className: "player-actions-open",
   });
-  function tile(player) {
+  function tile(player, query) {
     const tile = document.createElement("div");
     tile.className = "player-tile";
     const button = document.createElement("button");
@@ -57,7 +57,7 @@ export function createPlayersScreen({
     name.className = "name";
     name.textContent = player.name;
     identity.append(name);
-    if (player.accountId) {
+    if (query && player.accountId?.toLowerCase().includes(query)) {
       const account = document.createElement("span");
       account.className = "detail";
       account.textContent = "ID " + player.accountId;

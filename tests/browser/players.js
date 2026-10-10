@@ -60,6 +60,7 @@ export async function playerCreation({ page, playersScreen }) {
     /Thunder Lord/,
   );
   await page.locator("#new-player-name").fill("First player");
+  await page.locator("#new-player-account").fill("7319846102");
   await page.locator("#new-player-tag").fill("ONE");
   await page.locator("#new-player-form [type=submit]").click();
   await page.locator("#add-player-dialog").waitFor({ state: "hidden" });
@@ -129,6 +130,13 @@ export async function playerCreation({ page, playersScreen }) {
     await page.locator("#players-empty").textContent(),
     "No matching players.",
   );
+  await page.locator("#players-search").fill("");
+  assert.doesNotMatch(
+    await page.locator("#players").textContent(),
+    /7319846102/,
+  );
+  await page.locator("#players-search").fill("7319846102");
+  assert.match(await page.locator("#players").textContent(), /ID 7319846102/);
   await page.locator("#players-search").fill("");
   assert.equal(
     await page
