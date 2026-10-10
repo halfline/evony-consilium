@@ -43,6 +43,29 @@ test("independent team edits merge, preserving navigation and the newest profile
     teamFingerprint({ ...base, discordUrl: remote.discordUrl }),
   );
 });
+test("a newly added unplaced player keeps its footprint during a team merge", () => {
+  const base = fixture(),
+    remote = clone(base);
+  remote.keeps.push({
+    ...clone(base.keeps[1]),
+    id: "new-alt",
+    name: "New alt",
+    ownerId: base.keeps[0].id,
+    x: null,
+    y: null,
+    w: 4,
+    h: 4,
+    locked: false,
+  });
+  validatePlan(remote, catalog);
+  const result = mergeTeamPlans(base, clone(base), remote);
+  assert.deepEqual(result.conflicts, []);
+  assert.equal(
+    result.plan.keeps.find((player) => player.id === "new-alt").w,
+    4,
+  );
+  validatePlan(result.plan, catalog);
+});
 test("two moves of the same player are one conflict; resolving preserves independent edits", () => {
   const base = fixture(),
     local = clone(base),
