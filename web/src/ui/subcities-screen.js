@@ -24,6 +24,7 @@ export function createSubcitiesScreen({
   const $ = view(root);
   const grid = $("subcities"),
     addButton = $("add-subcity");
+  const actionRow = addButton.parentElement;
   const filter = view(root.closest("#planner"));
   const types = () => getCatalog().subcityTypes || [];
   const chooser = createSubcityBrowser({ root: browser, types });
@@ -106,7 +107,8 @@ export function createSubcitiesScreen({
     $("subcities-empty").textContent = getPlan().subcities?.length
       ? "No matching subcities."
       : "No subcities yet.";
-    grid.replaceChildren(...cities.map(tile));
+    actionRow.hidden = cities.length > 0;
+    grid.replaceChildren(...cities.map(tile), addButton);
   }
   return {
     render,

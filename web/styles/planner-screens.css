@@ -1295,9 +1295,15 @@
   gap: 24px 18px;
   width: 100%;
 }
+#subcities {
+  grid-template-columns: repeat(auto-fill, 164px);
+}
 @media (max-width: 600px) {
   .subcities-grid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+  #subcities {
+    grid-template-columns: repeat(auto-fill, 140px);
   }
 }
 .subcity-card {
@@ -1328,6 +1334,12 @@
   line-height: 1;
   color: var(--gold);
   border-radius: 10px;
+}
+#subcities .add-subcity-icon {
+  justify-self: start;
+}
+#subcities .add-subcity-icon:only-child {
+  margin-top: 0;
 }
 .collection-actions {
   display: flex;

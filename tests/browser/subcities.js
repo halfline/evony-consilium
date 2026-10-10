@@ -119,6 +119,21 @@ export async function subcities({ browser }) {
     }
     const cards = page.locator("#subcities .subcity-card");
     assert.equal(await cards.count(), 3);
+    assert.equal(
+      await page
+        .locator("#add-subcity")
+        .evaluate((button) => button.parentElement.id),
+      "subcities",
+    );
+    const subcityAddGap = await page
+      .locator("#add-subcity")
+      .evaluate((button) => {
+        const portrait = button.previousElementSibling
+          .querySelector(".subcity-portrait")
+          .getBoundingClientRect();
+        return button.getBoundingClientRect().left - portrait.right;
+      });
+    assert.ok(subcityAddGap >= 0 && subcityAddGap <= 48);
     await page.locator("#subcities-search").fill("no such city");
     assert.equal(
       await page.locator("#subcities-empty").textContent(),
