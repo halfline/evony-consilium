@@ -2,6 +2,8 @@ import { bindTileActions } from "./tile-actions.js";
 import { MAP_ICONS } from "../domain/maps.js";
 import { view, option } from "./dom.js";
 import { defaultFormationName } from "../domain/map-plans.js";
+import { createCollectionControls } from "./collection-controls.js";
+import { icon, labelWithIcon } from "./icons.js";
 export function createMapsScreen({
   root,
   dialog,
@@ -14,7 +16,15 @@ export function createMapsScreen({
 }) {
   const $ = view(root, dialog);
   const addButton = $("add-map");
-  const actionRow = addButton.parentElement;
+  const collection = createCollectionControls({
+    root,
+    grid: $("maps-list"),
+    add: addButton,
+    title: "Maps",
+    description: "A place for every plan",
+    label: "Add map",
+    kind: "maps",
+  });
   bindTileActions($("maps-list"), {
     tileSelector: ".map-list-row",
     triggerSelector: ".map-row",
@@ -63,7 +73,11 @@ export function createMapsScreen({
   function render() {
     const plan = getPlan();
     $("maps-empty").hidden = !!plan.maps?.length;
-    actionRow.hidden = !!plan.maps?.length;
+    collection.render({
+      count: plan.maps?.length || 0,
+      total: plan.maps?.length || 0,
+      help: "Create a hive or battlefield map, then bring your formation together.",
+    });
     $("maps-list").replaceChildren(
       ...(plan.maps || []).map((map) => {
         const row = document.createElement("div");
@@ -73,15 +87,14 @@ export function createMapsScreen({
           "map-row" + (map.id === plan.activeMapId ? " selected" : "");
         const name = document.createElement("strong");
         name.textContent = map.name;
-        const arrow = document.createElement("span");
-        arrow.textContent = "→";
-        arrow.setAttribute("aria-hidden", "true");
+        name.title = map.name;
+        const arrow = icon("forward");
         const portrait = document.createElement("span");
         portrait.className = "map-portrait";
-        const icon = MAP_ICONS[map.type];
-        if (icon) {
+        const mapIcon = MAP_ICONS[map.type];
+        if (mapIcon) {
           const image = document.createElement("img");
-          image.src = icon;
+          image.src = mapIcon;
           image.alt = "";
           portrait.append(image);
         } else portrait.classList.add("blank-map-portrait");
@@ -89,10 +102,16 @@ export function createMapsScreen({
         caption.className = "map-caption";
         caption.append(name, arrow);
         button.append(portrait, caption);
+        const detail = document.createElement("span");
+        detail.className = "map-detail";
+        detail.textContent =
+          plan.mapPresets.find((preset) => preset.id === map.type)?.name ||
+          "Custom map";
+        button.append(detail);
         button.onclick = () => openMap(map.id);
         const forget = document.createElement("button");
         forget.className = "map-forget";
-        forget.textContent = "×";
+        labelWithIcon(forget, "close");
         forget.title = `Forget ${map.name}`;
         forget.setAttribute("aria-label", `Forget ${map.name}`);
         forget.onclick = () => {
@@ -105,7 +124,6 @@ export function createMapsScreen({
         row.append(button, forget);
         return row;
       }),
-      addButton,
     );
   }
   return {
