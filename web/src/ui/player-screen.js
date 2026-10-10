@@ -144,6 +144,7 @@ export function createPlayerScreen({
       !button ||
       button.type === "submit" ||
       button.hasAttribute("data-player-tab") ||
+      button.hasAttribute("data-buff-context") ||
       button.id === "player-march-back" ||
       button.id === "player-discard-draft" ||
       teamAction(event)
@@ -172,6 +173,7 @@ export function createPlayerScreen({
             root
               .querySelector(`[data-player-tab="${panel.dataset.playerPanel}"]`)
               ?.click();
+          details.reveal(invalid);
           invalid?.focus();
           invalid?.reportValidity();
           status("Check the highlighted player field before saving.", true);

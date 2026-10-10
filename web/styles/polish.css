@@ -750,6 +750,164 @@ h2 {
   color: var(--gold);
 }
 
+/* Forms favor grouped rows, clear headings, and a single active field. */
+#player-screen {
+  max-width: 1040px;
+}
+#player-screen .inspector {
+  padding: 32px;
+  border-radius: var(--radius-panel);
+  background: var(--panel);
+  border-color: var(--line);
+}
+#player-screen .inspector-heading h2 {
+  font-size: 36px;
+}
+.player-heading {
+  margin-bottom: 24px;
+}
+.player-detail-tabs {
+  gap: 2px;
+  margin-bottom: 28px;
+}
+.player-detail-tabs button {
+  padding: 12px 13px;
+  font-size: 13px;
+  min-height: 44px;
+}
+.player-appearance {
+  padding: 12px 0;
+  margin: 0 0 24px;
+  background: radial-gradient(ellipse, #36534050, transparent 65%);
+  border-radius: var(--radius-panel);
+}
+.player-footer {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  align-items: center;
+}
+.player-export-icon {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-grid;
+  place-items: center;
+}
+.player-section-select {
+  font-size: 13px;
+}
+.player-capacities label,
+.player-boost {
+  font-size: 14px;
+}
+.player-data-table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.player-data-table th {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 12px 10px;
+}
+.player-data-table thead {
+  background: #263c30;
+}
+.player-data-table thead th:first-child {
+  border-radius: 9px 0 0 9px;
+}
+.player-data-table thead th:last-child {
+  border-radius: 0 9px 9px 0;
+}
+.player-data-table td {
+  padding: 5px;
+}
+.player-data-table tbody tr {
+  background: #12221930;
+}
+.player-data-table tbody tr:nth-child(even) {
+  background: #28403240;
+}
+.player-data-table tbody tr:focus-within {
+  background: #36513e80;
+}
+.player-data-table tbody th,
+.player-data-table tbody td {
+  border-bottom: 1px solid #40574a90;
+}
+.player-data-table input {
+  text-align: right;
+  border-color: transparent;
+  background: #12221955;
+  min-height: 38px;
+  font-size: 14px;
+}
+.player-data-table input:hover {
+  border-color: var(--control-line);
+}
+.player-data-table input:focus {
+  border-color: var(--gold);
+  background: #122219;
+}
+.player-data-table th select {
+  border-color: var(--control-line);
+}
+.player-data-table input[readonly] {
+  opacity: 1;
+  background: transparent;
+}
+.buff-section {
+  margin-bottom: 28px;
+}
+.buff-section h3 {
+  margin: 0 0 14px;
+  font-size: 19px;
+  color: var(--gold);
+}
+.buff-context-switcher {
+  display: none;
+}
+.player-layer-table input,
+.player-layer-table th select {
+  height: 38px;
+  min-height: 38px;
+  font-size: 14px;
+}
+.player-layer-table th:nth-child(2) {
+  width: 94px;
+}
+.player-tier-header .player-small-add {
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  flex-basis: 32px;
+}
+.march-settings {
+  gap: 18px;
+  margin: 24px 0;
+}
+.player-march-toolbar button,
+.player-small-add {
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-control);
+}
+.march-card {
+  border-radius: var(--radius-panel);
+}
+.march-card:hover {
+  background: #263b3050;
+}
+.player-stat-summary:empty {
+  display: none;
+}
+.player-stat-summary {
+  padding: 12px 16px;
+  border-radius: var(--radius-control);
+  background: #dbc0870c;
+  border: 1px solid #dbc08730;
+  font-size: 14px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

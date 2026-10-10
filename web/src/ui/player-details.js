@@ -106,6 +106,7 @@ export function createPlayerDetails({ root }) {
   return {
     read,
     snapshot: () => read({ sync: false }),
+    reveal: (input) => buffs.reveal(input),
     render,
     reset: () => {
       signature = null;
