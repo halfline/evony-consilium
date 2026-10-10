@@ -61,6 +61,7 @@ export function createMapsScreen({
   function render() {
     const plan = getPlan();
     const addButton = $("add-map");
+    $("maps-empty").hidden = !!plan.maps?.length;
     $("maps-list").replaceChildren(
       ...(plan.maps || []).map((map) => {
         const row = document.createElement("div");
