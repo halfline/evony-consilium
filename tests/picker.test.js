@@ -93,7 +93,10 @@ test("folder browsing includes ordinary Drive and a separate Shared drives view"
     assert.equal(views[2].sharedOnly, true);
     views.length = 0;
     await picker.folder({ id: "team" });
-    assert.equal(views.length, 1);
+    assert.equal(views.length, 4);
+    assert.equal(views[1].label, "My Drive");
+    assert.equal(views[2].owned, false);
+    assert.equal(views[3].sharedOnly, true);
     assert.equal(views[0].ids, "team");
     assert.notEqual(views[0].sharedOnly, true);
     views.length = 0;
