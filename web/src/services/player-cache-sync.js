@@ -2,7 +2,16 @@ import { OperationCancelled } from "./cancellation.js";
 
 // One background pass per workspace, independent of the selected profile.
 export class PlayerCacheSync {
-  constructor({ players, profiles, sync, getPlan, isEditing, save, status }) {
+  constructor({
+    players,
+    profiles,
+    sync,
+    getPlan,
+    isEditing,
+    save,
+    status,
+    discover = async () => [],
+  }) {
     Object.assign(this, {
       players,
       profiles,
@@ -11,6 +20,7 @@ export class PlayerCacheSync {
       isEditing,
       save,
       status,
+      discover,
     });
     this.reset();
   }
@@ -36,6 +46,16 @@ export class PlayerCacheSync {
     try {
       const before = this.getPlan(),
         updates = [];
+      const current = () => {
+        if (
+          generation !== this.generation ||
+          !this.canRefresh() ||
+          this.getPlan() !== before
+        )
+          throw new OperationCancelled();
+      };
+      const additions = await this.discover(before, current);
+      current();
       for (const player of before.keeps) {
         if (
           generation !== this.generation ||
@@ -70,7 +90,8 @@ export class PlayerCacheSync {
         this.getPlan() !== before
       )
         return;
-      if (this.profiles.commitCaches(before, updates)) await this.save();
+      if (this.profiles.commitCaches(before, updates, additions))
+        await this.save();
     } catch (error) {
       if (
         generation === this.generation &&
