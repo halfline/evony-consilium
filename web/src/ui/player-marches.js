@@ -71,7 +71,7 @@ export function createPlayerMarches({ root, getSizes }) {
     const type = marchType(march);
     const root = $("player-troops");
     root.replaceChildren();
-    const grid = table(["Tier", "Share", ""]);
+    const grid = table(["Tier", "Share (%)", ""]);
     grid.classList.add("player-layer-table");
     const tierHeader = element("span", undefined, "player-tier-header");
     tierHeader.append(element("span", "Tier"), addTier);
