@@ -41,3 +41,53 @@ export async function loadTeamFiles({
   project.folder.teamFileResourceKey = loaded.file.resourceKey;
   return { project, file: loaded.file, plan: loaded.plan };
 }
+
+// Folder authorization is separate from authorizing the JSON document inside it.
+export async function loadPlayerFolder({
+  drive,
+  picker,
+  project,
+  file,
+  current = () => {},
+  status = () => {},
+  interactive = true,
+}) {
+  const id = file.parents?.[0] || project.folder.id;
+  if (!id || id === file.id)
+    throw new Error(
+      "Move the team file into a Drive folder before managing player files.",
+    );
+  const resource = {
+    id,
+    resourceKey:
+      project.folder.id === id ? project.folder.resourceKey || "" : "",
+  };
+  let folder;
+  try {
+    folder = await drive.metadata(resource);
+    current();
+  } catch (error) {
+    current();
+    if (![403, 404].includes(error.status)) throw error;
+    if (!interactive)
+      throw new Error(
+        "Team folder access changed. Close the form and choose Add again to reconnect.",
+      );
+    status("Choose the central team folder to load and add players.");
+    const selected = await picker.folder(resource);
+    current();
+    if (selected.id !== id) throw new Error("Choose the central team folder.");
+    folder = await drive.metadata(selected);
+    current();
+    folder.resourceKey ||= selected.resourceKey || "";
+  }
+  if (folder.mimeType !== "application/vnd.google-apps.folder")
+    throw new Error("The team file must be inside a Drive folder.");
+  folder.resourceKey ||= resource.resourceKey;
+  return {
+    ...project.folder,
+    ...folder,
+    teamFileId: file.id,
+    teamFileResourceKey: file.resourceKey || "",
+  };
+}

@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { loadTeamFiles } from "../web/src/services/team-files.js";
+import {
+  loadTeamFiles,
+  loadPlayerFolder,
+} from "../web/src/services/team-files.js";
 import {
   ProjectAccessError,
   DriveError,
@@ -128,4 +131,50 @@ test("unexpected errors and picker cancellation propagate without loading a docu
       false,
     );
   }
+});
+
+test("folder access reuses a grant without Picker and retains resource keys", async () => {
+  const project = { folder: { id: "central", resourceKey: "folder-key" } };
+  const file = {
+    id: "team-file",
+    parents: ["central"],
+    resourceKey: "team-key",
+  };
+  const folder = await loadPlayerFolder({
+    project,
+    file,
+    drive: {
+      metadata: async (resource) => {
+        assert.equal(resource.resourceKey, "folder-key");
+        return {
+          id: "central",
+          mimeType: "application/vnd.google-apps.folder",
+          capabilities: { canAddChildren: true },
+        };
+      },
+    },
+    picker: { folder: () => assert.fail("Existing grants need no Picker") },
+  });
+  assert.equal(folder.resourceKey, "folder-key");
+  assert.equal(folder.teamFileResourceKey, "team-key");
+});
+
+test("form submission with lost folder access fails without opening Picker", async () => {
+  await assert.rejects(
+    loadPlayerFolder({
+      project: { folder: { id: "central" } },
+      file: { id: "team-file", parents: ["central"] },
+      interactive: false,
+      drive: {
+        metadata: async () => {
+          throw new DriveError("Grant needed", 404);
+        },
+      },
+      picker: {
+        folder: () =>
+          assert.fail("Submission must not open Picker behind the modal"),
+      },
+    }),
+    /choose Add again/,
+  );
 });
