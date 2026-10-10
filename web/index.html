@@ -412,9 +412,6 @@
       <section id="players-screen" class="players-screen" aria-label="Players">
         <div class="players-workspace">
           <section id="players-panel" class="players-panel">
-            <button id="connect-player" type="button">
-              Add existing player file
-            </button>
             <div id="players" class="players">
               <button
                 id="add-player"
@@ -1105,6 +1102,28 @@
               required
           /></label>
           <div class="dialog-actions">
+            <button
+              id="import-player-file"
+              class="player-import-icon"
+              type="button"
+              aria-label="Import player file from Drive"
+              title="Import player file from Drive"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="20"
+                height="20"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 3v12m-4-4 4 4 4-4" />
+                <path d="M4 17v3h16v-3" />
+              </svg>
+            </button>
             <button data-close="add-player-dialog" type="button">Cancel</button
             ><button class="primary" type="submit">Add player</button>
           </div>

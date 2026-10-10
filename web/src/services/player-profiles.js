@@ -151,9 +151,7 @@ export class PlayerProfiles {
   }
   async import() {
     if (!this.canEditTeam())
-      throw new Error(
-        "Team Editor access is needed to add an existing player.",
-      );
+      throw new Error("Team Editor access is needed to import a player file.");
     this.workspace.authorize();
     const current = this.context();
     const folder = this.workspace.project.folder;
@@ -161,14 +159,12 @@ export class PlayerProfiles {
       throw new Error(
         "Move the team document into a folder before linking players.",
       );
-    this.workspace.status(
-      "Choose an existing player profile in this team's folder. Roster membership is published with Save team.",
-    );
+    this.workspace.status("Choose a player file from this team's folder.");
     const loaded = await this.workspace.players.open(null, folder);
     current();
     if (!this.canEditTeam())
       throw new Error(
-        "Team access changed. Reopen the team before adding players.",
+        "Team access changed. Reopen the team before importing players.",
       );
     if (
       this.getPlan().keeps.some(

@@ -88,6 +88,25 @@
   gap: 10px;
   margin-top: 16px;
 }
+.player-import-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  min-width: 40px;
+  margin-right: auto;
+  padding: 0;
+  color: var(--muted);
+  background: transparent;
+  border-color: transparent;
+}
+.player-import-icon:hover,
+.player-import-icon:focus-visible {
+  color: var(--gold);
+  border-color: var(--line);
+}
+.player-import-icon[hidden] {
+  display: none;
+}
 #new-player-error {
   color: var(--red);
   margin: 0;

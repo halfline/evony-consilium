@@ -59,6 +59,14 @@ export function createPlayerWorkflow({
       await workspace.autosave();
       return linked;
     },
+    importPlayer: async () => {
+      const workspace = getWorkspace();
+      const player = await workspace.profiles.import();
+      select(player.id);
+      navigate("player");
+      await workspace.autosave();
+      status("Player added to the team.");
+    },
   });
   let profile;
   const fileState = (player) => ({
@@ -100,17 +108,6 @@ export function createPlayerWorkflow({
     fileState,
   });
   const $ = view(roots.profile);
-  roots.list.querySelector("#connect-player").onclick = async () => {
-    if (!canEditTeam()) return;
-    try {
-      const player = await getWorkspace().profiles.import();
-      select(player.id);
-      navigate("player");
-      status("Player added locally. Save team to publish roster membership.");
-    } catch (error) {
-      if (!(error instanceof OperationCancelled)) status(error.message, true);
-    }
-  };
   $("player-owner").onchange = () => {
     if (!canEditTeam()) return;
     try {

@@ -50,25 +50,56 @@ export async function playerImport({ browser }) {
       await page.evaluate(() => (window.__pickerCalls || []).length),
       0,
     );
-    await page.locator("#connect-player").click();
+    assert.equal(await page.locator("#connect-player").count(), 0);
+    await page.locator("#add-player").click();
+    await page.locator("#add-player-dialog").waitFor({ state: "visible" });
+    assert.equal(
+      await page.evaluate(() => (window.__pickerCalls || []).length),
+      0,
+    );
+    assert.equal(
+      await page.locator("#import-player-file").getAttribute("aria-label"),
+      "Import player file from Drive",
+    );
+    await page.locator("#import-player-file").click();
     await page.locator("#player-inspector").waitFor({ state: "visible" });
     assert.equal(
       await page.locator("#player-title").textContent(),
       "Existing player",
     );
-    assert.equal(team.data.plan.keeps.length, 0);
+    await page.waitForFunction(
+      () => document.getElementById("drive-save").disabled,
+    );
+    assert.equal(team.data.plan.keeps.length, 1);
     assert.equal(files.grants.has(folderId), false);
     const picker = await page.evaluate(() => window.__pickerCalls[0]);
     assert.match(picker.title, /select a Player file/);
-    assert.equal(picker.mime, "application/vnd.evony-consilium.player+json");
+    assert.equal(
+      picker.mime,
+      "application/vnd.evony-consilium.player+json,application/json",
+    );
     assert.equal(picker.mode, "list");
+    assert.equal(picker.query, "player.consilium.json");
+    assert.equal(picker.views.length, 1);
     await page.locator("#undo").click();
+    await page.locator("#drive-save").click();
+    await page.waitForFunction(
+      () =>
+        document.getElementById("drive-save").disabled &&
+        document.getElementById("drive-save").getAttribute("aria-busy") ===
+          "false",
+    );
     await page.evaluate(() => window.dispatchEvent(new Event("focus")));
     assert.equal(await page.locator("#players .player-card").count(), 0);
     assert.equal(team.data.plan.keeps.length, 0);
-    await page.locator("#connect-player").click();
+    // The same primary view must also find profiles with the new Drive type.
+    files.get("existing-player").file.mimeType =
+      "application/vnd.evony-consilium.player+json";
+    files.get("existing-player").file.name =
+      "Player - Existing.player.consilium.json";
+    await page.locator("#add-player").click();
+    await page.locator("#import-player-file").click();
     await page.locator("#player-inspector").waitFor({ state: "visible" });
-    await page.locator("#drive-save").click();
     await page.waitForFunction(
       () =>
         document.getElementById("drive-save").disabled &&
@@ -77,14 +108,33 @@ export async function playerImport({ browser }) {
     );
     assert.equal(team.data.plan.keeps[0].name, "Existing player");
     await page.locator('[data-screen="players"]').click();
+    files.grants.delete(folderId);
+    await page.locator("#add-player").click();
+    await page.locator("#add-player-dialog").waitFor({ state: "visible" });
+    assert.equal(await page.evaluate(() => window.__pickerCalls.length), 2);
+    await page.locator("#new-player-name").fill("Created after import");
     await page.evaluate(() => {
       window.__pickerCancelNext = true;
     });
-    await page.locator("#add-player").click();
+    await page.locator("#new-player-form [type=submit]").click();
     await page.waitForFunction(() => window.__pickerCalls.length === 3);
-    assert.equal(await page.locator("#add-player-dialog").isVisible(), false);
-    await page.locator("#add-player").click();
     await page.locator("#add-player-dialog").waitFor({ state: "visible" });
+    assert.equal(
+      await page.locator("#new-player-name").inputValue(),
+      "Created after import",
+    );
+    assert.equal(files.grants.has(folderId), false);
+    await page.locator("#new-player-form [type=submit]").click();
+    await page.locator("#add-player-dialog").waitFor({ state: "hidden" });
+    await page.waitForFunction(
+      () =>
+        document.getElementById("player-title").textContent ===
+          "Created after import" &&
+        document.getElementById("drive-save").disabled &&
+        document.getElementById("drive-save").getAttribute("aria-busy") ===
+          "false",
+    );
+    assert.equal(team.data.plan.keeps.length, 2);
     assert.equal(files.grants.has(folderId), true);
     const calls = await page.evaluate(() => window.__pickerCalls);
     assert.match(calls.at(-1).title, /select the Import test folder/);

@@ -11,6 +11,7 @@ export function createAddPlayerDialog({
   lastTag,
   browse,
   add,
+  importPlayer,
   getAvatars,
   browseAvatar,
   getPlan,
@@ -80,6 +81,26 @@ export function createAddPlayerDialog({
       submit.disabled = false;
     }
   };
+  $("import-player-file").onclick = async () => {
+    if (busy) return;
+    busy = true;
+    const button = $("import-player-file");
+    button.disabled = true;
+    $("new-player-error").textContent = "";
+    dialog.close();
+    try {
+      await importPlayer();
+    } catch (error) {
+      if (openedContext === context()) {
+        dialog.showModal();
+        if (!(error instanceof OperationCancelled))
+          $("new-player-error").textContent = error.message;
+      }
+    } finally {
+      busy = false;
+      button.disabled = false;
+    }
+  };
   return {
     player: () =>
       dialog.open
@@ -97,6 +118,7 @@ export function createAddPlayerDialog({
       $("new-player-form").querySelector("[type=submit]").textContent = alt
         ? "Add alt"
         : "Add player";
+      $("import-player-file").hidden = alt;
       $("new-player-owner-control").hidden = !alt;
       $("new-player-owner").required = alt;
       $("new-player-owner").replaceChildren(
