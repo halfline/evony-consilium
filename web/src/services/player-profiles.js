@@ -166,14 +166,15 @@ export class PlayerProfiles {
     }
     return additions;
   }
-  commitCaches(before, updates) {
+  commitCaches(before, updates, additions = []) {
     if (!this.canEditTeam() || this.isEditing() || this.getPlan() !== before)
       throw new OperationCancelled();
     const changed = updates.filter(
       (player) => player !== before.keeps.find((item) => item.id === player.id),
     );
-    if (!changed.length) return false;
-    const next = structuredClone(before);
+    if (!changed.length && !additions.length) return false;
+    let next = structuredClone(before);
+    for (const player of additions) next = addPlayer(next, player);
     for (const player of changed)
       next.keeps[next.keeps.findIndex((item) => item.id === player.id)] =
         player;
