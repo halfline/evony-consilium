@@ -3,6 +3,7 @@ import { drawTerrain, drawMoatOverlay } from "./terrain-painter.js";
 import { drawEntity, paintEntityLabels } from "./entity-painter.js";
 import { ImageCache } from "./image-cache.js";
 import { project, unproject } from "../domain/geometry.js";
+import { hiveBoundaries } from "../domain/hive-boundary.js";
 export class MapRenderer {
   constructor(
     canvas,
@@ -88,9 +89,12 @@ export class MapRenderer {
   fit(whole = false) {
     const p = this.getPlan();
     const extent = this.terrainFor(p.map)?.extent ?? p.extent;
-    const list = [...p.keeps, ...p.structures, ...p.obstacles].filter(
-      (e) => e.x !== null,
-    );
+    const list = [
+      ...p.keeps,
+      ...p.structures,
+      ...p.obstacles,
+      ...hiveBoundaries(p, this.assets),
+    ].filter((e) => e.x !== null);
     let points = [];
     if (whole)
       points = [
@@ -227,6 +231,7 @@ export class MapRenderer {
     c.lineWidth = 1;
     this.path({ x: 0, y: 0, w: extent, h: extent });
     c.stroke();
+    this.drawHiveBoundaries(p);
     const all = [
       ...(terrain?.landmarks || []),
       ...p.obstacles,
@@ -282,6 +287,21 @@ export class MapRenderer {
   }
   entity(e, p, z, fixed = false, deferLabel = false) {
     return drawEntity(this, e, p, z, fixed, { deferLabel });
+  }
+  drawHiveBoundaries(plan) {
+    const c = this.ctx;
+    for (const bounds of hiveBoundaries(plan, this.assets)) {
+      c.save();
+      c.lineJoin = "round";
+      this.path(bounds);
+      c.strokeStyle = "#073a5bcc";
+      c.lineWidth = 5;
+      c.stroke();
+      c.strokeStyle = "#68c9f5";
+      c.lineWidth = 2;
+      c.stroke();
+      c.restore();
+    }
   }
   hitSubcity(x, y) {
     return (
