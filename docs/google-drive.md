@@ -19,7 +19,7 @@ A link and a remembered shortcut do not grant access. Picker authorization does 
 
 Only the `evony-consilium-team` schema 1 envelope is supported. Older multi-file teams are not loaded or migrated. A folder with several team documents requires choosing one explicitly.
 
-Team-file permissions govern roster and map administration. Player profiles are also stored in separate files in the central team folder, so each player file can be shared independently: write access enables profile editing, while team access alone does not. The team document keeps a read-only cache of those profiles. Adding a player checks central folder access before opening the form and asks for that folder through Picker only if needed.
+Team-file permissions govern roster and map administration. Player profiles are also stored in separate files in the central team folder, so each player file can be shared independently: write access enables profile editing, while team access alone does not. The team document keeps a read-only cache of those profiles. A team editor’s background refresh discovers valid `*.player.consilium.json` files directly in the central folder when Drive already permits the app to read them, then saves missing roster entries in the team cache. Opening the team does not add a folder authorization prompt. Adding a player checks central folder access before opening the form and asks for that folder through Picker only if needed. Partial grants leave the cached roster available. Removing a roster entry excludes its file from rediscovery without deleting it; Undo reverses that removal.
 
 Opening never initializes a seemingly empty shared folder: a filtered Drive listing is not proof that it is empty.
 
