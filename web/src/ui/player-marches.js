@@ -1,5 +1,6 @@
 import { MarchDraft } from "../application/march-draft.js";
 import { view } from "./dom.js";
+import { labelWithIcon } from "./icons.js";
 import {
   names,
   columns,
@@ -204,6 +205,7 @@ export function createPlayerMarches({ root, getSizes }) {
       root.append(button);
     });
     const add = element("button", "＋", "march-add");
+    labelWithIcon(add, "plus");
     add.type = "button";
     add.id = "player-add-march";
     add.setAttribute("aria-label", "Add attack march");
