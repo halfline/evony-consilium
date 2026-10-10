@@ -197,6 +197,17 @@ function validateDocument(plan) {
     (typeof plan.allianceTag !== "string" || plan.allianceTag.length > 16)
   )
     throw new Error("Invalid alliance tag.");
+  if (
+    plan.excludedPlayerFileIds !== undefined &&
+    (!Array.isArray(plan.excludedPlayerFileIds) ||
+      plan.excludedPlayerFileIds.length > 500 ||
+      plan.excludedPlayerFileIds.some(
+        (id) => typeof id !== "string" || !/^[\w-]{1,200}$/.test(id),
+      ) ||
+      new Set(plan.excludedPlayerFileIds).size !==
+        plan.excludedPlayerFileIds.length)
+  )
+    throw new Error("Invalid excluded player files.");
   number(plan.extent, 10, 10000, "map extent");
   number(plan.spacing, 0, 10, "spacing");
   if (typeof plan.rallyManual !== "boolean")
