@@ -59,7 +59,8 @@ export function createAddPlayerDialog({
       `${player.name} ${player.allianceTag} ${player.accountId}`
         .toLowerCase()
         .includes(query),
-    renderCard: (player) => playerPickerCard(player, getAvatars),
+    renderCard: (player, query) =>
+      playerPickerCard(player, getAvatars, { query }),
   });
   $("new-player-owner-choice").onclick = () => {
     if (busy || !addingAlt) return;
