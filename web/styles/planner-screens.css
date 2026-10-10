@@ -1123,8 +1123,8 @@
   display: grid;
   place-items: center;
   border: 1px solid var(--muted);
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   border-radius: 50%;
   background: #28392e;
@@ -1139,7 +1139,8 @@
   color: var(--gold);
   border-color: var(--gold);
 }
-.player-name-actions-open #player-remove {
+.player-name-actions-open #player-remove,
+.player-name-actions:focus-within #player-remove {
   opacity: 1;
   pointer-events: auto;
 }
