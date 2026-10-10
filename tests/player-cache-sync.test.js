@@ -19,7 +19,7 @@ function fixture() {
   const events = [],
     errors = [];
   const profiles = {
-    commitPlan() {},
+    refreshPlan() {},
     collectCache: async (player) => ({ ...player, name: "Updated" }),
     commitCaches: (before, updates) => {
       assert.equal(plan, before);
@@ -90,4 +90,16 @@ test("workspace resets and remote changes cancel an in-flight cache batch", asyn
     await f.cache.refresh();
     assert.deepEqual(f.events, []);
   }
+});
+test("viewers refresh connected sources without probing other members' files", async () => {
+  const f = fixture();
+  f.sync.file.capabilities.canEdit = false;
+  const probed = [];
+  f.cache.players = {
+    probe: async (player) => probed.push(player.id),
+    state: (player) => ({ connected: player.id === "1" }),
+  };
+  await f.cache.refresh();
+  assert.deepEqual(probed, ["1"]);
+  assert.deepEqual(f.events, [1]);
 });

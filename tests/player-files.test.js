@@ -22,6 +22,7 @@ function fixture({ writable = true } = {}) {
     remembered = [],
     drafts = new Map();
   const drive = {
+    metadata: async () => structuredClone(file),
     createPlayer: async (data, location) => {
       calls.push(["create", location]);
       profile = structuredClone(data);
@@ -188,7 +189,7 @@ test("native Drive access can enable editing without Picker or a remembered gran
   assert.equal(f.calls.filter(([kind]) => kind === "load").length, loads);
 });
 
-test("automatic probes leave denied files locked and avoid downloading read-only profiles", async () => {
+test("automatic probes leave denied files locked and load accessible read-only profiles", async () => {
   const f = fixture({ writable: false });
   f.options.drive.metadata = async () => {
     throw Object.assign(new Error("Not app-authorized"), { status: 404 });
@@ -199,7 +200,7 @@ test("automatic probes leave denied files locked and avoid downloading read-only
   f.options.drive.metadata = async () => structuredClone(f.file);
   await f.files.probe(f.linked(), true);
   assert.equal(f.files.state(f.linked()).canEdit, false);
-  assert.deepEqual(f.calls, []);
+  assert.deepEqual(f.calls, [["load"]]);
 });
 
 test("a profile save waits for a background refresh of the same source", async () => {

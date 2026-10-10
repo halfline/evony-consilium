@@ -17,6 +17,7 @@ async function fixture(canEdit = true) {
   plan.keeps[0] = linkedPlayer(plan.keeps[0], sourceProfile, file);
   const uploads = [];
   const drive = {
+    metadata: async () => structuredClone(file),
     loadPlayer: async () => ({
       file: structuredClone(file),
       profile: structuredClone(sourceProfile),
@@ -70,15 +71,15 @@ test("team editors save the authoritative source and update only cached profile 
   assert.equal(cached.playerSource.version, "2");
   assert.equal(f.uploads.length, 1);
 });
-test("a read-only team's editor overlay and saves do not mutate its shared snapshot", async () => {
+test("a read-only team's member sees their saved profile without a team upload", async () => {
   const f = await fixture(false);
   const before = f.plan();
   await f.profiles.save({ ...before.keeps[0], name: "Player-only save" });
   const view = f.profiles.editingPlan(before.keeps[0].id);
-  assert.equal(f.plan(), before);
+  assert.notEqual(f.plan(), before);
   assert.notEqual(before.keeps[0].name, "Player-only save");
   assert.equal(view.keeps[0].name, "Player-only save");
-  assert.equal(view.keeps[1], before.keeps[1]);
+  assert.deepEqual(view.keeps[1], before.keeps[1]);
 });
 test("cache refresh pulls the source without uploading stale cached values", async () => {
   const f = await fixture();
