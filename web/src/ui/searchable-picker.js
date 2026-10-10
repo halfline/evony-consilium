@@ -17,7 +17,7 @@ export function createSearchablePicker({
     const choices = items().filter((item) => matches(item, query));
     grid.replaceChildren(
       ...choices.map((item) => {
-        const button = renderCard(item);
+        const button = renderCard(item, query);
         const selected = item.id === selectedId;
         button.type = "button";
         button.classList.toggle("selected", selected);
