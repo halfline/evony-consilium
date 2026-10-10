@@ -60,6 +60,7 @@ export async function playerSharing({ browser }) {
     await p.locator('[data-screen="players"]').click();
     await p.locator("#players .player-card").first().click();
     assert.equal(await p.locator("#player-name").getAttribute("readonly"), "");
+    assert.equal(await p.locator("#player-access-status").isVisible(), true);
     assert.equal(await p.locator("#player-drive-link").isVisible(), true);
     assert.equal(
       await p.locator("#player-drive-link").getAttribute("aria-label"),
@@ -74,6 +75,7 @@ export async function playerSharing({ browser }) {
     await p.waitForFunction(
       () => !document.getElementById("player-name").readOnly,
     );
+    assert.equal(await p.locator("#player-access-status").isVisible(), false);
     assert.equal(grants.has(sources[0].file.id), true);
     assert.equal(grants.has(sources[1].file.id), false);
     const cachedName = team.data.plan.keeps[0].name;
