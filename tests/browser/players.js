@@ -164,6 +164,13 @@ export async function playerCreation({ page, playersScreen }) {
     );
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
+  const playerAddGap = await page.locator("#add-player").evaluate((button) => {
+    const portrait = button.previousElementSibling
+      .querySelector(".player-portrait")
+      .getBoundingClientRect();
+    return button.getBoundingClientRect().left - portrait.right;
+  });
+  assert.ok(playerAddGap >= 0 && playerAddGap <= 48);
   await page.screenshot({ path: "test-results/player-cards.png" });
   await page.locator("#players .player-card").first().focus();
   await page.waitForFunction(
