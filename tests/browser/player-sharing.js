@@ -61,6 +61,15 @@ export async function playerSharing({ browser }) {
     await p.locator('[data-screen="players"]').click();
     await p.locator("#players .player-card").first().click();
     assert.equal(await p.locator("#player-name").getAttribute("readonly"), "");
+    assert.equal(await p.locator("#player-drive-link").isVisible(), true);
+    assert.equal(
+      await p.locator("#player-drive-link").getAttribute("aria-label"),
+      "Open player file and sharing in Drive",
+    );
+    assert.equal(
+      await p.locator(".player-footer #player-drive-link").count(),
+      1,
+    );
     assert.equal(await p.locator("#player-unlock").isVisible(), true);
     await p.locator("#player-unlock").click();
     await p.waitForFunction(
