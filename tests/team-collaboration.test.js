@@ -95,10 +95,10 @@ test("conflicting team fields can be resolved independently", () => {
   const result = mergeTeamPlans(base, local, remote, {
     resolution: { title: "remote", discordUrl: "local" },
   });
-  assert.deepEqual(
-    result.conflicts.map((conflict) => conflict.path).sort(),
-    ["discordUrl", "title"],
-  );
+  assert.deepEqual(result.conflicts.map((conflict) => conflict.path).sort(), [
+    "discordUrl",
+    "title",
+  ]);
   assert.equal(result.plan.title, remote.title);
   assert.equal(result.plan.discordUrl, local.discordUrl);
 });
