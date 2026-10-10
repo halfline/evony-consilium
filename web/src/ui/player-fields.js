@@ -24,7 +24,11 @@ export function numberInput(value, label, decimal = false) {
 export function table(headers) {
   const node = element("table", undefined, "player-data-table");
   const head = node.createTHead().insertRow();
-  for (const name of headers) head.append(element("th", name));
+  for (const name of headers) {
+    const header = element("th", name);
+    header.scope = "col";
+    head.append(header);
+  }
   node.createTBody();
   return node;
 }
