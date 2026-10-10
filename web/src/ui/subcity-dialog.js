@@ -54,6 +54,7 @@ export function createSubcityDialog({
       ariaLabel: `Choose subcity: ${label}`,
       paint: (button) => renderSubcityArt(button, selected),
     });
+    $("subcity-name-field").hidden = selected?.color === "red";
   }
   function chooseCastle() {
     if (!canEdit()) return;
@@ -161,7 +162,7 @@ export function createSubcityDialog({
         saveSubcity(
           getPlan(),
           {
-            name: $("subcity-name").value,
+            name: selected.color === "red" ? "" : $("subcity-name").value,
             ownerId: selectedOwner,
             culture: selected.culture,
             color: selected.color,

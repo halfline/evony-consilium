@@ -42,7 +42,7 @@ export function drawSubcities(view, plan, types) {
     });
     if (plan.labels && z > 0.16) {
       const owner = plan.keeps.find((player) => player.id === city.ownerId);
-      const text = `${city.name || type?.name || city.culture}${owner ? ` · ${owner.name}` : ""}`;
+      const text = `${(city.color !== "red" && city.name) || type?.name || city.culture}${owner ? ` · ${owner.name}` : ""}`;
       c.font = '11px "DM Sans", sans-serif';
       c.textAlign = "center";
       c.textBaseline = "middle";

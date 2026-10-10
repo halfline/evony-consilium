@@ -59,6 +59,19 @@ test("red subcities require a specific city and preserve both historic and cultu
     2,
   );
   assert.notEqual(plan.subcities[0].cityType, plan.subcities[1].cityType);
+  const renamed = saveSubcity(
+    plan,
+    {
+      ...values,
+      name: "Custom name",
+      culture: redTypes[0].culture,
+      color: "red",
+      cityType: redTypes[0].id,
+    },
+    plan.subcities[0].id,
+    redTypes,
+  );
+  assert.equal(renamed.subcities[0].name, "");
   assert.throws(
     () => saveSubcity(plan, { ...values, color: "red", cityType: "" }),
     /specific red subcity/,

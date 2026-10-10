@@ -3,6 +3,14 @@ import { bindTileActions } from "./tile-actions.js";
 import { createSubcityCard } from "./subcity-card.js";
 import { assignSubcityOwner } from "../domain/subcities.js";
 
+function cityLabel(city, types) {
+  if (city.color === "red")
+    return (
+      types.find((type) => type.id === city.cityType)?.name || city.cityType
+    );
+  return city.name || city.culture;
+}
+
 export function createPlayerSubcities({
   root,
   dialog,
@@ -76,7 +84,8 @@ export function createPlayerSubcities({
   };
   function render() {
     const plan = getPlan(),
-      id = getPlayerId();
+      id = getPlayerId(),
+      subcityTypes = types();
     if (
       dialog.open &&
       (openedContext !== context() || !canEdit() || id !== assigningTo)
@@ -89,10 +98,10 @@ export function createPlayerSubcities({
       ...cities.map((city) =>
         createSubcityCard({
           city,
-          types: types(),
+          types: subcityTypes,
           open: () => openSubcity(city.id),
           remove: canEdit() ? () => assign(city.id, null) : null,
-          removeLabel: `Unlink ${city.name || city.culture} from this player`,
+          removeLabel: `Unlink ${cityLabel(city, subcityTypes)} from this player`,
         }),
       ),
       add,

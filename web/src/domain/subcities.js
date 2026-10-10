@@ -74,7 +74,7 @@ export function saveSubcity(plan, values, id = null, types = null) {
     throw new Error("Subcity not found.");
   const city = {
     id: id || crypto.randomUUID(),
-    name: values.name.trim(),
+    name: values.color === "red" ? "" : values.name.trim(),
     culture: values.culture,
     color: values.color,
     cityType: values.color === "red" ? values.cityType : null,

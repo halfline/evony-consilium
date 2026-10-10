@@ -25,14 +25,15 @@ export function createSubcityCard({
         );
   const cityName =
     city.color === "red" ? asset?.name || city.cityType : city.culture;
+  const customName = city.color === "red" ? "" : city.name;
   const portrait = document.createElement("span");
   portrait.className = "map-portrait subcity-portrait";
   renderSubcityArt(portrait, asset);
   const caption = document.createElement("strong");
-  caption.textContent = city.name || cityName;
+  caption.textContent = customName || cityName;
   const details = document.createElement("span");
   details.className = "subcity-details";
-  details.textContent = `${city.name ? cityName + " · " : ""}${color.name}`;
+  details.textContent = `${customName ? cityName + " · " : ""}${color.name}`;
   const coordinates = document.createElement("span");
   coordinates.className = "subcity-coordinates";
   coordinates.textContent =
@@ -53,7 +54,7 @@ export function createSubcityCard({
     action.type = "button";
     action.className = "player-remove subcity-remove";
     action.textContent = "×";
-    action.title = removeLabel || `Remove ${city.name || cityName} subcity`;
+    action.title = removeLabel || `Remove ${customName || cityName} subcity`;
     action.setAttribute("aria-label", action.title);
     action.onclick = remove;
     tile.append(action);
