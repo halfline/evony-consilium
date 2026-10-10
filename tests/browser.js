@@ -1,4 +1,5 @@
 import { playerDiscovery } from "./browser/player-discovery.js";
+import { altOwnership } from "./browser/alts.js";
 import { teamImprovements } from "./browser/team-improvements.js";
 import { subcityOwnership } from "./browser/subcity-ownership.js";
 import { subcities } from "./browser/subcities.js";
@@ -59,6 +60,7 @@ try {
   });
   const { projectLogo } = await entryWorkflow({ page, context });
   await playerCreation({ page, playersScreen });
+  await altOwnership({ page, playersScreen });
   await playerDetails({ page, playersScreen, driveFiles });
   await mapSelection({ page, playersScreen, driveFiles });
   await playerAppearance({
