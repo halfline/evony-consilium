@@ -57,6 +57,19 @@ export async function mapSelection({ page, playersScreen, driveFiles }) {
     .first()
     .boundingBox();
   assert.ok(captionBox.y >= iconBox.y + iconBox.height);
+  assert.equal(
+    await page
+      .locator("#add-map")
+      .evaluate((button) => button.parentElement.id),
+    "maps-list",
+  );
+  const mapAddGap = await page.locator("#add-map").evaluate((button) => {
+    const portrait = button.previousElementSibling
+      .querySelector(".map-portrait")
+      .getBoundingClientRect();
+    return button.getBoundingClientRect().left - portrait.right;
+  });
+  assert.ok(mapAddGap >= 0 && mapAddGap <= 48);
   await page.screenshot({ path: "test-results/maps-screen.png" });
   await page.locator("#maps-list .map-row").first().click();
   await page

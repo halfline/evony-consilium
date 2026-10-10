@@ -13,6 +13,8 @@ export function createMapsScreen({
   canEdit = () => true,
 }) {
   const $ = view(root, dialog);
+  const addButton = $("add-map");
+  const actionRow = addButton.parentElement;
   bindTileActions($("maps-list"), {
     tileSelector: ".map-list-row",
     triggerSelector: ".map-row",
@@ -34,7 +36,7 @@ export function createMapsScreen({
     dialog.showModal();
     $("new-formation-name").focus();
   }
-  $("add-map").onclick = newMap;
+  addButton.onclick = newMap;
   $("new-formation-type").onchange = () => {
     const name = $("new-formation-name");
     if (["", "Hive", "Rally", "Formation"].includes(name.value.trim()))
@@ -61,6 +63,7 @@ export function createMapsScreen({
   function render() {
     const plan = getPlan();
     $("maps-empty").hidden = !!plan.maps?.length;
+    actionRow.hidden = !!plan.maps?.length;
     $("maps-list").replaceChildren(
       ...(plan.maps || []).map((map) => {
         const row = document.createElement("div");
@@ -102,6 +105,7 @@ export function createMapsScreen({
         row.append(button, forget);
         return row;
       }),
+      addButton,
     );
   }
   return {

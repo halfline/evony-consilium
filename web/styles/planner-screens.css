@@ -786,7 +786,7 @@
 }
 #maps-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(164px, 1fr));
+  grid-template-columns: repeat(auto-fill, 164px);
   align-items: start;
   gap: 24px 18px;
   max-height: none;
@@ -818,13 +818,16 @@
   }
 }
 #maps-list .add-map-icon {
-  justify-self: center;
+  justify-self: start;
   align-self: start;
   margin-top: 54px;
 }
+#maps-list .add-map-icon:only-child {
+  margin-top: 0;
+}
 @media (max-width: 600px) {
   #maps-list {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, 140px);
   }
 }
 
