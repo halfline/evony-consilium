@@ -1029,6 +1029,21 @@ code {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+@media (max-width: 600px) {
+  #team-conflict-dialog {
+    width: calc(100vw - 32px);
+    max-height: calc(100dvh - 32px);
+    padding: 20px;
+  }
+  #team-conflict-dialog .dialog-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  #team-conflict-dialog .dialog-actions button {
+    width: 100%;
+    white-space: normal;
+  }
+}
 
 .read-only.player-file-editable
   :is(

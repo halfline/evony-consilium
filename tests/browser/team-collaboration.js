@@ -57,13 +57,30 @@ export async function teamCollaboration({ browser }) {
     await title(b, "Bob's conflicting name");
     await b.locator("#drive-save").click();
     await saved(b);
+    await a.setViewportSize({ width: 390, height: 844 });
     await a.locator("#drive-save").click();
     await a.locator("#team-conflict-dialog").waitFor({ state: "visible" });
+    const dialog = await a.locator("#team-conflict-dialog").boundingBox();
+    assert.equal(dialog.x >= 0 && dialog.x + dialog.width <= 390, true);
+    assert.equal(
+      await a
+        .locator("#team-conflict-dialog")
+        .evaluate((element) => element.scrollWidth <= element.clientWidth),
+      true,
+    );
+    const localButton = await a
+      .locator('[data-team-resolution="local"]')
+      .boundingBox();
+    const remoteButton = await a
+      .locator('[data-team-resolution="remote"]')
+      .boundingBox();
+    assert.equal(localButton.y < remoteButton.y, true);
     assert.match(
       await a.locator("#team-conflict-values").textContent(),
       /Team name/,
     );
     await a.locator('[data-team-resolution="local"]').click();
+    await a.setViewportSize({ width: 1280, height: 720 });
     await saved(a);
     assert.equal(team.data.plan.title, "Alice's conflicting name");
     assert.equal(team.data.plan.discordUrl, "https://discord.gg/shared");
