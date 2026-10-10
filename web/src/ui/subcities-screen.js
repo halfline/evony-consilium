@@ -102,6 +102,9 @@ export function createSubcitiesScreen({
       );
     });
     $("subcities-empty").hidden = cities.length > 0;
+    $("subcities-empty").textContent = getPlan().subcities?.length
+      ? "No matching subcities."
+      : "No subcities yet.";
     grid.replaceChildren(...cities.map(tile), addButton);
   }
   return {

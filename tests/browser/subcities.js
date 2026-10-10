@@ -21,6 +21,10 @@ export async function subcities({ browser }) {
     await page.locator('[data-screen="subcities"]').click();
     assert.equal(await page.locator("#subcities-screen").isVisible(), true);
     assert.equal(
+      await page.locator("#subcities-empty").textContent(),
+      "No subcities yet.",
+    );
+    assert.equal(
       await page.locator("#subcities-search-control").isVisible(),
       true,
     );
@@ -115,6 +119,12 @@ export async function subcities({ browser }) {
     }
     const cards = page.locator("#subcities .subcity-card");
     assert.equal(await cards.count(), 3);
+    await page.locator("#subcities-search").fill("no such city");
+    assert.equal(
+      await page.locator("#subcities-empty").textContent(),
+      "No matching subcities.",
+    );
+    await page.locator("#subcities-search").fill("");
     assert.match(await cards.nth(1).textContent(), /Rostock/);
     assert.match(await cards.nth(2).textContent(), /Germany Famous City/);
     assert.notEqual(
