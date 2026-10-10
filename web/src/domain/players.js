@@ -64,6 +64,8 @@ export function removePlayer(plan, id) {
       next.excludedPlayerFileIds.push(source.fileId);
   }
   next.keeps = next.keeps.filter((player) => player.id !== id);
+  for (const player of next.keeps)
+    if (player.ownerId === id) delete player.ownerId;
   for (const city of next.subcities || [])
     if (city.ownerId === id) city.ownerId = null;
   if (next.rallyId === id) next.rallyId = next.keeps[0]?.id || null;
