@@ -4,6 +4,7 @@ import { renderCastleButton } from "./castle-button.js";
 import { updateKeepAppearances } from "../domain/castles.js";
 import { view } from "./dom.js";
 import { newPlayer } from "../domain/players.js";
+import { OperationCancelled } from "../services/cancellation.js";
 export function createAddPlayerDialog({
   root,
   assets,
@@ -13,10 +14,12 @@ export function createAddPlayerDialog({
   getAvatars,
   browseAvatar,
   getPlan,
+  context = () => null,
 }) {
   const $ = view(root);
   const dialog = $("add-player-dialog");
-  let draft,
+  let openedContext,
+    draft,
     busy = false,
     addingAlt = false;
   $("new-player-castle").onclick = () =>
@@ -62,12 +65,18 @@ export function createAddPlayerDialog({
         player.ownerId = ownerId;
       }
       if (!player.name) throw new Error("Enter a player name.");
-      await add(player);
-      dialog.close();
+      await add(player, () => dialog.close());
+      if (dialog.open) dialog.close();
     } catch (error) {
-      $("new-player-error").textContent = error.message;
+      if (openedContext === context()) {
+        if (!dialog.open) dialog.showModal();
+        $("new-player-error").textContent =
+          error instanceof OperationCancelled
+            ? "Player was not added. Your entries are still here."
+            : error.message;
+      }
     } finally {
-      ((busy = false), (addingAlt = false));
+      busy = false;
       submit.disabled = false;
     }
   };
@@ -78,6 +87,7 @@ export function createAddPlayerDialog({
         : null,
     open(alt = false) {
       if (dialog.open || busy) return;
+      openedContext = context();
       addingAlt = alt;
       draft = newPlayer(assets, lastTag());
       draft.avatarId = getAvatars().defaultId;

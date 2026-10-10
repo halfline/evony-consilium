@@ -40,15 +40,26 @@ export function createPlayerWorkflow({
     browseAvatar: avatars.open,
     browse: browseCastle,
     lastTag: () => lastTag,
-    add: async (player) => {
-      const linked = await getWorkspace().profiles.add(player);
+    context: () => getWorkspace()?.key(),
+    add: async (player, closeForPicker) => {
+      const workspace = getWorkspace();
+      const current = workspace.players.captureContext();
+      try {
+        await workspace.playerFolder({ interactive: false });
+      } catch (error) {
+        if (error.code !== "team_folder_picker_needed") throw error;
+        closeForPicker();
+        await workspace.playerFolder();
+      }
+      current();
+      const linked = await workspace.profiles.add(player);
       lastTag = player.allianceTag;
       select(player.id);
       navigate("player");
+      await workspace.autosave();
       return linked;
     },
   });
-  let preparingAdd = false;
   let profile;
   const fileState = (player) => ({
     ...getWorkspace()?.players.state(player),
@@ -56,24 +67,8 @@ export function createPlayerWorkflow({
       ? { label: profile.draftStatus(player) }
       : {}),
   });
-  async function openAdd(alt = false) {
-    if (preparingAdd || !canEditTeam()) return;
-    preparingAdd = true;
-    try {
-      const workspace = getWorkspace();
-      const current = workspace.players.captureContext();
-      await workspace.playerFolder();
-      current();
-      if (!canEditTeam())
-        throw new Error(
-          "Team access changed. Reopen the team before adding players.",
-        );
-      dialog.open(alt);
-    } catch (error) {
-      if (!(error instanceof OperationCancelled)) status(error.message, true);
-    } finally {
-      preparingAdd = false;
-    }
+  function openAdd(alt = false) {
+    if (canEditTeam()) dialog.open(alt);
   }
   const list = createPlayersScreen({
     root: roots.list,
