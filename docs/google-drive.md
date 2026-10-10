@@ -6,7 +6,7 @@ The site opens at Google sign-in, followed by a team selector. New teams start e
 
 ## Opening and sharing teams
 
-1. Create a team. The app creates a folder containing one `team.consilium.json` file.
+1. Create a team. The app creates a folder containing one `Team - <name>.team.consilium.json` file.
 2. Share that folder or file using Drive's sharing controls and send its URL to teammates.
 3. Paste the link in **Open team**. If authorization is needed, choose the single team file in Picker. A folder link opens Picker inside that folder; it does not require authorizing the folder first. The browse button also selects one team file.
 4. Subsequent opens use the remembered file ID and its existing grant. Revoked access asks for that file again without requesting broader scopes.
@@ -15,11 +15,15 @@ A link and a remembered shortcut do not grant access. Picker authorization does 
 
 ## Team document
 
-`team.consilium.json` contains `{format: "evony-consilium-team", schema: 1, plan}`. The plan holds team name, logo, Discord link, players and their statistics and marches, and all maps and placements. Save writes this entire document.
+The team file contains `{format: "evony-consilium-team", schema: 1, plan}`. The plan holds team name, logo, Discord link, players and their statistics and marches, and all maps and placements. Save writes this entire document.
 
 Only the `evony-consilium-team` schema 1 envelope is supported. Older multi-file teams are not loaded or migrated. A folder with several team documents requires choosing one explicitly.
 
-Team-file permissions govern roster and map administration. Player profiles are also stored in separate files in the central team folder, so each player file can be shared independently: write access enables profile editing, while team access alone does not. The team document keeps a read-only cache of those profiles. A team editor’s background refresh discovers valid `*.player.consilium.json` files directly in the central folder when Drive already permits the app to read them, then saves missing roster entries in the team cache. Opening the team does not add a folder authorization prompt. Adding a player checks central folder access before opening the form and asks for that folder through Picker only if needed. Partial grants leave the cached roster available. Removing a roster entry excludes its file from rediscovery without deleting it; Undo reverses that removal.
+Team-file Editor access permits roster and map administration. Player files have independent permissions: share the folder as Viewer with members and grant each member Editor access to their own profile. Folder Editors inherit editing permission on its files; use that role only for trusted administrators. A planner can have Editor access to just the team document, but needs permission to add children to create new player files. Roster alt ownership does not grant Drive access.
+
+The Team screen exposes the app link and links to the team document and folder in Drive; the player screen exposes its source file. **Connect player file** selects only the linked profile when an app grant is missing. **Check editing access** queries Drive directly; it does not reopen Picker when a file is already connected. Read-only users keep viewing the cached team data. Accessible sources refresh locally even without an online team editor.
+
+New team/player files use distinct `application/vnd.evony-consilium.team+json` and `application/vnd.evony-consilium.player+json` MIME types and role-prefixed names. Picker uses list mode, limits selection to one file, filters each purpose separately, and targets a known file ID whenever possible. A separate older-files view supports existing JSON names. Existing documents adopt the new type/name on save. Only an explicit Add action can request the central folder; importing an existing player selects a profile from that folder. Cancelling a picker leaves the current team intact. No automatic folder discovery adds players.
 
 Opening never initializes a seemingly empty shared folder: a filtered Drive listing is not proof that it is empty.
 
@@ -57,6 +61,10 @@ Use two distinct Google accounts, ideally personal Gmail accounts:
 
 `localStorage` stores recently opened project folders separately for each Google account ID. It is a convenience list, not authority for access. OAuth access tokens stay in memory. Reloads return to sign-in, then the remembered-project selector. Expired tokens require another sign-in, following [Google's browser token model](https://developers.google.com/identity/oauth2/web/guides/use-token-model).
 
-IndexedDB keeps account/folder/file-scoped drafts, including imported images. Editing saves a local draft; **Save** writes the entire team document. The original version is retained with a dirty draft, so restoring it cannot silently ignore a teammate's newer version. **Load latest** replaces the local draft with the shared version.
+IndexedDB keeps account/folder/file-scoped team drafts, including their full shared baseline. **Save team** merges the draft with a newer shared document by stable entity IDs. Independent changes combine; overlapping changes require an explicit choice. Invalid combined layouts are rejected and the draft is retained. **Discard team draft** confirms replacement with the shared version. Older stale drafts without a baseline cannot be automatically merged.
 
-A save checks the current Drive version and refuses a known stale version. This is best-effort, not an atomic lock: two users saving between the metadata check and upload can still race. Coordinate writes for now; live collaborative editing and robust concurrency control remain future work. Drive revisions can help recover overwritten content.
+Player forms keep a separate account/source-file-scoped draft as inputs change, including avatar and castle choices. **Save player** writes the authoritative profile. Source saves merge independent fields against the form's original baseline; overlapping changes require a choice. **Undo team** never reverts source saves or refreshed caches. Background cache publication uses the saved team baseline, preserving unsaved local formations. Source saves and cache publication are separate transactions.
+
+Uploads fetch the current version and strong JSON metadata ETag through [Drive v2 files](https://developers.google.com/workspace/drive/api/reference/rest/v2/files), then send a multipart [v2 update](https://developers.google.com/workspace/drive/api/reference/rest/v2/files/update) with `If-Match`. A competing write produces a precondition failure and a bounded merge/retry. The app never falls back to an unconditional upload when the revision token is missing. Normal reads and creation remain on Drive v3. Tokens remain in memory.
+
+Before relying on a deployment, use two real Google accounts to verify the custom MIME filters in Picker (including Shared with me and Shared drives), targeted player/folder selection, cancellation, Viewer versus Editor roles, source refresh, and simultaneous conditional updates. Network-boundary browser tests simulate these APIs; they cannot establish Google’s deployed authorization or upload behavior. For a race check, hold both clients after they read the same ETag, then release both writes: exactly one should succeed initially, and the other should merge/retry or show conflict review without losing either draft.
