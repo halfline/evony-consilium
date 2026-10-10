@@ -588,6 +588,36 @@
   font-size: 24px;
   line-height: 1;
 }
+.activity-dialog {
+  width: min(560px, calc(100vw - 32px));
+  max-height: min(75vh, 720px);
+}
+#team-activity-content {
+  max-height: 55vh;
+  overflow: auto;
+}
+#team-activity-content > ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+#team-activity-content > ol > li {
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+}
+.activity-entry-heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+.activity-entry-heading time {
+  color: var(--muted);
+}
+#team-activity-content ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
 
 #players .add-player-icon,
 #alts .add-player-icon {

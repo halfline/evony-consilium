@@ -43,6 +43,13 @@ export async function teamDashboard({ page, driveFiles, projectLogo }) {
   assert.equal(await page.locator("#project-reload").isVisible(), false);
   await page.locator('[data-screen="project"]').click();
   assert.equal(await page.locator("#project-screen").isVisible(), true);
+  await page.locator("#team-activity").click();
+  await page.locator("#team-activity-content li").first().waitFor();
+  assert.match(
+    await page.locator("#team-activity-content").textContent(),
+    /team@example\.test/,
+  );
+  await page.getByRole("button", { name: "Close activity log" }).click();
   assert.equal(
     await page.locator("#team-player-count").textContent(),
     String(await page.locator("#players .player-card").count()),

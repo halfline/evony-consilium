@@ -164,6 +164,15 @@ export function mergeTeamPlans(
     ours = canonical(local),
     shared = canonical(remote);
   const plan = merge(original, ours, shared);
+  const activity = new Map();
+  for (const entry of [
+    ...(local.activityLog || []),
+    ...(remote.activityLog || []),
+  ])
+    activity.set(entry.id, entry);
+  plan.activityLog = [...activity.values()].sort((a, b) =>
+    a.at.localeCompare(b.at),
+  );
   // The fingerprint omits unplaced map positions, including their footprints.
   // Restore those dimensions from the source player before applying a layout.
   const sourcePlayers = new Map(

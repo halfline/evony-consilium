@@ -14,6 +14,7 @@ import {
 import { createEmptyPlan } from "../domain/plan.js";
 import { parseTeamLink } from "../domain/drive-links.js";
 import { isFileAccessError } from "./google/drive.js";
+import { teamCreationActivity } from "../domain/team-activity.js";
 
 // Account and shared-document lifetime; callers supply presentation callbacks.
 export class TeamWorkspace {
@@ -50,6 +51,11 @@ export class TeamWorkspace {
   }
   autosave() {
     return this.sync.autosave();
+  }
+  async activity() {
+    if (!this.sync.file) return [];
+    const loaded = await this.drive.load(this.sync.file);
+    return loaded.plan.activityLog || [];
   }
   reload() {
     return this.open(this.project.folder, true, true);
@@ -126,6 +132,7 @@ export class TeamWorkspace {
       applyPlan,
       validate: validatePlan,
       resolve: resolveTeamConflicts,
+      activityActor: () => this.account,
       status,
       expired,
       canCheck: () => canCheck() && !!session.token(),
@@ -360,6 +367,7 @@ export class TeamWorkspace {
     const plan = createEmptyPlan();
     plan.title = name.trim();
     plan.projectLogo = logo;
+    plan.activityLog = [teamCreationActivity(this.account)];
     const folder = await this.drive.createFolder(plan.title);
     current();
     await this.drive.initializeProject(folder, plan);

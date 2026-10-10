@@ -210,6 +210,28 @@
         <div class="header-actions">
           <span id="team-save-status" class="save-status" role="status"></span>
           <button
+            id="team-activity"
+            class="icon-action"
+            aria-label="Activity log"
+            title="Team activity log"
+            type="button"
+          >
+            <svg
+              aria-hidden="true"
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 7v5l3 2" />
+            </svg>
+          </button>
+          <button
             id="undo"
             class="icon-action"
             aria-label="Undo"
@@ -1282,6 +1304,19 @@
             Save selected values
           </button>
         </div>
+      </dialog>
+      <dialog id="team-activity-dialog" class="activity-dialog">
+        <div class="dialog-heading">
+          <h2>Activity log</h2>
+          <button
+            type="button"
+            data-close="team-activity-dialog"
+            aria-label="Close activity log"
+          >
+            ×
+          </button>
+        </div>
+        <div id="team-activity-content" role="status"></div>
       </dialog>
       <dialog id="catalog-dialog" class="catalog-dialog">
         <div class="dialog-heading">

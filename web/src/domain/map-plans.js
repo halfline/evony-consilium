@@ -67,6 +67,7 @@ export function removeMapPlan(plan, id) {
 // Ignore navigation state when deciding whether there are unsaved project changes.
 export function projectFingerprint(plan) {
   const next = syncMapLayouts(copy(plan));
+  delete next.activityLog;
   ensureMapRallySetters(next);
   next.subcities ??= [];
   for (const city of next.subcities) city.ownerId ??= null;

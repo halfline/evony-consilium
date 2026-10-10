@@ -1,6 +1,7 @@
 // Shared document synchronization. Planning edits and cache publications share
 // conditional writes, but a background publication never includes local edits.
 import { isFileAccessError } from "./google/drive.js";
+import { appendTeamActivity } from "../domain/team-activity.js";
 export class ProjectSync {
   constructor({
     drive,
@@ -19,6 +20,7 @@ export class ProjectSync {
     applyPlan = null,
     validate = () => {},
     resolve = async () => null,
+    activityActor = null,
   }) {
     Object.assign(this, {
       drive,
@@ -37,6 +39,7 @@ export class ProjectSync {
       applyPlan,
       validate,
       resolve,
+      activityActor,
     });
     this.reset();
   }
@@ -275,7 +278,13 @@ export class ProjectSync {
       let file;
       for (let attempt = 0; attempt < 4; attempt++) {
         try {
-          file = await this.drive.save(source, candidate);
+          const saving = this.activityActor
+            ? appendTeamActivity(remote, candidate, this.activityActor(), {
+                sync: !!transform,
+              })
+            : candidate;
+          file = await this.drive.save(source, saving);
+          candidate = saving;
           break;
         } catch (error) {
           if (!current()) return;

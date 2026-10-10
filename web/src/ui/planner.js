@@ -28,6 +28,7 @@ import { createReadOnlyView } from "./read-only-view.js";
 import { TeamEntry } from "./team-entry.js";
 import { mergeTeamPlans } from "../domain/team-collaboration.js";
 import { createTeamConflictControls } from "./team-conflict-controls.js";
+import { bindTeamActivity } from "./team-activity.js";
 export function createPlanner(
   { catalog, avatarCatalog, terrainCatalog },
   { createWorkspace },
@@ -484,6 +485,12 @@ export function createPlanner(
     expired: () => projects.show("login"),
     canCheck: () => !projects?.busy && !$("planner").hidden && !document.hidden,
     status: toast,
+  });
+  bindTeamActivity({
+    button: $("team-activity"),
+    dialog: $("team-activity-dialog"),
+    content: $("team-activity-content"),
+    getWorkspace: () => workspace,
   });
   navigation = createNavigation({
     getRoute: () => ({
