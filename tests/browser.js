@@ -13,6 +13,7 @@ import { mapSelection } from "./browser/maps.js";
 import { playerAppearance } from "./browser/player-appearance.js";
 import { mapEditing } from "./browser/map-editing.js";
 import { teamDashboard } from "./browser/team-dashboard.js";
+import { teamSharing } from "./browser/team-sharing.js";
 import { terrainAndMobile } from "./browser/terrain.js";
 import { sharingAndRecovery } from "./browser/sharing.js";
 import {
@@ -61,6 +62,7 @@ try {
       badResponses.push(res.url());
   });
   const { projectLogo } = await entryWorkflow({ page, context });
+  await teamSharing({ browser });
   await playerCreation({ page, playersScreen });
   await altOwnership({ page, playersScreen });
   await playerDetails({ page, playersScreen, driveFiles });
