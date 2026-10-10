@@ -29,6 +29,7 @@ export async function mockGoogleDrive(
       class Builder {
         addView(v){this.view ||= v;return this;} setOAuthToken(v){return this;} setDeveloperKey(v){return this;} setAppId(v){return this;} setOrigin(v){return this;} setTitle(v){return this;} setCallback(v){this.callback=v;return this;} enableFeature(v){return this;}
         build(){const builder=this;return {dispose(){},setVisible:async()=>{
+          window.__pickerModalStates=(window.__pickerModalStates||[]);window.__pickerModalStates.push(!!document.querySelector("dialog:modal"));
           window.__pickerCalls=(window.__pickerCalls||[]);window.__pickerCalls.push(builder.view.options);
           if(window.__pickerCancelNext){window.__pickerCancelNext=false;return builder.callback({action:"cancel"});}
           const query=new URLSearchParams(builder.view.options);

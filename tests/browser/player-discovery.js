@@ -70,6 +70,33 @@ export async function playerDiscovery({ browser }) {
       await page.locator("#player-name").getAttribute("readonly"),
       "",
     );
+    await page.locator('[data-screen="players"]').click();
+    await page.evaluate(() => {
+      window.__pickerCancelNext = true;
+    });
+    await page.locator("#add-player").click();
+    await page.waitForFunction(() =>
+      document.getElementById("toast").textContent.includes("cancelled"),
+    );
+    assert.equal(await page.locator("#add-player-dialog").isVisible(), false);
+    await page.locator("#add-player").click();
+    await page.locator("#add-player-dialog").waitFor({ state: "visible" });
+    assert.equal(files.grants.has(folderId), true);
+    assert.deepEqual(await page.evaluate(() => window.__pickerModalStates), [
+      false,
+      false,
+    ]);
+    await page.locator("#new-player-name").fill("New player");
+    await page.locator("#new-player-form [type=submit]").click();
+    await page.locator("#add-player-dialog").waitFor({ state: "hidden" });
+    assert.equal(
+      await page.locator("#player-title").textContent(),
+      "New player",
+    );
+    assert.equal(
+      await page.evaluate(() => (window.__pickerCalls || []).length),
+      pickerCount + 2,
+    );
     assert.deepEqual(errors, []);
   } finally {
     await context.close();
