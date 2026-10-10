@@ -60,7 +60,6 @@ export function createMapsScreen({
   }
   function render() {
     const plan = getPlan();
-    const addButton = $("add-map");
     $("maps-empty").hidden = !!plan.maps?.length;
     $("maps-list").replaceChildren(
       ...(plan.maps || []).map((map) => {
@@ -103,7 +102,6 @@ export function createMapsScreen({
         row.append(button, forget);
         return row;
       }),
-      addButton,
     );
   }
   return {
