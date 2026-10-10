@@ -1234,6 +1234,24 @@
   color: var(--gold);
   border-radius: 10px;
 }
+.collection-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  margin-bottom: 12px;
+}
+.collection-actions :is(.add-player-icon, .add-map-icon, .add-subcity-icon) {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: var(--gold);
+  font-size: 26px;
+  line-height: 1;
+  border-radius: 10px;
+}
 #assign-subcity-help {
   margin-top: 16px;
   color: var(--gold);
