@@ -117,15 +117,18 @@ export class DrivePicker {
       // Personal sharing and Workspace shared drives are different locations.
       // Keep these views separate: enabling shared drives overrides parent/ID filters.
       if (!folder && !file) {
-        if (!folders)
-          builder.addView(
-            new p.DocsView(p.ViewId.DOCS)
-              .setLabel("Shared with me")
-              .setIncludeFolders(true)
-              .setSelectFolderEnabled(false)
-              .setMimeTypes("application/json")
-              .setOwnedByMe(false),
-          );
+        builder.addView(
+          new p.DocsView(p.ViewId.DOCS)
+            .setLabel("Shared with me")
+            .setIncludeFolders(true)
+            .setSelectFolderEnabled(folders)
+            .setMimeTypes(
+              folders
+                ? "application/vnd.google-apps.folder"
+                : "application/json",
+            )
+            .setOwnedByMe(false),
+        );
         builder.addView(
           new p.DocsView(p.ViewId.DOCS)
             .setLabel("Shared drives")

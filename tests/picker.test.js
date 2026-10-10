@@ -86,9 +86,11 @@ test("folder browsing includes ordinary Drive and a separate Shared drives view"
       () => "token",
     );
     await picker.folder();
-    assert.equal(views.length, 2);
+    assert.equal(views.length, 3);
     assert.notEqual(views[0].sharedOnly, true);
-    assert.equal(views[1].sharedOnly, true);
+    assert.equal(views[1].owned, false);
+    assert.equal(views[1].selectFolders, true);
+    assert.equal(views[2].sharedOnly, true);
     views.length = 0;
     await picker.folder({ id: "team" });
     assert.equal(views.length, 1);
