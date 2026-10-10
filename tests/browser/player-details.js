@@ -303,6 +303,22 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
   );
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(
+    await page.locator("#player-section-select").inputValue(),
+    "buffs",
+  );
+  await page.locator("#player-section-select").selectOption("overview");
+  assert.equal(
+    await page.locator('[data-player-panel="overview"]').isVisible(),
+    true,
+  );
+  await page.locator("#player-section-select").selectOption("buffs");
+  assert.equal(
+    await page
+      .locator("#player-buffs")
+      .evaluate((element) => element.scrollWidth <= element.clientWidth),
+    true,
+  );
+  assert.equal(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
