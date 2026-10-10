@@ -340,6 +340,7 @@ export function createPlanner(
         ownerPicker: $("new-player-owner-dialog"),
         avatars: $("avatar-dialog"),
         sync: $("player-sync-dialog"),
+        assignAlt: $("assign-alt-dialog"),
       },
       search: $("players-search"),
       altSearch: $("alts-search"),

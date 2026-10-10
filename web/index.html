@@ -532,11 +532,6 @@
             <a id="player-drive-link" target="_blank" rel="noopener noreferrer"
               >Player file and sharing in Drive</a
             >
-            <label class="player-ownership"
-              >Owner
-              <select id="player-owner" aria-label="Player owner"></select>
-            </label>
-            <p id="player-ownership-help" class="muted"></p>
             <form id="player-form">
               <div
                 class="tabs player-detail-tabs"
@@ -591,6 +586,14 @@
                   aria-selected="false"
                 >
                   Subcities
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  data-player-tab="alts"
+                  aria-selected="false"
+                >
+                  Alts
                 </button>
               </div>
               <div data-player-panel="overview" role="tabpanel">
@@ -702,6 +705,16 @@
                     ＋
                   </button>
                 </div>
+              </div>
+              <div data-player-panel="alts" role="tabpanel" hidden>
+                <p id="player-alt-owner" class="muted" hidden></p>
+                <button id="player-alt-open-owner" type="button" hidden>
+                  View player's alts
+                </button>
+                <div id="player-alts" class="player-alt-list"></div>
+                <button id="player-add-alt" type="button">
+                  Assign player as alt
+                </button>
               </div>
               <div id="player-profile-actions" class="inspector-actions">
                 <span
@@ -1158,6 +1171,36 @@
         <p id="new-player-owner-empty" class="muted" hidden>
           No matching players.
         </p>
+      </dialog>
+      <dialog id="assign-alt-dialog">
+        <div class="dialog-heading">
+          <h2 id="assign-alt-title">Add alt</h2>
+          <button
+            data-close="assign-alt-dialog"
+            aria-label="Close alt assignment"
+          >
+            ×
+          </button>
+        </div>
+        <label
+          >Search players<input id="assign-alt-search" type="search"
+        /></label>
+        <div id="assign-alt-list" class="catalog-grid"></div>
+        <p id="assign-alt-empty" class="muted" hidden>
+          No regular players match.
+        </p>
+        <p id="assign-alt-help" class="muted" role="status"></p>
+        <div class="dialog-actions">
+          <button data-close="assign-alt-dialog" type="button">Cancel</button>
+          <button
+            id="assign-alt-confirm"
+            class="primary"
+            type="button"
+            disabled
+          >
+            Add alt
+          </button>
+        </div>
       </dialog>
       <dialog id="player-sync-dialog">
         <div class="dialog-heading"><h2>Player edits conflict</h2></div>

@@ -13,14 +13,126 @@ export async function altOwnership({ page, playersScreen }) {
     await page.locator("#new-player-title").textContent(),
     "Add alt",
   );
-  await page.locator("#new-player-owner").selectOption(ids[0]);
+  assert.equal(await page.locator("#import-player-file").isVisible(), false);
+  assert.equal(await page.locator("#new-player-level").inputValue(), "35");
+  assert.equal(
+    await page.locator("#new-player-owner-name").textContent(),
+    "Choose player",
+  );
   await page.locator("#new-player-name").fill("Test alt");
+  await page.locator("#new-player-owner-choice").click();
+  await page.locator("#new-player-owner-dialog [data-close]").click();
+  await page.locator("#add-player-dialog").waitFor({ state: "visible" });
+  assert.equal(await page.locator("#new-player-name").inputValue(), "Test alt");
+  await page.locator("#new-player-owner-choice").click();
+  await page.locator("#new-player-owner-dialog").waitFor({ state: "visible" });
+  await page.locator("#new-player-owner-search").fill("First player");
+  assert.equal(await page.locator("#new-player-owner-grid button").count(), 1);
+  assert.equal(
+    await page.locator("#new-player-owner-grid .player-picker-card").count(),
+    1,
+  );
+  await page.locator("#new-player-owner-grid button").click();
+  await page.locator("#add-player-dialog").waitFor({ state: "visible" });
+  assert.equal(await page.locator("#new-player-owner").inputValue(), ids[0]);
+  assert.equal(
+    await page.locator("#new-player-owner-name").textContent(),
+    "First player",
+  );
+  await page.screenshot({ path: "test-results/add-alt-dialog.png" });
   await page.locator("#new-player-form [type=submit]").click();
   await page.locator("#add-player-dialog").waitFor({ state: "hidden" });
-  assert.equal(await page.locator("#player-owner").inputValue(), ids[0]);
+  assert.equal(await page.locator("#player-owner").count(), 0);
+  assert.doesNotMatch(
+    await page.locator("#player-screen").textContent(),
+    /emancipat/i,
+  );
   assert.equal(await page.locator("#alts-return-arrow").isVisible(), true);
   assert.equal(await page.locator("#players-return-arrow").isVisible(), false);
-  await page.locator("#player-owner").selectOption(ids[1]);
+  await page.locator('[data-player-tab="alts"]').click();
+  assert.equal(
+    await page.locator("#player-alt-owner").textContent(),
+    "Alt of First player",
+  );
+  await page.locator("#player-alt-open-owner").click();
+  assert.equal(
+    await page.locator("#player-title").textContent(),
+    "First player",
+  );
+  assert.equal(
+    await page
+      .locator('[data-player-tab="alts"]')
+      .getAttribute("aria-selected"),
+    "true",
+  );
+  assert.equal(
+    await page.locator("#player-profile-actions").isVisible(),
+    false,
+  );
+  assert.match(await page.locator("#player-alts").textContent(), /Test alt/);
+  const ownerSaveDisabled = await page.locator("#player-save").isDisabled();
+  await page.locator("#player-alts summary").click();
+  await page.locator("[data-alt-unlink]").click();
+  assert.equal(await page.locator("#player-alts .player-alt-row").count(), 0);
+  assert.equal(await page.locator("#player-alts-empty").count(), 0);
+  assert.equal(
+    (await page.locator("#player-add-alt").textContent()).trim(),
+    "Assign player as alt",
+  );
+  assert.equal(
+    await page.locator("#player-save").isDisabled(),
+    ownerSaveDisabled,
+  );
+  await playersScreen();
+  assert.equal(await page.locator("#players .player-card").count(), 3);
+  await page.locator(`#players [data-entity="${ids[1]}"]`).click();
+  await page.locator('[data-player-tab="alts"]').click();
+  await page.locator("#player-add-alt").click();
+  await page.locator("#assign-alt-dialog").waitFor({ state: "visible" });
+  assert.equal(await page.locator("#assign-alt-confirm").isDisabled(), true);
+  assert.equal(
+    await page.locator(`#assign-alt-list [data-player="${ids[1]}"]`).count(),
+    0,
+  );
+  await page.locator("#assign-alt-search").fill("Test alt");
+  assert.equal(await page.locator("#assign-alt-list button").count(), 1);
+  assert.equal(
+    await page.locator("#assign-alt-list .player-picker-card").count(),
+    1,
+  );
+  await page.locator("#assign-alt-list button").click();
+  assert.equal(
+    await page.locator("#assign-alt-list button").getAttribute("aria-pressed"),
+    "true",
+  );
+  assert.equal(await page.locator("#assign-alt-help").textContent(), "");
+  assert.equal(
+    (await page.locator("#assign-alt-confirm").textContent()).trim(),
+    "Add alt",
+  );
+  // Choosing an account does not change the roster until explicitly confirmed.
+  await page.locator("#assign-alt-dialog [data-close]").first().click();
+  await playersScreen();
+  assert.equal(await page.locator("#players .player-card").count(), 3);
+  await page.locator(`#players [data-entity="${ids[1]}"]`).click();
+  await page.locator('[data-player-tab="alts"]').click();
+  await page.locator("#player-add-alt").click();
+  await page.locator("#assign-alt-search").fill("Test alt");
+  await page.locator("#assign-alt-list button").click();
+  await page.locator("#assign-alt-confirm").click();
+  await page.locator("#assign-alt-dialog").waitFor({ state: "hidden" });
+  assert.equal(await page.locator("#player-alts .player-alt-row").count(), 1);
+  assert.equal(await page.locator("#player-save").isDisabled(), true);
+  await page.screenshot({ path: "test-results/player-alts.png" });
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.equal(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+    true,
+  );
+  await page.screenshot({ path: "test-results/player-alts-mobile.png" });
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await altsScreen();
   assert.match(
     await page.locator("#alts .player-card").textContent(),
@@ -32,15 +144,18 @@ export async function altOwnership({ page, playersScreen }) {
   assert.equal(await page.locator("#alts .player-card").count(), 1);
   await page.locator("#alts-search").fill("");
   await page.locator("#alts .player-card").click();
-  await page.locator("#player-owner").selectOption("");
-  assert.equal(await page.locator("#players-return-arrow").isVisible(), true);
+  await page.locator('[data-player-tab="alts"]').click();
+  await page.locator("#player-alt-open-owner").click();
+  await page.locator("#player-alts summary").click();
+  await page.locator("[data-alt-unlink]").click();
   await playersScreen();
   assert.equal(await page.locator("#players .player-card").count(), 3);
-  await page
-    .locator("#players .player-card")
-    .filter({ hasText: "Test alt" })
-    .click();
-  await page.locator("#player-owner").selectOption(ids[0]);
+  await page.locator(`#players [data-entity="${ids[0]}"]`).click();
+  await page.locator('[data-player-tab="alts"]').click();
+  await page.locator("#player-add-alt").click();
+  await page.locator("#assign-alt-search").fill("Test alt");
+  await page.locator("#assign-alt-list button").click();
+  await page.locator("#assign-alt-confirm").click();
   await altsScreen();
   const tile = page
     .locator("#alts .player-tile")

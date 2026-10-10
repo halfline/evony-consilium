@@ -2,10 +2,8 @@ import { createPlayerFileControls } from "./player-file-controls.js";
 import { createPlayersScreen } from "./players-screen.js";
 import { createPlayerScreen } from "./player-screen.js";
 import { createAddPlayerDialog } from "./add-player-dialog.js";
-import { view } from "./dom.js";
-import { assignPlayerOwner } from "../domain/players.js";
+import { createPlayerAlts } from "./player-alts.js";
 import { createAvatarBrowser } from "./avatar-browser.js";
-import { OperationCancelled } from "../services/cancellation.js";
 
 export function createPlayerWorkflow({
   roots,
@@ -108,53 +106,23 @@ export function createPlayerWorkflow({
     alts: true,
     fileState,
   });
-  const $ = view(roots.profile);
-  $("player-owner").onchange = () => {
-    if (!canEditTeam()) return;
-    try {
-      commitTeam(
-        assignPlayerOwner(
-          getPlan(),
-          selection.id,
-          $("player-owner").value || null,
-        ),
-      );
-      navigate("player");
-      renderOwnership();
-      status("Player ownership changed. Save team to share it.");
-    } catch (error) {
-      status(error.message, true);
-      renderOwnership();
-    }
-  };
-  function renderOwnership() {
-    const player = cachedPlayer();
-    if (!player) return;
-    const owner = $("player-owner");
-    const independent = document.createElement("option");
-    independent.value = "";
-    independent.textContent = "Regular player (emancipated)";
-    owner.replaceChildren(
-      independent,
-      ...getPlan()
-        .keeps.filter((item) => item.id !== player.id && item.ownerId == null)
-        .map((item) => {
-          const option = document.createElement("option");
-          option.value = item.id;
-          option.textContent = item.name;
-          return option;
-        }),
-    );
-    owner.value = player.ownerId || "";
-    owner.disabled = !canEditTeam();
-    $("player-ownership-help").textContent = getPlan().keeps.some(
-      (item) => item.ownerId === player.id,
-    )
-      ? "Assigning an owner transfers this player's alts to the new owner."
-      : "Assign an owner to make this player an alt, or emancipate it to make it a regular player.";
-  }
   const cachedPlayer = () =>
     getPlan().keeps.find((player) => player.id === selection.id);
+  const ownedAlts = createPlayerAlts({
+    root: roots.profile,
+    dialog: roots.assignAlt,
+    getPlan,
+    getPlayer: cachedPlayer,
+    getAvatars,
+    canEdit: canEditTeam,
+    commit: commitTeam,
+    context: () => getWorkspace()?.key(),
+    openPlayer: (id) => {
+      select(id);
+      navigate("player");
+    },
+    status,
+  });
   const editingPlan = (id = selection.id) =>
     getWorkspace()?.profiles.editingPlan(id) || getPlan();
   const fileControls = createPlayerFileControls({
@@ -233,7 +201,7 @@ export function createPlayerWorkflow({
       profile.render();
       fileControls.render();
       refreshAccess();
-      renderOwnership();
+      ownedAlts.render();
       getWorkspace()?.players.probe(cachedPlayer());
     },
     canEditPlayer: () =>
