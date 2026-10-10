@@ -1,5 +1,5 @@
 import { isTeamLogo, normalizeDiscordUrl } from "./team.js";
-import { validatePlayerProfile } from "./players.js";
+import { validatePlayerProfile, validatePlayerOwnership } from "./players.js";
 import { validatePlayerSource } from "./player-document.js";
 import { validateSubcities } from "./subcities.js";
 import { number, string } from "./constraints.js";
@@ -233,6 +233,7 @@ export function validatePlan(
   validateDocument(plan);
   validateCustomAssets(plan);
   validateEntities(plan, catalog);
+  validatePlayerOwnership(plan.keeps);
   validatePlacement(plan);
   validateBackgrounds(plan);
   delete plan.allianceTag;
