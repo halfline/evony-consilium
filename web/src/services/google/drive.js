@@ -4,9 +4,25 @@ import {
   readPlayerDocument,
 } from "../../domain/player-document.js";
 import { isTeamLogo } from "../../domain/team.js";
+import {
+  TEAM_MIME,
+  PLAYER_MIME,
+  teamFilename,
+  playerFilename,
+  isTeamFile,
+} from "../../domain/drive-documents.js";
 const API = "https://www.googleapis.com/drive/v3";
 const FIELDS =
   "id,name,mimeType,version,parents,capabilities(canEdit,canAddChildren),webViewLink,resourceKey";
+export const isFileAccessError = (error) =>
+  error.status === 404 ||
+  (error.status === 403 &&
+    (!error.reason ||
+      [
+        "appNotAuthorizedToFile",
+        "insufficientFilePermissions",
+        "notFound",
+      ].includes(error.reason)));
 export class ProjectAccessError extends Error {
   constructor() {
     super("Choose the team file to open it.");
@@ -40,16 +56,20 @@ export class Drive {
       headers: { ...headers, Authorization: `Bearer ${this.token()}` },
     });
     if (!response.ok) {
-      let detail;
+      let detail, reason;
       try {
-        detail = (await response.json()).error?.message;
+        const error = (await response.json()).error;
+        detail = error?.message;
+        reason = error?.errors?.[0]?.reason;
       } catch {}
-      throw new DriveError(
+      const error = new DriveError(
         response.status === 401
           ? "Your Google session expired. Sign in again; your draft is kept on this device."
           : detail || `Google Drive request failed (${response.status}).`,
         response.status,
       );
+      error.reason = reason;
+      throw error;
     }
     return response.json();
   }
@@ -64,7 +84,7 @@ export class Drive {
       files = [];
     do {
       const query = new URLSearchParams({
-        q: `'${folder.id}' in parents and trashed = false and mimeType = 'application/json'`,
+        q: `'${folder.id}' in parents and trashed = false and (mimeType = 'application/json' or mimeType = '${TEAM_MIME}' or mimeType = '${PLAYER_MIME}')`,
         fields: `nextPageToken,files(${FIELDS})`,
         pageSize: "100",
         supportsAllDrives: "true",
@@ -127,43 +147,33 @@ export class Drive {
         403,
       );
     return this.createJSON(
-      `${profile.name}.player.consilium.json`,
+      playerFilename(profile.name),
       playerDocument(profile),
       folder,
+      { mimeType: PLAYER_MIME },
     );
   }
   async savePlayer(file, profile) {
-    const current = await this.metadata(file);
-    if (!current.capabilities?.canEdit)
-      throw new DriveError(
-        "You have view-only access to this player file.",
-        403,
-      );
-    if (current.version !== file.version)
-      throw new DriveError(
-        "This player file changed. Open it again before saving.",
-        409,
-      );
-    const saved = await this.request(
-      `https://www.googleapis.com/upload/drive/v3/files/${file.id}?uploadType=media&supportsAllDrives=true&fields=${FIELDS}`,
-      {
-        method: "PATCH",
-        body: JSON.stringify(playerDocument(profile)),
-        headers: { "Content-Type": "application/json" },
-        resource: file,
-      },
+    return this.conditionalSave(
+      file,
+      () => playerDocument(profile),
+      playerFilename(profile.name),
+      PLAYER_MIME,
     );
-    saved.resourceKey ||= file.resourceKey || "";
-    return saved;
   }
-  async createJSON(name, data, folder = null) {
+  async createJSON(
+    name,
+    data,
+    folder = null,
+    { mimeType = "application/json" } = {},
+  ) {
     const metadata = {
       name,
-      mimeType: "application/json",
+      mimeType,
     };
     if (folder) metadata.parents = [folder.id];
     const boundary = "evony_" + crypto.randomUUID();
-    const body = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(data)}\r\n--${boundary}--`;
+    const body = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n--${boundary}\r\nContent-Type: ${mimeType}\r\n\r\n${JSON.stringify(data)}\r\n--${boundary}--`;
     return this.request(
       `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true&fields=${FIELDS}`,
       {
@@ -186,7 +196,7 @@ export class Drive {
   }
   async initializeProject(folder, plan, { logo = "" } = {}) {
     const files = await this.children(folder);
-    if (files.some((f) => f.name === "team.consilium.json"))
+    if (files.some(isTeamFile))
       throw new Error("This folder already has a team. Open it instead.");
     if (!folder.capabilities?.canAddChildren)
       throw new DriveError(
@@ -194,13 +204,14 @@ export class Drive {
         403,
       );
     const file = await this.createJSON(
-      "team.consilium.json",
+      teamFilename(plan.title),
       {
         format: "evony-consilium-team",
         schema: 1,
         plan: { ...plan, ...(isTeamLogo(logo) ? { projectLogo: logo } : {}) },
       },
       folder,
+      { mimeType: TEAM_MIME },
     );
     folder.teamFileId = file.id;
     return folder;
@@ -246,33 +257,66 @@ export class Drive {
       }
       files.push(file);
     }
-    const choices = selected.length
-      ? files
-      : files.filter((f) => f.name === "team.consilium.json");
+    const choices = selected.length ? files : files.filter(isTeamFile);
     if (choices.length !== 1) throw new ProjectAccessError();
     return { folder: { ...folder }, file: choices[0] };
   }
   async save(file, plan) {
-    const current = await this.metadata(file);
+    return this.conditionalSave(
+      file,
+      { format: "evony-consilium-team", schema: 1, plan },
+      teamFilename(plan.title),
+      TEAM_MIME,
+    );
+  }
+  async conditionalSave(file, document, name, mimeType) {
+    // v2 exposes a strong metadata ETag in JSON. v3 omits it. Use the exact
+    // token as a server-side precondition, never a guessed version or media ETag.
+    const fields =
+      "id,title,mimeType,etag,version,parents(id),capabilities(canEdit,canAddChildren),alternateLink,resourceKey";
+    const current = await this.request(
+      `https://www.googleapis.com/drive/v2/files/${encodeURIComponent(file.id)}?supportsAllDrives=true&fields=${fields}`,
+      { resource: file },
+    );
     if (!current.capabilities?.canEdit)
-      throw new DriveError("You have view-only access to this team.", 403);
+      throw new DriveError(
+        "This file is read-only. Ask its owner for Editor access in Drive.",
+        403,
+      );
     if (current.version !== file.version)
       throw new DriveError(
-        "A teammate changed this team. Your edits are kept locally. Load latest to use the shared version.",
+        "A teammate changed this file. Your edits are kept locally; retry to merge the latest changes.",
         409,
       );
-    return this.request(
-      `https://www.googleapis.com/upload/drive/v3/files/${file.id}?uploadType=media&supportsAllDrives=true&fields=${FIELDS}`,
+    if (typeof current.etag !== "string" || !/^"[^\r\n]+"$/.test(current.etag))
+      throw new DriveError(
+        "Drive did not provide a safe revision for this file. Your draft is kept locally; try again.",
+        503,
+      );
+    const boundary = "consilium_" + crypto.randomUUID();
+    const body = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify({ title: name, mimeType })}\r\n--${boundary}\r\nContent-Type: ${mimeType}\r\n\r\n${JSON.stringify(typeof document === "function" ? document() : document)}\r\n--${boundary}--`;
+    const saved = await this.request(
+      `https://www.googleapis.com/upload/drive/v2/files/${encodeURIComponent(file.id)}?uploadType=multipart&supportsAllDrives=true&fields=${fields}`,
       {
-        method: "PATCH",
-        body: JSON.stringify({
-          format: "evony-consilium-team",
-          schema: 1,
-          plan,
-        }),
-        headers: { "Content-Type": "application/json" },
+        method: "PUT",
+        body,
+        headers: {
+          "Content-Type": `multipart/related; boundary=${boundary}`,
+          "If-Match": current.etag,
+        },
         resource: file,
       },
     );
+    return {
+      ...file,
+      id: saved.id,
+      name: saved.title,
+      mimeType: saved.mimeType,
+      version: saved.version,
+      capabilities: saved.capabilities,
+      parents: saved.parents?.map((parent) => parent.id) || file.parents,
+      webViewLink: saved.alternateLink || file.webViewLink,
+      resourceKey: saved.resourceKey || file.resourceKey || "",
+    };
   }
 }
