@@ -1330,19 +1330,43 @@
 }
 .subcity-filters {
   display: flex;
-  width: min(100%, 720px);
-  gap: 12px;
-  margin-bottom: 40px;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 1 1 540px;
+  max-width: 540px;
+  gap: 8px;
+  margin-left: auto;
+}
+.subcity-filters .tab-search {
+  flex: 1 1 220px;
+  max-width: 320px;
+  margin: 0;
 }
 .subcity-filters select {
-  flex: 1 1 0;
+  flex: 0 0 120px;
   min-width: 0;
+  height: 32px;
+  padding: 4px 8px;
+  font-size: 13px;
 }
 
+@media (max-width: 1100px) {
+  .subcity-filters {
+    flex-basis: 100%;
+    max-width: none;
+    margin: 0 0 8px;
+  }
+}
 @media (max-width: 600px) {
   .subcity-filters {
-    flex-direction: column;
-    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+  .subcity-filters .tab-search {
+    flex: 1 0 100%;
+    max-width: none;
+  }
+  .subcity-filters select {
+    flex: 1 1 0;
   }
   .team-stats {
     gap: 8px;

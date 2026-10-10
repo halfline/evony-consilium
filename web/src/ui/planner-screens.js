@@ -42,7 +42,7 @@ export function createPlannerScreens(
     $("alts-search-control").hidden = screen !== "alts";
     $("players-screen").hidden = screen !== "players";
     $("players-search-control").hidden = screen !== "players";
-    $("subcities-search-control").hidden = screen !== "subcities";
+    $("subcity-filters").hidden = screen !== "subcities";
     $("formation-screen").hidden = screen !== "formation";
     $("maps-screen").hidden = screen !== "maps";
     $("subcities-screen").hidden = screen !== "subcities";

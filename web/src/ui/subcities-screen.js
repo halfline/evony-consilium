@@ -24,6 +24,7 @@ export function createSubcitiesScreen({
   const $ = view(root);
   const grid = $("subcities"),
     addButton = $("add-subcity");
+  const filter = view(root.closest("#planner"));
   const types = () => getCatalog().subcityTypes || [];
   const chooser = createSubcityBrowser({ root: browser, types });
   const owners = createSubcityOwnerPicker({
@@ -57,7 +58,7 @@ export function createSubcitiesScreen({
   addButton.onclick = () => editor.open();
   search.oninput = render;
   for (const id of ["subcities-type", "subcities-color"])
-    $(id).oninput = render;
+    filter(id).oninput = render;
   function tile(city) {
     return createSubcityCard({
       city,
@@ -94,10 +95,10 @@ export function createSubcitiesScreen({
         `${city.name} ${type?.name || ""} ${city.culture} ${city.color} ${owner?.name || ""} ${owner?.allianceTag || ""}`
           .toLowerCase()
           .includes(query) &&
-        (!$("subcities-type").value ||
-          category === $("subcities-type").value) &&
-        (!$("subcities-color").value ||
-          city.color === $("subcities-color").value)
+        (!filter("subcities-type").value ||
+          category === filter("subcities-type").value) &&
+        (!filter("subcities-color").value ||
+          city.color === filter("subcities-color").value)
       );
     });
     $("subcities-empty").hidden = cities.length > 0;

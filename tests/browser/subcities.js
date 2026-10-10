@@ -32,6 +32,17 @@ export async function subcities({ browser }) {
       await page.locator("#subcities-type option").allTextContents(),
       ["All types", "Culture", "Historic", "Famous"],
     );
+    const desktopFilters = await page.evaluate(() =>
+      ["subcities-search-control", "subcities-type", "subcities-color"].map(
+        (id) => document.getElementById(id).getBoundingClientRect().toJSON(),
+      ),
+    );
+    assert.equal(
+      desktopFilters.every((rect) => rect.y === desktopFilters[0].y),
+      true,
+    );
+    assert.equal(desktopFilters[1].width <= 140, true);
+    assert.equal(desktopFilters[2].width <= 140, true);
     assert.equal(await page.locator("#subcities-owner").count(), 0);
     assert.equal(await page.locator("#formation-screen").isVisible(), false);
     assert.equal(await page.locator("#players-screen").isVisible(), false);
@@ -139,6 +150,13 @@ export async function subcities({ browser }) {
     );
     assert.equal(team.data.plan.subcities.length, 3);
     await page.setViewportSize({ width: 390, height: 844 });
+    const mobileFilters = await page.evaluate(() =>
+      ["subcities-search-control", "subcities-type", "subcities-color"].map(
+        (id) => document.getElementById(id).getBoundingClientRect().toJSON(),
+      ),
+    );
+    assert.equal(mobileFilters[0].y < mobileFilters[1].y, true);
+    assert.equal(mobileFilters[1].y, mobileFilters[2].y);
     assert.equal(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,
