@@ -25,19 +25,19 @@ export async function mockGoogleDrive(
       contentType: "application/javascript",
       body: `
     window.gapi={load:(name,options)=>{
-      class View {constructor(){this.options={};} setIncludeFolders(v){this.options.includeFolders=v;return this;} setSelectFolderEnabled(v){this.options.folders=v;return this;} setLabel(v){return this;} setOwnedByMe(v){return this;} setEnableDrives(v){return this;} setMimeTypes(v){this.options.mime=v;return this;} setFileIds(v){this.options.ids=v;return this;} setParent(v){this.options.parent=v;return this;}}
+      class View {constructor(){this.options={};} setIncludeFolders(v){this.options.includeFolders=v;return this;} setSelectFolderEnabled(v){this.options.folders=v;return this;} setMode(v){this.options.mode=v;return this;} setQuery(v){this.options.query=v;return this;} setLabel(v){this.options.label=v;return this;} setOwnedByMe(v){return this;} setEnableDrives(v){return this;} setMimeTypes(v){this.options.mime=v;return this;} setFileIds(v){this.options.ids=v;return this;} setParent(v){this.options.parent=v;return this;}}
       class Builder {
-        addView(v){this.view ||= v;return this;} setOAuthToken(v){return this;} setDeveloperKey(v){return this;} setAppId(v){return this;} setOrigin(v){return this;} setTitle(v){return this;} setCallback(v){this.callback=v;return this;} enableFeature(v){return this;}
+        addView(v){(this.views ||= []).push(v);this.view ||= v;return this;} setSelectableMimeTypes(v){this.selectable=v;return this;} setMaxItems(v){return this;} setOAuthToken(v){return this;} setDeveloperKey(v){return this;} setAppId(v){return this;} setOrigin(v){return this;} setTitle(v){this.title=v;return this;} setCallback(v){this.callback=v;return this;} enableFeature(v){return this;}
         build(){const builder=this;return {dispose(){},setVisible:async()=>{
           window.__pickerModalStates=(window.__pickerModalStates||[]);window.__pickerModalStates.push(!!document.querySelector("dialog:modal"));
-          window.__pickerCalls=(window.__pickerCalls||[]);window.__pickerCalls.push(builder.view.options);
+          window.__pickerCalls=(window.__pickerCalls||[]);window.__pickerCalls.push({...builder.view.options,title:builder.title,selectable:builder.selectable});
           if(window.__pickerCancelNext){window.__pickerCancelNext=false;return builder.callback({action:"cancel"});}
-          const query=new URLSearchParams(builder.view.options);
-          const docs=await fetch("https://picker.test/select?"+query).then(r=>r.json());
+          let docs=[];
+          for (const view of builder.views) { const query=new URLSearchParams(view.options);docs=await fetch("https://picker.test/select?"+query).then(r=>r.json());if(docs.length)break; }
           builder.callback(docs.length?{action:"picked",docs}:{action:"cancel"});
         }}}
       }
-      window.google.picker={DocsView:View,PickerBuilder:Builder,ViewId:{DOCS:"docs"},Feature:{MULTISELECT_ENABLED:"multi"},Action:{PICKED:"picked",CANCEL:"cancel"}};options.callback();
+      window.google.picker={DocsView:View,DocsViewMode:{LIST:"list"},PickerBuilder:Builder,ViewId:{DOCS:"docs"},Feature:{MULTISELECT_ENABLED:"multi"},Action:{PICKED:"picked",CANCEL:"cancel"}};options.callback();
     }};
   `,
     }),
@@ -49,7 +49,8 @@ export async function mockGoogleDrive(
       folder
         ? r.file.mimeType === "application/vnd.google-apps.folder" &&
           (!query.get("ids") || r.file.id === query.get("ids"))
-        : r.file.mimeType === "application/json" &&
+        : query.get("mime").split(",").includes(r.file.mimeType) &&
+          (!query.get("query") || r.file.name.includes(query.get("query"))) &&
           (!query.get("ids") || r.file.id === query.get("ids")) &&
           (!query.get("parent") ||
             r.file.parents?.includes(query.get("parent"))),
@@ -97,6 +98,41 @@ export async function mockGoogleDrive(
       entry.file.version = String(Number(entry.file.version) + 1);
       return route.fulfill({ json: entry.file });
     }
+    if (request.method() === "PUT") {
+      const entry = files.get(id);
+      if (!entry || !grants.has(id))
+        return route.fulfill({
+          status: 404,
+          json: { error: { message: "Not found" } },
+        });
+      if (!entry.file.capabilities.canEdit)
+        return route.fulfill({
+          status: 403,
+          json: { error: { message: "Read-only file" } },
+        });
+      if (request.headers()["if-match"] !== `"${id}:${entry.file.version}"`)
+        return route.fulfill({
+          status: 412,
+          json: { error: { message: "Revision changed" } },
+        });
+      const [metadata, data] = request
+        .postData()
+        .split("\r\n")
+        .filter((line) => line.startsWith("{"))
+        .map((line) => JSON.parse(line));
+      entry.data = data;
+      entry.file.name = metadata.title;
+      entry.file.mimeType = metadata.mimeType;
+      entry.file.version = String(Number(entry.file.version) + 1);
+      return route.fulfill({
+        json: {
+          ...entry.file,
+          title: entry.file.name,
+          etag: `"${id}:${entry.file.version}"`,
+          parents: entry.file.parents?.map((id) => ({ id })),
+        },
+      });
+    }
     if (id) {
       const entry = files.get(id);
       // Simulate Drive settling a new team's revision during its first download.
@@ -104,7 +140,7 @@ export async function mockGoogleDrive(
         entry &&
         grants.has(id) &&
         url.searchParams.get("alt") === "media" &&
-        entry.file.name === "team.consilium.json" &&
+        entry.data?.format === "evony-consilium-team" &&
         !entry.settled
       ) {
         entry.settled = true;
@@ -115,13 +151,20 @@ export async function mockGoogleDrive(
             json:
               url.searchParams.get("alt") === "media"
                 ? entry.data
-                : files.hideParentMetadata
-                  ? Object.fromEntries(
-                      Object.entries(entry.file).filter(
-                        ([key]) => key !== "parents",
-                      ),
-                    )
-                  : entry.file,
+                : url.pathname.includes("/v2/")
+                  ? {
+                      ...entry.file,
+                      title: entry.file.name,
+                      etag: `"${id}:${entry.file.version}"`,
+                      parents: entry.file.parents?.map((id) => ({ id })),
+                    }
+                  : files.hideParentMetadata
+                    ? Object.fromEntries(
+                        Object.entries(entry.file).filter(
+                          ([key]) => key !== "parents",
+                        ),
+                      )
+                    : entry.file,
           })
         : route.fulfill({
             status: 404,

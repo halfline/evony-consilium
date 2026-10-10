@@ -28,6 +28,14 @@ test("folder browsing includes ordinary Drive and a separate Shared drives view"
     setMimeTypes() {
       return this;
     }
+    setMode(value) {
+      this.mode = value;
+      return this;
+    }
+    setQuery(value) {
+      this.query = value;
+      return this;
+    }
     setEnableDrives(value) {
       this.sharedOnly = value;
       return this;
@@ -57,6 +65,12 @@ test("folder browsing includes ordinary Drive and a separate Shared drives view"
     setTitle() {
       return this;
     }
+    setSelectableMimeTypes() {
+      return this;
+    }
+    setMaxItems() {
+      return this;
+    }
     setCallback(callback) {
       this.callback = callback;
       return this;
@@ -65,7 +79,10 @@ test("folder browsing includes ordinary Drive and a separate Shared drives view"
       return {
         dispose() {},
         setVisible: () =>
-          this.callback({ action: "picked", docs: [{ id: "team" }] }),
+          this.callback({
+            action: "picked",
+            docs: [{ id: views[0].ids || "team" }],
+          }),
       };
     }
   }
@@ -74,6 +91,7 @@ test("folder browsing includes ordinary Drive and a separate Shared drives view"
   globalThis.google = {
     picker: {
       DocsView: View,
+      DocsViewMode: { LIST: "list" },
       PickerBuilder: Builder,
       ViewId: { DOCS: "docs" },
       Action: { PICKED: "picked", CANCEL: "cancel" },
@@ -101,7 +119,7 @@ test("folder browsing includes ordinary Drive and a separate Shared drives view"
     assert.notEqual(views[0].sharedOnly, true);
     views.length = 0;
     await picker.files(null);
-    assert.equal(views.length, 3);
+    assert.equal(views.length, 4);
     assert.equal(views[1].label, "Shared with me");
     assert.equal(views[1].owned, false);
     assert.equal(views[2].sharedOnly, true);
@@ -110,7 +128,7 @@ test("folder browsing includes ordinary Drive and a separate Shared drives view"
     );
     views.length = 0;
     await picker.files({ id: "shared-folder" });
-    assert.equal(views.length, 1);
+    assert.equal(views.length, 2);
     assert.equal(views[0].parent, "shared-folder");
     assert.equal(views[0].sharedOnly, undefined);
     views.length = 0;

@@ -1,4 +1,7 @@
-import { parseDriveLink } from "../web/src/domain/drive-links.js";
+import {
+  parseDriveLink,
+  parseTeamLink,
+} from "../web/src/domain/drive-links.js";
 import {
   rememberProject,
   rememberedProjects,
@@ -11,6 +14,27 @@ const json = (data, status = 200) =>
     status,
     headers: { "Content-Type": "application/json" },
   });
+test("copied Consilium team links can be pasted into Open team, preserving the file key", () => {
+  assert.deepEqual(
+    parseTeamLink(
+      "https://example.test/consilium/index.html#team=team_123&resourceKey=key&screen=project",
+      "https://example.test/consilium/",
+    ),
+    { id: "team_123", resourceKey: "key", kind: "file" },
+  );
+  assert.throws(() =>
+    parseTeamLink(
+      "https://elsewhere.test/consilium/#team=team_123",
+      "https://example.test/consilium/",
+    ),
+  );
+  assert.throws(() =>
+    parseTeamLink(
+      "https://example.test/another-app/#team=team_123",
+      "https://example.test/consilium/",
+    ),
+  );
+});
 test("Drive folder links reject unrelated hosts and preserve resource keys", () => {
   assert.deepEqual(
     parseDriveLink(
@@ -79,7 +103,7 @@ test("Drive project initializes one complete team document", async () => {
   );
   assert.deepEqual(
     uploaded.map((r) => r[0].name),
-    ["team.consilium.json"],
+    ["Team - Untitled.team.consilium.json"],
   );
   assert.equal(uploaded[0][1].format, "evony-consilium-team");
   assert.deepEqual(uploaded[0][1].plan.keeps, []);
@@ -177,7 +201,7 @@ test("optional project logos are shared in metadata and remembered with folders"
     { logo },
   );
   assert.equal(created.length, 1);
-  assert.equal(created[0].name, "team.consilium.json");
+  assert.equal(created[0].name, "Team - Alliance.team.consilium.json");
   assert.equal(created[0].data.plan.projectLogo, logo);
   const items = new Map();
   const storage = {
@@ -230,11 +254,20 @@ test("saving writes the team document to its existing file", async () => {
   const drive = new Drive(
     () => "token",
     async (url, options) => {
-      if (options.method === "PATCH")
-        upload = { url, data: JSON.parse(options.body) };
+      if (options.method === "PUT")
+        upload = {
+          url,
+          headers: options.headers,
+          data: JSON.parse(
+            options.body
+              .split("\r\n")
+              .filter((line) => line.startsWith("{"))[1],
+          ),
+        };
       return json({
         id: "team",
         version: "1",
+        etag: '"revision-1"',
         capabilities: { canEdit: true },
       });
     },
@@ -246,6 +279,7 @@ test("saving writes the team document to its existing file", async () => {
   };
   await drive.save({ id: "team", version: "1" }, plan);
   assert.match(upload.url, /files\/team\?/);
+  assert.equal(upload.headers["If-Match"], '"revision-1"');
   assert.deepEqual(upload.data, {
     format: "evony-consilium-team",
     schema: 1,

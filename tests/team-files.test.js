@@ -64,6 +64,17 @@ test("team loading uses document metadata without asking for existing grants", a
     ["project", "load"],
   );
 });
+test("Drive quota errors are reported without asking users to select files again", async () => {
+  const f = fixture(),
+    error = Object.assign(new DriveError("Rate limit", 403), {
+      reason: "rateLimitExceeded",
+    });
+  f.drive.project = async () => {
+    throw error;
+  };
+  await assert.rejects(loadTeamFiles(f), error);
+  assert.deepEqual(f.calls, []);
+});
 
 test("an explicitly removed logo and a file resource key survive team loading", async () => {
   const f = fixture();
