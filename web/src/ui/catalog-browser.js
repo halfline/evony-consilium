@@ -1,5 +1,6 @@
 import { castlePickerEntries, castleForLevel } from "../domain/castles.js";
 import { view, option } from "./dom.js";
+import { artPreview } from "./art-preview.js";
 export function createCatalogBrowser({
   root,
   variantDialog,
@@ -26,6 +27,23 @@ export function createCatalogBrowser({
     );
     $("catalog-category").value = "";
     $("catalog-category").hidden = kind !== "keep";
+    $("catalog-chips").hidden = kind !== "keep";
+    $("catalog-chips").replaceChildren(
+      ...[
+        { id: "", name: "All castles" },
+        ...(getCatalog().keepCategories || []),
+      ].map((category) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.dataset.category = category.id;
+        button.textContent = category.name;
+        button.onclick = () => {
+          $("catalog-category").value = category.id;
+          render();
+        };
+        return button;
+      }),
+    );
     render();
     $("catalog-dialog").showModal();
   }
@@ -54,6 +72,14 @@ export function createCatalogBrowser({
             .includes(q),
       ),
     );
+    for (const chip of $("catalog-chips").querySelectorAll("button"))
+      chip.setAttribute(
+        "aria-pressed",
+        String(chip.dataset.category === filter),
+      );
+    const noun = catalogKind === "keep" ? "castle" : "sprite";
+    $("catalog-results").textContent =
+      `${list.length} ${noun}${list.length === 1 ? "" : "s"}${filter || q ? " matching your filters" : " to explore"}`;
     $("catalog-grid").replaceChildren(
       ...list.map((family) => {
         const variants = family.variants;
@@ -70,12 +96,15 @@ export function createCatalogBrowser({
         b.dataset.family = family.family;
         b.dataset.group = family.id;
         b.disabled = variants.every((a) => a.unavailable);
-        const im = document.createElement("img");
-        im.src = a.previewSrc || a.src;
-        im.alt = family.name;
-        im.loading = "lazy";
+        b.type = "button";
+        b.setAttribute(
+          "aria-pressed",
+          String(variants.some((asset) => selected()?.skin === asset.id)),
+        );
+        const im = artPreview(a.previewSrc || a.src, family.name);
         const name = document.createElement("strong");
         name.textContent = family.name;
+        name.title = family.name;
         b.append(im, name);
         if (!family.automatic && variants.length > 1) {
           const tier = document.createElement("small");
@@ -96,9 +125,15 @@ export function createCatalogBrowser({
                   button.className = "castle-card";
                   button.dataset.asset = variant.id;
                   button.disabled = !!variant.unavailable;
-                  const img = document.createElement("img");
-                  img.src = variant.previewSrc || variant.src;
-                  img.alt = variant.variantName || "Tier " + variant.tier;
+                  button.type = "button";
+                  button.setAttribute(
+                    "aria-pressed",
+                    String(selected()?.skin === variant.id),
+                  );
+                  const img = artPreview(
+                    variant.previewSrc || variant.src,
+                    variant.variantName || "Tier " + variant.tier,
+                  );
                   const label = document.createElement("strong");
                   label.textContent =
                     variant.variantName || "Tier " + variant.tier;
@@ -125,8 +160,18 @@ export function createCatalogBrowser({
     if (!list.length) {
       const p = document.createElement("p");
       p.className = "empty";
-      p.textContent = "No matching sprites.";
+      p.textContent = "No matching sprites. Try another name or category.";
       $("catalog-grid").append(p);
+      const clear = document.createElement("button");
+      clear.type = "button";
+      clear.textContent = "Clear filters";
+      clear.onclick = () => {
+        $("catalog-search").value = "";
+        $("catalog-category").value = "";
+        render();
+        $("catalog-search").focus();
+      };
+      $("catalog-grid").append(clear);
     }
   }
 
