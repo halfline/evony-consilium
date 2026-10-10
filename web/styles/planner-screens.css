@@ -1416,6 +1416,8 @@
   right: 6px;
   top: 50%;
   transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
   padding: 4px;
   border: 0;
   background: transparent;
@@ -1425,7 +1427,8 @@
   pointer-events: none;
 }
 .rally-star.active,
-.rally-actions-open .rally-star {
+.rally-actions-open .rally-star,
+.formation-player-row:focus-within .rally-star {
   opacity: 1;
   pointer-events: auto;
 }
