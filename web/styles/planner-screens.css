@@ -78,6 +78,10 @@
   flex-direction: column;
   gap: 16px;
 }
+.player-picker-card .avatar-choice {
+  width: 72px;
+  height: 72px;
+}
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
@@ -1128,7 +1132,7 @@
 }
 
 .subcity-owner-choice,
-.subcity-owner-card {
+.player-picker-card {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1142,12 +1146,12 @@
   overflow-wrap: anywhere;
   color: var(--gold);
 }
-.subcity-owner-card .avatar-choice {
+.player-picker-card .avatar-choice {
   display: grid;
   place-items: center;
 }
 #subcity-owner span,
-.subcity-owner-card .avatar-choice span {
+.player-picker-card .avatar-choice span {
   font-size: 2rem;
   color: var(--gold);
 }
