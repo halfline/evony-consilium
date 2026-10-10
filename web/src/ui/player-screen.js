@@ -1,7 +1,10 @@
 import { createPlayerDetails } from "./player-details.js";
 import { editPlayerDetails } from "../domain/player-details.js";
 import { editPlayerProfile } from "../domain/players.js";
-import { playerProfile } from "../domain/player-document.js";
+import {
+  playerProfile,
+  mergePlayerProfiles,
+} from "../domain/player-document.js";
 import { validatePlan } from "../domain/validation.js";
 import { changeAppearance } from "../domain/appearance-commands.js";
 import { renderAvatarButton } from "./avatar-browser.js";
@@ -9,8 +12,8 @@ import { renderCastleButton } from "./castle-button.js";
 import { bindTileActions } from "./tile-actions.js";
 import { view } from "./dom.js";
 
-// The profile has its own durable draft and Save button. Team navigation and
-// background refreshes cannot replace inputs that have not been submitted.
+// The profile has its own durable draft, autosave, and immediate Save button.
+// Team navigation and background refreshes cannot replace pending inputs.
 export function createPlayerScreen({
   root,
   getPlan,
@@ -74,17 +77,24 @@ export function createPlayerScreen({
     const player = getPlayer();
     if (!player) return;
     const state = entry(player);
-    $("player-save-status").textContent = saving
+    $("player-save-status").textContent = state.saving
       ? "Saving player…"
       : state.loading
         ? "Loading player draft…"
-        : state.draft
-          ? "Player changes unsaved · draft kept on this device"
-          : canEdit()
-            ? "Player saved"
-            : "Player profile read-only";
+        : !canEdit(player)
+          ? state.draft
+            ? "Player draft kept · profile read-only"
+            : "Player profile read-only"
+          : state.review
+            ? "Player changes need review · Save player"
+            : state.error
+              ? "Player not saved · check fields or use Save player"
+              : state.draft
+                ? "Player changes · autosaving every 30 seconds"
+                : "";
+    $("player-save-status").title = state.error || "";
     $("player-save").disabled =
-      saving || state.loading || !state.draft || !canEdit();
+      saving || state.loading || !state.draft || !canEdit(player);
     $("player-discard-draft").hidden = !state.draft;
     $("player-discard-draft").disabled = saving;
   }
@@ -92,12 +102,13 @@ export function createPlayerScreen({
     const player = getPlayer();
     if (
       !player ||
-      !canEdit() ||
+      !canEdit(player) ||
       renderedKey !== key(player) ||
       entry(player).loading
     )
       return;
     const state = entry(player);
+    state.error = null;
     state.draft = {
       baseline: state.draft?.baseline || playerProfile(player),
       fields: Object.fromEntries(
@@ -112,10 +123,17 @@ export function createPlayerScreen({
     paintStatus();
     draftChanged();
   }
+  const teamAction = (event) =>
+    event
+      .composedPath()
+      .some((node) =>
+        node.matches?.(
+          '[data-player-panel="subcities"], [data-player-panel="alts"]',
+        ),
+      );
   for (const event of ["input", "change"])
     form.addEventListener(event, (event) => {
-      if (!event.target.closest('[data-player-panel="subcities"]'))
-        queueMicrotask(capture);
+      if (!teamAction(event)) queueMicrotask(capture);
     });
   form.addEventListener("click", (event) => {
     const button = event.target.closest("button");
@@ -125,7 +143,7 @@ export function createPlayerScreen({
       button.hasAttribute("data-player-tab") ||
       button.id === "player-march-back" ||
       button.id === "player-discard-draft" ||
-      button.closest('[data-player-panel="subcities"]')
+      teamAction(event)
     )
       return;
     queueMicrotask(capture);
@@ -135,16 +153,28 @@ export function createPlayerScreen({
     triggerSelector: "#player-title",
     className: "player-name-actions-open",
   });
-  form.onsubmit = async (event) => {
-    event.preventDefault();
-    const player = getPlayer();
-    if (!player || saving || !canEdit() || entry(player).loading) return;
-    capture();
+  async function save(player, { interactive = true } = {}) {
+    if (!player || saving || !canEdit(player) || entry(player).loading) return;
+    if (!interactive && (!entry(player).draft || entry(player).review)) return;
+    const visible = getPlayer() && key(getPlayer()) === key(player);
+    if (visible) {
+      if (!interactive && !form.checkValidity()) {
+        entry(player).error =
+          "Complete the required fields before this player can be saved.";
+        paintStatus();
+        return;
+      }
+      capture();
+    }
     const state = entry(player),
       revision = state.revision,
       id = key(player),
+      scope = context(),
       draft = structuredClone(state.draft);
+    if (!draft) return;
     saving = true;
+    state.saving = true;
+    state.error = null;
     paintStatus();
     draftChanged();
     try {
@@ -157,15 +187,35 @@ export function createPlayerScreen({
         avatarId: draft.avatarId,
         skin: draft.skin,
       };
-      let next = editPlayerProfile(getPlan(), player.id, changes);
-      const detailChanges = details.read();
+      let next = editPlayerProfile(getPlan(player.id), player.id, changes);
+      const detailChanges = visible ? details.read() : draft.details;
       if (detailChanges)
         next = editPlayerDetails(next, player.id, detailChanges);
       validatePlan(next, catalog);
-      await commit(next, draft.baseline);
-      const updated = getPlan().keeps.find((item) => item.id === player.id);
+      await commit(next, draft.baseline, player.id, { interactive });
+      if (context() !== scope) return;
+      const updated = getPlan(player.id).keeps.find(
+        (item) => item.id === player.id,
+      );
+      state.review = false;
       if (state.revision === revision) state.draft = null;
-      else if (updated) state.draft.baseline = playerProfile(updated);
+      else if (updated) {
+        // Keep inputs changed during the upload, but adopt saved values for
+        // untouched fields so a later autosave cannot revert a merged edit.
+        for (const field of Object.keys(fields))
+          if (state.draft.fields[field] === draft.fields[field])
+            state.draft.fields[field] = String(updated[field] ?? "");
+        state.draft.details = mergePlayerProfiles(
+          { details: draft.details },
+          { details: state.draft.details },
+          { details: updated.details },
+        ).profile.details;
+        for (const field of ["skin", "avatarId"])
+          if (state.draft[field] === draft[field])
+            state.draft[field] = updated[field];
+        state.draft.baseline = playerProfile(updated);
+        renderedKey = null;
+      }
       await writeDraft(player, state.draft);
       if (updated && getPlayer() && key(getPlayer()) === id) {
         applied(updated);
@@ -175,14 +225,21 @@ export function createPlayerScreen({
         }
         render();
       }
-      status("Player saved to Drive.");
+      if (interactive) status("Player saved to Drive.");
     } catch (error) {
-      status(error.message, true);
+      state.review = !!error.review || [409, 412].includes(error.status);
+      state.error = error.message;
+      if (interactive) status(error.message, true);
     } finally {
       saving = false;
+      state.saving = false;
       paintStatus();
       draftChanged();
     }
+  }
+  form.onsubmit = (event) => {
+    event.preventDefault();
+    return save(getPlayer());
   };
   $("player-discard-draft").onclick = async () => {
     const player = getPlayer();
@@ -196,6 +253,8 @@ export function createPlayerScreen({
     }
     state.revision++;
     state.draft = null;
+    state.error = null;
+    state.review = false;
     renderedKey = null;
     details.reset();
     render();
@@ -289,7 +348,25 @@ export function createPlayerScreen({
   }
   return {
     render,
-    ready: () => !saving && (!getPlayer() || !entry(getPlayer()).loading),
+    autosave: async () => {
+      if (saving) return;
+      const scope = context();
+      for (const player of getPlan().keeps) {
+        if (context() !== scope) return;
+        if (canEdit(player)) await save(player, { interactive: false });
+      }
+    },
+    ready: () => !getPlayer() || !entry(getPlayer()).loading,
     hasDraft: (player = getPlayer()) => !!player && !!entry(player).draft,
+    draftStatus: (player) => {
+      const state = entry(player);
+      return !canEdit(player)
+        ? "Player draft kept · profile read-only"
+        : state.review
+          ? "Player draft · needs review"
+          : state.error
+            ? "Player draft · not saved"
+            : "Player draft · autosaving every 30 seconds";
+    },
   };
 }

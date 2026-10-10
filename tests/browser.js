@@ -1,4 +1,5 @@
 import { playerImport } from "./browser/player-import.js";
+import { autosave } from "./browser/autosave.js";
 import { teamCollaboration } from "./browser/team-collaboration.js";
 import { altOwnership } from "./browser/alts.js";
 import { teamImprovements } from "./browser/team-improvements.js";
@@ -83,6 +84,7 @@ try {
   await sharingAndRecovery({ page, driveFiles });
   await playerSharing({ browser });
   await playerImport({ browser });
+  await autosave({ browser });
   await teamCollaboration({ browser });
   await subcities({ browser });
   await subcityOwnership({ browser });

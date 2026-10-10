@@ -522,7 +522,10 @@ export function createPlanner(
     planner: $("planner"),
     toast: $("toast"),
     workspace,
-    autosave: () => workspace.autosave(),
+    autosave: async () => {
+      await players.autosave();
+      if (workspace.healthy()) await workspace.autosave();
+    },
     opened: () => {
       opening = false;
       navigation.opened();

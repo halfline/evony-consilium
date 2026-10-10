@@ -53,7 +53,7 @@ export function createPlayerWorkflow({
   const fileState = (player) => ({
     ...getWorkspace()?.players.state(player),
     ...(profile?.hasDraft(player)
-      ? { label: "Player draft unsaved · open to Save player" }
+      ? { label: profile.draftStatus(player) }
       : {}),
   });
   async function openAdd(alt = false) {
@@ -162,8 +162,8 @@ export function createPlayerWorkflow({
   }
   const cachedPlayer = () =>
     getPlan().keeps.find((player) => player.id === selection.id);
-  const editingPlan = () =>
-    getWorkspace()?.profiles.editingPlan(selection.id) || getPlan();
+  const editingPlan = (id = selection.id) =>
+    getWorkspace()?.profiles.editingPlan(id) || getPlan();
   const fileControls = createPlayerFileControls({
     root: roots.profile,
     dialog: roots.sync,
@@ -181,8 +181,9 @@ export function createPlayerWorkflow({
   });
   profile = createPlayerScreen({
     root: roots.profile,
-    canEdit: () => !!getWorkspace()?.players.state(cachedPlayer()).canEdit,
-    context: () => getWorkspace()?.account?.sub,
+    canEdit: (player = cachedPlayer()) =>
+      !!getWorkspace()?.players.state(player).canEdit,
+    context: () => getWorkspace()?.key(),
     readDraft: (player) => getWorkspace().readEditorDraft(player),
     writeDraft: (player, draft) =>
       getWorkspace().writeEditorDraft(player, draft),
@@ -201,13 +202,22 @@ export function createPlayerWorkflow({
     getAvatars,
     browseCastle,
     browseAvatar: avatars.open,
-    commit: async (next, baseline) => {
-      const player = next.keeps.find((player) => player.id === selection.id);
+    commit: async (next, baseline, id, { interactive }) => {
+      const player = next.keeps.find((player) => player.id === id);
       roots.profile.setAttribute("aria-busy", "true");
       try {
         await getWorkspace().profiles.save(
           player,
-          fileControls.resolve,
+          interactive
+            ? fileControls.resolve
+            : async () => {
+                throw Object.assign(
+                  new Error(
+                    "Player changes need review. Use Save player to resolve them.",
+                  ),
+                  { status: 409, review: true },
+                );
+              },
           baseline,
         );
       } finally {
@@ -221,6 +231,7 @@ export function createPlayerWorkflow({
     },
   });
   return {
+    autosave: () => profile.autosave(),
     renderList: () => {
       list.render();
       alts.render();
