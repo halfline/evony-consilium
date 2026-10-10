@@ -750,6 +750,10 @@
   align-self: start;
   margin-top: 54px;
 }
+#players .add-player-icon:only-child,
+#alts .add-player-icon:only-child {
+  margin-top: 0;
+}
 @media (max-width: 600px) {
   #players,
   #alts {

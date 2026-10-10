@@ -17,6 +17,7 @@ export function createPlayersScreen({
   const $ = view(root);
   const grid = $(alts ? "alts" : "players");
   const addButton = $(alts ? "add-alt" : "add-player");
+  const actionRow = addButton.parentElement;
   addButton.onclick = add;
   search.oninput = render;
   bindTileActions(grid, {
@@ -126,13 +127,18 @@ export function createPlayersScreen({
       $("alts-list-empty").textContent = query
         ? "No matching alts."
         : "No alts yet.";
+      actionRow.hidden = hasOwner && players.length > 0;
     } else {
       $("players-empty").hidden = players.length > 0;
       $("players-empty").textContent = query
         ? "No matching players."
         : "No players yet.";
+      actionRow.hidden = players.length > 0;
     }
-    grid.replaceChildren(...players.map(tile));
+    grid.replaceChildren(
+      ...players.map((player) => tile(player, query)),
+      addButton,
+    );
   }
   return { render };
 }

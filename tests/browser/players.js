@@ -130,6 +130,16 @@ export async function playerCreation({ page, playersScreen }) {
     "No matching players.",
   );
   await page.locator("#players-search").fill("");
+  assert.equal(
+    await page
+      .locator("#add-player")
+      .evaluate((button) => button.parentElement.id),
+    "players",
+  );
+  assert.equal(
+    await page.locator("#players").evaluate((grid) => grid.lastElementChild.id),
+    "add-player",
+  );
   for (const width of [390, 392]) {
     await page.setViewportSize({ width, height: 844 });
     const cards = await page
