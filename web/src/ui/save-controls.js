@@ -1,3 +1,4 @@
+import { paintStatusBadge } from "./status-badge.js";
 export function createSaveControls({ button, reload, status }) {
   return ({ disabled, label, saving, conflict, dirty, readOnly, error }) => {
     button.disabled = disabled;
@@ -6,20 +7,41 @@ export function createSaveControls({ button, reload, status }) {
     button.textContent = label;
     button.setAttribute("aria-busy", String(saving));
     reload.hidden = !conflict;
-    if (status)
-      status.textContent = conflict
-        ? dirty
-          ? "Team changes need review · Save team"
-          : "New team version available"
+    if (status) {
+      const state = conflict
+        ? "warning"
         : saving
-          ? "Saving team…"
+          ? "saving"
           : readOnly
-            ? "Team read-only"
+            ? "readonly"
             : error
-              ? "Team not saved · retrying automatically"
+              ? "error"
               : dirty
-                ? "Team changes · autosaving every 30 seconds"
-                : "Team saved";
-    if (status) status.title = error || "";
+                ? "draft"
+                : "saved";
+      const text = conflict
+        ? "Team · Review"
+        : saving
+          ? "Team · Saving"
+          : readOnly
+            ? "Team · Read-only"
+            : error
+              ? "Team · Not saved"
+              : dirty
+                ? "Team · Draft"
+                : "Team · Saved";
+      const detail =
+        error ||
+        (conflict
+          ? "Team changes need review. Use Save team to resolve them."
+          : saving
+            ? "Saving team to Drive."
+            : readOnly
+              ? "This team is read-only."
+              : dirty
+                ? "Team changes are autosaving every 30 seconds."
+                : "Team saved to Drive.");
+      paintStatusBadge(status, text, state, detail);
+    }
   };
 }
