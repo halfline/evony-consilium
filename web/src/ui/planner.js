@@ -194,7 +194,14 @@ export function createPlanner(
       status: (...args) => toast(...args),
     });
   }
-  const toast = createNotifier($("toast"));
+  const toast = createNotifier($("toast"), {
+    place: (element) => {
+      const anchor = $("planner").hidden
+        ? $("entry").querySelector(".entry-header")
+        : $("planner").querySelector(".workflow-nav");
+      anchor.after(element);
+    },
+  });
   const catalogBrowser = createCatalogBrowser({
     variantDialog: $("variant-dialog"),
     root: $("catalog-dialog"),

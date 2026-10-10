@@ -1267,6 +1267,37 @@ dialog form > label {
   overflow-y: auto;
   background: var(--panel);
 }
+.toast {
+  position: static;
+  left: auto;
+  bottom: auto;
+  transform: none;
+  align-self: stretch;
+  flex-shrink: 0;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  padding: 10px 24px;
+  border: 0;
+  border-bottom: 1px solid #b6d3a640;
+  border-radius: 0;
+  background: #294232;
+  box-shadow: none;
+  color: #e4efd9;
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: left;
+}
+.toast.error {
+  background: #482d24;
+  color: #ffe0d0;
+  border-color: #e2a18c70;
+}
+.entry > .toast {
+  width: min(100%, 880px);
+  border-radius: 12px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
