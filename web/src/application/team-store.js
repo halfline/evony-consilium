@@ -86,6 +86,23 @@ export class TeamStore {
     change(next);
     return this.commit(next);
   }
+  refresh(input, rebaseHistory = (plan) => plan) {
+    const next = this.prepare(
+      validatePlan(structuredClone(input), this.catalog),
+    );
+    this.#history = this.#history.flatMap((snapshot) => {
+      try {
+        return [
+          this.prepare(validatePlan(rebaseHistory(snapshot), this.catalog)),
+        ];
+      } catch {
+        return [];
+      }
+    });
+    this.#plan = next;
+    this.refreshAssets();
+    this.emit("refresh");
+  }
   openMap(id) {
     this.#plan = readonly(ensureRallySetter(selectMapPlan(this.#plan, id)));
     this.refreshAssets();

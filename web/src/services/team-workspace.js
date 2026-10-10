@@ -6,9 +6,14 @@ import { loadTeamFiles, loadPlayerFolder } from "./team-files.js";
 import { ProjectSync } from "./project-sync.js";
 import { DraftQueue } from "../persistence/draft-queue.js";
 import { teamDraftKey, resolveTeamDraft } from "../persistence/team-draft.js";
-import { projectFingerprint } from "../domain/map-plans.js";
+import {
+  teamFingerprint,
+  mergeTeamPlans,
+  applyProfileCaches,
+} from "../domain/team-collaboration.js";
 import { createEmptyPlan } from "../domain/plan.js";
-import { parseDriveLink } from "../domain/drive-links.js";
+import { parseTeamLink } from "../domain/drive-links.js";
+import { isFileAccessError } from "./google/drive.js";
 
 // Account and shared-document lifetime; callers supply presentation callbacks.
 export class TeamWorkspace {
@@ -54,6 +59,9 @@ export class TeamWorkspace {
     getPlan,
     getPlayer = () => null,
     commitPlan,
+    refreshPlan = commitPlan,
+    applyPlan = null,
+    resolveTeamConflicts = async () => null,
     validatePlan = () => {},
     isEditingPlayer = () => false,
     playersChanged = () => {},
@@ -74,6 +82,7 @@ export class TeamWorkspace {
       openPlan,
       setReadOnly,
       status,
+      refreshPlan,
     });
     this.account = null;
     this.project = null;
@@ -90,6 +99,12 @@ export class TeamWorkspace {
     this.drafts = new DraftQueue((data, key) => repository.write(data, key), {
       onError: () => status("Local backup unavailable.", true),
     });
+    this.editorDrafts = new DraftQueue(
+      (data, key) => repository.write(data, key),
+      {
+        onError: () => status("Player draft backup unavailable.", true),
+      },
+    );
     this.sync = new ProjectSync({
       drive,
       getPlan,
@@ -102,7 +117,11 @@ export class TeamWorkspace {
         changed(state);
         if (this.sync?.file) setReadOnly(!this.sync.file.capabilities?.canEdit);
       },
-      fingerprint: projectFingerprint,
+      fingerprint: teamFingerprint,
+      merge: mergeTeamPlans,
+      applyPlan,
+      validate: validatePlan,
+      resolve: resolveTeamConflicts,
       status,
       expired,
       canCheck: () => canCheck() && !!session.token(),
@@ -111,6 +130,7 @@ export class TeamWorkspace {
       workspace: this,
       getPlan,
       commitPlan,
+      refreshPlan,
       validatePlan,
       isEditing: isEditingPlayer,
     });
@@ -120,9 +140,7 @@ export class TeamWorkspace {
       sync: this.sync,
       getPlan,
       isEditing: isEditingPlayer,
-      save: () => this.save(),
-      discover: (before, current) =>
-        this.profiles.collectFolder(before, current),
+      save: (updates) => this.publishPlayers(updates),
       status,
     });
   }
@@ -135,8 +153,43 @@ export class TeamWorkspace {
         )
       : null;
   }
+  publishPlayers(updates) {
+    return this.sync.publish((plan) => applyProfileCaches(plan, updates));
+  }
   flush() {
-    return this.drafts.flush();
+    return Promise.all([this.drafts.flush(), this.editorDrafts.flush()]);
+  }
+  editorKey(player) {
+    return `consilium-player-editor:${this.account?.sub}:${player.playerSource?.fileId || player.id}`;
+  }
+  async readEditorDraft(player) {
+    const account = this.account?.sub,
+      id = player.playerSource?.fileId;
+    const draft = await this.repository.read(this.editorKey(player));
+    if (draft || !id) return draft;
+    const submitted = await this.repository.read(
+      `consilium-player:${account}:${id}`,
+    );
+    if (!submitted?.profile) return null;
+    return {
+      baseline: submitted.baseline,
+      fields: Object.fromEntries(
+        ["name", "accountId", "allianceTag", "level"].map((field) => [
+          field,
+          String(submitted.profile[field] ?? ""),
+        ]),
+      ),
+      details: submitted.profile.details,
+      skin: submitted.profile.skin,
+      avatarId: submitted.profile.avatarId,
+    };
+  }
+  async discardPlayerDraft(player) {
+    await this.writeEditorDraft(player, null);
+    await this.players.discardDraft(player);
+  }
+  writeEditorDraft(player, draft) {
+    return this.editorDrafts.writeNow(draft, this.editorKey(player));
   }
   persist() {
     const key = this.key();
@@ -181,7 +234,7 @@ export class TeamWorkspace {
     throw error;
   }
   remember() {
-    const plan = this.getPlan();
+    const plan = this.sync.basePlan || this.getPlan();
     this.project.folder.name = plan.title;
     this.project.folder.logo = plan.projectLogo || "";
     this.repository.remember(this.account.sub, this.project.folder);
@@ -220,7 +273,7 @@ export class TeamWorkspace {
         key,
       );
     current();
-    this.sync.opened(draft.file, plan, file.version);
+    this.sync.opened(draft.file, plan, file.version, draft.basePlan);
     this.remember();
     const opened = new Set(this.repository.openedPlayers?.(account.sub) || []);
     // Only revisit files this account explicitly opened; viewers need just the team grant.
@@ -234,18 +287,27 @@ export class TeamWorkspace {
     const current = this.#begin();
     const file = this.sync.file;
     if (!file) throw new Error("Open a team first.");
-    const [selected] = await this.picker.files(null, file);
-    current();
-    if (selected.id !== file.id) throw new Error("Choose this team's file.");
-    selected.resourceKey ||= file.resourceKey || "";
-    const latest = await this.drive.metadata(selected);
+    let latest;
+    try {
+      latest = await this.drive.metadata(file);
+    } catch (error) {
+      if (!isFileAccessError(error)) throw error;
+      this.status(
+        "Choose this team's document to reconnect it. Editor access must be granted by its owner in Drive.",
+      );
+      const [selected] = await this.picker.files(null, file);
+      current();
+      if (selected.id !== file.id) throw new Error("Choose this team's file.");
+      selected.resourceKey ||= file.resourceKey || "";
+      latest = await this.drive.metadata(selected);
+    }
     current();
     file.capabilities = latest.capabilities;
     this.setReadOnly(!latest.capabilities?.canEdit);
     this.sync.notify();
     if (!latest.capabilities?.canEdit)
       throw new Error(
-        "The team is still read-only. Ask an admin to grant you write access in Drive, then unlock again.",
+        "The team is still read-only. Ask its owner for Editor access to the team document in Drive, then check access again.",
       );
     // Preserve the local snapshot; a different shared version follows normal conflict handling.
     await this.sync.checkRemote();
@@ -292,7 +354,7 @@ export class TeamWorkspace {
   }
   async join(link) {
     this.authorize();
-    if (link) return this.open(parseDriveLink(link));
+    if (link) return this.open(parseTeamLink(link));
     const current = this.#begin();
     const [selected] = await this.picker.files(null);
     current();

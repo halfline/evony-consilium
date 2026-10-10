@@ -1,4 +1,4 @@
-import { ProjectAccessError } from "./google/drive.js";
+import { ProjectAccessError, isFileAccessError } from "./google/drive.js";
 
 // Resolve folder/file grants and load the authoritative team document.
 // Picker remains an explicit user action; this service has no DOM dependencies.
@@ -12,10 +12,7 @@ export async function loadTeamFiles({
   try {
     project = await drive.project(folder);
   } catch (error) {
-    if (
-      !(error instanceof ProjectAccessError) &&
-      ![403, 404].includes(error.status)
-    )
+    if (!(error instanceof ProjectAccessError) && !isFileAccessError(error))
       throw error;
     authorizeFiles();
     const selected = await picker.files(
@@ -59,6 +56,7 @@ export async function loadPlayerFolder({
     );
   const resource = {
     id,
+    name: project.folder.name,
     resourceKey:
       project.folder.id === id ? project.folder.resourceKey || "" : "",
   };
@@ -68,7 +66,7 @@ export async function loadPlayerFolder({
     current();
   } catch (error) {
     current();
-    if (![403, 404].includes(error.status)) throw error;
+    if (!isFileAccessError(error)) throw error;
     if (!interactive)
       throw new Error(
         "Team folder access changed. Close the form and choose Add again to reconnect.",
