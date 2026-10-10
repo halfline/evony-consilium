@@ -38,6 +38,8 @@ export function createPlayerScreen({
   const $ = view(root),
     form = $("player-form"),
     details = createPlayerDetails({ root });
+  // Handle invalid inputs ourselves so a field on a hidden tab can be shown.
+  form.noValidate = true;
   const entries = new Map();
   const fields = {
     name: "player-name",
@@ -158,10 +160,21 @@ export function createPlayerScreen({
     if (!interactive && (!entry(player).draft || entry(player).review)) return;
     const visible = getPlayer() && key(getPlayer()) === key(player);
     if (visible) {
-      if (!interactive && !form.checkValidity()) {
+      if (!form.checkValidity()) {
         entry(player).error =
           "Complete the required fields before this player can be saved.";
         paintStatus();
+        if (interactive) {
+          const invalid = form.querySelector(":invalid");
+          const panel = invalid?.closest("[data-player-panel]");
+          if (panel)
+            root
+              .querySelector(`[data-player-tab="${panel.dataset.playerPanel}"]`)
+              ?.click();
+          invalid?.focus();
+          invalid?.reportValidity();
+          status("Check the highlighted player field before saving.", true);
+        }
         return;
       }
       capture();

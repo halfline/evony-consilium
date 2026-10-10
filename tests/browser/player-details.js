@@ -8,6 +8,23 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
   );
   assert.equal(await page.locator("#player-save-status").textContent(), "");
   assert.equal(await page.locator("#player-save").isDisabled(), true);
+  await page.locator('[data-player-tab="buffs"]').click();
+  await page.locator('[data-buff="city.ground.attack"]').fill("-1");
+  await page.locator('[data-player-tab="overview"]').click();
+  await page.locator("#player-save").click();
+  assert.equal(
+    await page
+      .locator('[data-player-tab="buffs"]')
+      .getAttribute("aria-selected"),
+    "true",
+  );
+  assert.equal(
+    await page
+      .locator('[data-buff="city.ground.attack"]')
+      .evaluate((input) => input === document.activeElement),
+    true,
+  );
+  await page.locator('[data-buff="city.ground.attack"]').fill("");
   assert.equal(await page.locator("#player-rally-capacity").isVisible(), false);
   await page.locator('[data-player-tab="rally-capacity"]').click();
   await page.locator("#player-rally-capacity").fill("12000000");
