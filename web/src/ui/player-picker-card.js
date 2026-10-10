@@ -1,6 +1,10 @@
 import { renderPortrait } from "./portrait.js";
 
-export function playerPickerCard(player, getAvatars, { details = false } = {}) {
+export function playerPickerCard(
+  player,
+  getAvatars,
+  { details = false, query = "" } = {},
+) {
   const catalog = getAvatars();
   const avatar =
     catalog.avatars.find((item) => item.id === player.avatarId) ||
@@ -14,9 +18,11 @@ export function playerPickerCard(player, getAvatars, { details = false } = {}) {
   const name = document.createElement("strong");
   name.textContent = `${player.allianceTag ? `[${player.allianceTag}] ` : ""}${player.name}`;
   button.append(portrait, name);
-  if (details) {
+  const matchingId =
+    query && player.accountId?.toLowerCase().includes(query.toLowerCase());
+  if (details || matchingId) {
     const detail = document.createElement("small");
-    detail.textContent = `K${player.level}${player.accountId ? ` · ID ${player.accountId}` : ""}`;
+    detail.textContent = `${details ? `K${player.level}` : ""}${matchingId ? `${details ? " · " : ""}ID ${player.accountId}` : ""}`;
     button.append(detail);
   }
   return button;
