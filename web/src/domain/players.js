@@ -70,6 +70,32 @@ export function removePlayer(plan, id) {
   return syncMapLayouts(next);
 }
 
+// Ownership belongs to the team roster, independently of central profile files.
+export function validatePlayerOwnership(players) {
+  for (const player of players) {
+    if (player.ownerId == null) continue;
+    const owner = players.find((item) => item.id === player.ownerId);
+    if (!owner || owner.id === player.id || owner.ownerId != null)
+      throw new Error("Alts must belong to a regular player on the team.");
+  }
+}
+
+export function assignPlayerOwner(plan, id, ownerId) {
+  const next = structuredClone(plan);
+  const player = next.keeps.find((item) => item.id === id);
+  if (!player) throw new Error("Player not found.");
+  if (ownerId == null) delete player.ownerId;
+  else {
+    const owner = next.keeps.find((item) => item.id === ownerId);
+    if (!owner || owner.id === id || owner.ownerId != null)
+      throw new Error("Choose a regular player as the owner.");
+    player.ownerId = ownerId;
+    for (const alt of next.keeps) if (alt.ownerId === id) alt.ownerId = ownerId;
+  }
+  validatePlayerOwnership(next.keeps);
+  return next;
+}
+
 export function addPlayer(plan, player) {
   validatePlayerProfile(player);
   if (!player.name.trim()) throw new Error("Enter a player name.");
