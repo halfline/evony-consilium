@@ -31,7 +31,17 @@ export function drawEntity(view, e, p, z, fixed, { deferLabel = false } = {}) {
         top: center.y - 7,
         bottom: center.y + 7,
       });
-    return;
+    return {
+      e,
+      p,
+      z,
+      major,
+      spriteZoom,
+      center,
+      top: center.y,
+      rally,
+      selected,
+    };
   }
   view.path(e);
   if (obstacle) {
@@ -116,17 +126,28 @@ export function drawEntity(view, e, p, z, fixed, { deferLabel = false } = {}) {
       top: top - 10,
       bottom: center.y + Math.max(25, 35 * z),
     });
-  const labelData = { e, p, z, major, spriteZoom, center, top, rally };
+  const labelData = {
+    e,
+    p,
+    z,
+    major,
+    spriteZoom,
+    center,
+    top,
+    rally,
+    selected,
+  };
   if (!deferLabel) drawEntityLabel(view, labelData);
   return labelData;
 }
 
 export function drawEntityLabel(
   view,
-  { e, p, z, major, spriteZoom, center, top, rally },
+  { e, p, z, major, spriteZoom, center, top, rally, selected },
+  occupied = null,
 ) {
   const c = view.ctx;
-  if (p.labels && (z > 0.16 || major)) {
+  if (p.labels && (z > 0.25 || major || selected || rally)) {
     const label =
       (rally ? "★ " : "") +
       (e.allianceTag ? "[" + e.allianceTag + "] " : "") +
@@ -137,12 +158,29 @@ export function drawEntityLabel(
     c.textBaseline = "middle";
     const text = label.length > 32 ? label.slice(0, 31) + "…" : label;
     const tw = c.measureText(text).width;
-    const ly = center.y + 24 * spriteZoom;
+    const ly = center.y + Math.max(14, 24 * spriteZoom);
+    const bounds = {
+      left: center.x - tw / 2 - 7,
+      right: center.x + tw / 2 + 7,
+      top: ly - 8,
+      bottom: ly + 9,
+    };
+    if (
+      occupied?.some(
+        (rect) =>
+          bounds.left < rect.right &&
+          bounds.right > rect.left &&
+          bounds.top < rect.bottom &&
+          bounds.bottom > rect.top,
+      )
+    )
+      return;
+    occupied?.push(bounds);
     c.fillStyle = "#132218dd";
-    c.fillRect(center.x - tw / 2 - 7, ly - 8, tw + 14, 17);
+    c.fillRect(bounds.left, bounds.top, tw + 14, 17);
     c.fillStyle = rally ? "#f1d28b" : "#e9f0db";
     c.fillText(text, center.x, ly + 0.5);
-    if ("level" in e) {
+    if ("level" in e && z >= 0.16) {
       c.font = `600 ${Math.max(8, 10 * z)}px "DM Sans", sans-serif`;
       c.fillStyle = "#efe3b5";
       c.strokeStyle = "#18251d";
@@ -151,4 +189,14 @@ export function drawEntityLabel(
       c.fillText("K" + e.level, center.x, top + 7);
     }
   }
+}
+
+export function paintEntityLabels(view, labels) {
+  const priority = (label) =>
+    label.selected ? 0 : label.rally ? 1 : label.major ? 2 : 3;
+  const occupied = [];
+  for (const label of [...labels].sort(
+    (a, b) => priority(a) - priority(b) || b.center.y - a.center.y,
+  ))
+    drawEntityLabel(view, label, occupied);
 }

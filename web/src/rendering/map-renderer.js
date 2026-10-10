@@ -1,6 +1,6 @@
 import { drawSubcities } from "./subcity-painter.js";
 import { drawTerrain, drawMoatOverlay } from "./terrain-painter.js";
-import { drawEntity, drawEntityLabel } from "./entity-painter.js";
+import { drawEntity, paintEntityLabels } from "./entity-painter.js";
 import { ImageCache } from "./image-cache.js";
 import { project, unproject } from "../domain/geometry.js";
 export class MapRenderer {
@@ -269,7 +269,7 @@ export class MapRenderer {
     vignette.addColorStop(1, "#14241b55");
     c.fillStyle = vignette;
     c.fillRect(0, 0, this.width, this.height);
-    for (const label of labels) drawEntityLabel(this, label);
+    paintEntityLabels(this, labels);
     if (this.selectionBox) {
       const { x, y, w, h } = this.selectionBox;
       c.fillStyle = "#e7d59722";
