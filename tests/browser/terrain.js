@@ -55,6 +55,11 @@ export async function terrainAndMobile({ page, formationScreen }) {
   await page.screenshot({ path: "test-results/desktop.png" });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(200);
+  const mobileMap = await page.locator(".map-section").boundingBox();
+  const mobileRoster = await page.locator("#formation-sidebar").boundingBox();
+  assert.equal(mobileMap.y < mobileRoster.y, true);
+  assert.equal(mobileMap.y < 844, true);
+  assert.equal(await page.locator(".mobile-roster-link").isVisible(), true);
   await page.screenshot({ path: "test-results/mobile.png", fullPage: true });
   assert.equal(
     await page.evaluate(

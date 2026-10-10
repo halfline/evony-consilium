@@ -186,6 +186,10 @@ a {
   height: calc(100dvh - 82px);
   display: flex;
 }
+.mobile-roster-link,
+.mobile-map-link {
+  display: none;
+}
 .sidebar {
   width: 350px;
   flex-shrink: 0;
@@ -812,6 +816,26 @@ code {
     height: auto;
     min-height: calc(100dvh - 100px);
     flex-direction: column;
+  }
+  #formation-screen .map-section {
+    order: -1;
+  }
+  .mobile-roster-link,
+  .mobile-map-link {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    min-height: 36px;
+    color: var(--gold);
+    font-size: 12px;
+    text-decoration: none;
+  }
+  .mobile-map-link {
+    margin-left: auto;
+  }
+  #formation-sidebar,
+  #map-surface {
+    scroll-margin-top: 12px;
   }
   .sidebar {
     width: 100%;
