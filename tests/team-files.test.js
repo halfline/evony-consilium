@@ -170,7 +170,7 @@ test("folder access reuses a grant without Picker and retains resource keys", as
   assert.equal(folder.teamFileResourceKey, "team-key");
 });
 
-test("form submission with lost folder access fails without opening Picker", async () => {
+test("folder preflight with lost access signals that Picker is needed", async () => {
   await assert.rejects(
     loadPlayerFolder({
       project: { folder: { id: "central" } },
@@ -186,6 +186,8 @@ test("form submission with lost folder access fails without opening Picker", asy
           assert.fail("Submission must not open Picker behind the modal"),
       },
     }),
-    /choose Add again/,
+    (error) =>
+      error.code === "team_folder_picker_needed" &&
+      /Try adding the player again/.test(error.message),
   );
 });

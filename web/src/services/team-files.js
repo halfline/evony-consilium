@@ -68,8 +68,9 @@ export async function loadPlayerFolder({
     current();
     if (!isFileAccessError(error)) throw error;
     if (!interactive)
-      throw new Error(
-        "Team folder access changed. Close the form and choose Add again to reconnect.",
+      throw Object.assign(
+        new Error("Team folder access changed. Try adding the player again."),
+        { code: "team_folder_picker_needed" },
       );
     status("Choose the central team folder to load and add players.");
     const selected = await picker.folder(resource);
