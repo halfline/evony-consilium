@@ -1,15 +1,24 @@
 import { OperationCancelled } from "./cancellation.js";
 import { addPlayer } from "../domain/players.js";
 import { applyPlayerProfile, linkedPlayer } from "../domain/player-document.js";
+import { applyProfileCaches } from "../domain/team-collaboration.js";
 
 // Coordinates authoritative profile files and their read-only team cache.
 // Views supply only presentation decisions; plan mutations use injected transactions.
 export class PlayerProfiles {
-  constructor({ workspace, getPlan, commitPlan, validatePlan, isEditing }) {
+  constructor({
+    workspace,
+    getPlan,
+    commitPlan,
+    refreshPlan = commitPlan,
+    validatePlan,
+    isEditing,
+  }) {
     Object.assign(this, {
       workspace,
       getPlan,
       commitPlan,
+      refreshPlan,
       validatePlan,
       isEditing,
     });
@@ -65,7 +74,14 @@ export class PlayerProfiles {
     const player = this.player(id);
     if (!player) throw new Error("Player is no longer on the team.");
     this.workspace.authorize();
-    if (player.playerSource) return this.workspace.players.open(player);
+    if (player.playerSource) {
+      await this.workspace.players.probe(player, true);
+      if (this.workspace.players.state(player).connected) return;
+      this.workspace.status?.(
+        "Choose this player's file to connect it. Editing requires Editor access from its owner in Drive.",
+      );
+      return this.workspace.players.open(player);
+    }
     if (!this.canEditTeam())
       throw new Error(
         "Ask an admin to create this player's central file before unlocking.",
@@ -82,26 +98,36 @@ export class PlayerProfiles {
       );
     this.replaceCached(linked);
   }
-  async save(player, resolve) {
+  async save(player, resolve, baseline) {
     if (!this.workspace.players.state(player).canEdit)
       throw new Error(
-        "Unlock this player with write access to edit its profile.",
+        "Connect this player's file with Editor access to edit its profile.",
       );
-    const current = this.context(),
-      before = JSON.stringify(this.player(player.id));
-    await this.workspace.players.saveOwn(player, resolve);
+    const current = this.context();
+    await this.workspace.players.saveOwn(player, resolve, baseline);
     current();
-    if (this.canEditTeam()) {
-      const cached = this.player(player.id);
-      if (JSON.stringify(cached) !== before)
-        throw new Error(
-          "Player saved, but the team changed. Its cache will refresh automatically.",
-        );
-      this.replaceCached(this.workspace.players.cachedPlayer(cached));
+    const cached = this.player(player.id);
+    if (cached) {
+      const update = this.workspace.players.cachedPlayer(cached);
+      const next = applyProfileCaches(this.getPlan(), [update]);
+      this.validatePlan(next);
+      this.refreshPlan(next, (snapshot) =>
+        applyProfileCaches(snapshot, [update]),
+      );
+      if (this.canEditTeam()) {
+        try {
+          await this.workspace.publishPlayers?.([update]);
+        } catch (error) {
+          this.workspace.status?.(
+            "Player saved. Team cache publication will retry: " + error.message,
+            true,
+          );
+        }
+      }
     }
   }
   async collectCache(player) {
-    if (!this.canEditTeam() || this.isEditing()) throw new OperationCancelled();
+    if (this.isEditing()) throw new OperationCancelled();
     return this.workspace.players.refreshCache(player, (profile) => {
       if (this.isEditing()) throw new OperationCancelled();
       const next = structuredClone(this.getPlan());
@@ -111,75 +137,56 @@ export class PlayerProfiles {
       this.validatePlan(next);
     });
   }
-  async collectFolder(before, current) {
-    const folder = this.workspace.project?.folder;
-    if (!folder || folder.id === this.workspace.sync.file?.id) return [];
-    let files;
-    try {
-      files = await this.workspace.drive.children(folder);
-      current();
-    } catch (error) {
-      current();
-      if ([403, 404].includes(error.status)) return [];
-      throw error;
-    }
-    const known = new Set([
-      ...before.keeps.map((player) => player.playerSource?.fileId),
-      ...(before.excludedPlayerFileIds || []),
-    ]);
-    const additions = [];
-    let candidate = before;
-    for (const file of files) {
-      current();
-      if (!file.name?.endsWith(".player.consilium.json") || known.has(file.id))
-        continue;
-      try {
-        const loaded = await this.workspace.drive.loadPlayer(file);
-        current();
-        const player = linkedPlayer(
-          {
-            id: crypto.randomUUID(),
-            w: 2,
-            h: 2,
-            x: null,
-            y: null,
-            locked: false,
-          },
-          loaded.profile,
-          loaded.file,
-        );
-        const next = addPlayer(candidate, player);
-        // Validation resolves the profile's castle and statistics at the trust boundary.
-        this.validatePlan(next);
-        additions.push(player);
-        candidate = next;
-        known.add(file.id);
-      } catch (error) {
-        current();
-        if (error instanceof OperationCancelled || error.status === 401)
-          throw error;
-        this.workspace.status(
-          `Could not load ${file.name}: ${error.message}`,
-          true,
-        );
-      }
-    }
-    return additions;
-  }
-  commitCaches(before, updates, additions = []) {
-    if (!this.canEditTeam() || this.isEditing() || this.getPlan() !== before)
+  commitCaches(before, updates) {
+    if (this.isEditing() || this.getPlan() !== before)
       throw new OperationCancelled();
     const changed = updates.filter(
       (player) => player !== before.keeps.find((item) => item.id === player.id),
     );
-    if (!changed.length && !additions.length) return false;
-    let next = structuredClone(before);
-    for (const player of additions) next = addPlayer(next, player);
-    for (const player of changed)
-      next.keeps[next.keeps.findIndex((item) => item.id === player.id)] =
-        player;
+    if (!changed.length) return false;
+    const next = applyProfileCaches(before, changed);
+    this.validatePlan(next);
+    this.refreshPlan(next, (snapshot) => applyProfileCaches(snapshot, changed));
+    return true;
+  }
+  async import() {
+    if (!this.canEditTeam())
+      throw new Error(
+        "Team Editor access is needed to add an existing player.",
+      );
+    this.workspace.authorize();
+    const current = this.context();
+    const folder = this.workspace.project.folder;
+    if (folder.id === this.workspace.sync.file.id)
+      throw new Error(
+        "Move the team document into a folder before linking players.",
+      );
+    this.workspace.status(
+      "Choose an existing player profile in this team's folder. Roster membership is published with Save team.",
+    );
+    const loaded = await this.workspace.players.open(null, folder);
+    current();
+    if (!this.canEditTeam())
+      throw new Error(
+        "Team access changed. Reopen the team before adding players.",
+      );
+    if (
+      this.getPlan().keeps.some(
+        (player) => player.playerSource?.fileId === loaded.file.id,
+      )
+    )
+      throw new Error("This player is already on the team.");
+    const player = linkedPlayer(
+      { id: crypto.randomUUID(), w: 2, h: 2, x: null, y: null, locked: false },
+      loaded.profile,
+      loaded.file,
+    );
+    const next = addPlayer(this.getPlan(), player);
+    next.excludedPlayerFileIds = (next.excludedPlayerFileIds || []).filter(
+      (id) => id !== loaded.file.id,
+    );
     this.validatePlan(next);
     this.commitPlan(next);
-    return true;
+    return player;
   }
 }
