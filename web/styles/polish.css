@@ -216,6 +216,311 @@ h2 {
 .workflow-nav .tab-search input {
   min-height: 0;
   font-size: 14px;
+}
+.subcity-filters {
+  gap: 8px;
+}
+.subcity-filters select {
+  min-height: 38px;
+  font-size: 13px;
+}
+.players-screen {
+  max-width: 1240px;
+  padding: 36px 32px;
+}
+.collection-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+  margin-bottom: 32px;
+}
+.collection-heading h1 {
+  margin-bottom: 8px;
+}
+.collection-summary {
+  font-size: 13px;
+}
+.collection-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.collection-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  white-space: nowrap;
+}
+.view-toggle {
+  display: flex;
+  padding: 3px;
+  gap: 2px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.view-toggle button {
+  width: 36px;
+  min-height: 36px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+}
+.view-toggle button[aria-pressed="true"] {
+  color: var(--gold);
+  background: var(--panel-raised);
+  box-shadow: 0 1px 4px #0003;
+}
+.collection-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 320px;
+  padding: 40px 24px;
+  text-align: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: linear-gradient(160deg, #213b2c70, #15261c40);
+}
+.collection-empty > .muted {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  color: var(--text);
+  font-size: 28px;
+}
+.empty-emblem {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  margin-bottom: 20px;
+  color: var(--gold);
+  background: var(--panel-raised);
+  border: 1px solid #dbc08750;
+  border-radius: 24px;
+}
+.empty-emblem svg {
+  width: 32px;
+  height: 32px;
+}
+.empty-description {
+  max-width: 380px;
+  margin-top: 10px;
+  color: var(--muted);
+}
+.collection-empty .text-button {
+  margin-top: 20px;
+}
+#players-panel,
+#alts-screen .players-panel,
+#maps-screen .players-panel {
+  width: 100%;
+}
+#subcities-screen {
+  align-items: stretch;
+}
+:is(#players, #alts, #maps-list, #subcities) {
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 24px;
+  padding: 4px;
+}
+:is(#players, #alts) .player-card,
+.map-row {
+  width: 100%;
+  min-width: 0;
+  padding: 18px 12px;
+  gap: 14px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-panel);
+  background: transparent;
+  transition:
+    background 160ms,
+    border-color 160ms;
+}
+:is(#players, #alts) .player-card:hover,
+.map-row:hover {
+  background: #263b3050;
+  border-color: var(--line);
+}
+.player-portrait,
+.team-portrait,
+.map-portrait {
+  width: 124px;
+  height: 124px;
+  border-radius: 28%;
+  background: linear-gradient(145deg, #38523f, #1b2f23);
+  border-color: #dbc08765;
+  box-shadow:
+    0 6px 16px #0002,
+    inset 0 1px 0 #ffffff0c;
+}
+:is(#players, #alts) .player-card.selected .player-portrait,
+.map-row.selected .map-portrait {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px #dbc08720;
+}
+.portrait-initials {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 2px 5px;
+  color: var(--text);
+  background: #14241dee;
+  border: 1px solid #ffffff20;
+  border-radius: 5px;
+}
+:is(#players, #alts) .player-portrait .level {
+  right: -5px;
+  bottom: -3px;
+  font-size: 12px;
+  padding: 4px 7px;
+  border-radius: 8px;
+  background: #20382b;
+}
+.profile-access-indicator {
+  top: -4px;
+  right: -4px;
+  width: 28px;
+  height: 28px;
+  background: #172a20;
+}
+.player-identity {
+  width: 100%;
+  min-height: 72px;
+  align-content: start;
+  row-gap: 4px;
+}
+:is(#players, #alts) .player-identity .name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  flex-basis: 100%;
+  font-size: 15px;
+  line-height: 1.4;
+}
+.player-tag {
+  font-size: 12px;
+  line-height: 1.4;
+  order: 1;
+}
+.player-identity .detail {
+  order: 2;
+}
+.draft-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.player-remove,
+.map-forget {
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  top: 7px;
+  right: 7px;
+}
+.player-remove svg,
+.map-forget svg {
+  width: 15px;
+  height: 15px;
+}
+.map-caption strong,
+.subcity-card > strong,
+.project-row-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  line-height: 1.4;
+}
+.map-row .map-caption {
+  min-height: 40px;
+  justify-content: center;
+  align-items: start;
+}
+.map-detail,
+.subcity-details,
+.subcity-coordinates {
+  font-size: 13px;
+  color: var(--muted);
+}
+.subcity-card {
+  gap: 6px;
+}
+.subcity-card > strong {
+  min-height: 42px;
+  font-size: 15px;
+}
+.subcity-card .subcity-portrait {
+  margin-bottom: 8px;
+  border-width: 2px;
+}
+.subcity-owner {
+  font-size: 12px;
+}
+:is(#players, #alts).compact-list {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+:is(#players, #alts).compact-list .player-card {
+  flex-direction: row;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 18px;
+  border-color: var(--line);
+  background: var(--panel);
+  text-align: left;
+}
+.compact-list .player-portrait {
+  width: 58px;
+  height: 58px;
+  padding: 3px;
+}
+:is(#players, #alts).compact-list .player-portrait .level {
+  font-size: 10px;
+  padding: 2px 4px;
+}
+.compact-list .portrait-initials {
+  display: none;
+}
+.compact-list .player-identity {
+  min-height: 0;
+  justify-content: flex-start;
+  padding-right: 30px;
+}
+:is(#players, #alts).compact-list .player-identity .name {
+  -webkit-line-clamp: 1;
+  font-size: 15px;
+}
+.compact-list .draft-badge {
+  justify-content: flex-start;
+}
+.compact-list .profile-access-indicator {
+  width: 22px;
+  height: 22px;
+}
+.compact-list .profile-access-indicator svg {
+  width: 13px;
+}
+.compact-list .player-remove {
+  top: 50%;
+  transform: translateY(-50%);
+  right: 14px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
