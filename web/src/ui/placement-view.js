@@ -5,11 +5,13 @@ const guide =
 
 export function createPlacementView({ root, selection, renderer, refresh }) {
   const $ = view(root);
+  const help = $("map-guide").closest("details");
   function reset() {
     selection.pending = null;
     renderer.preview = null;
     renderer.previews = null;
     $("map-guide").textContent = guide;
+    if (help) help.open = false;
     renderer.draw();
   }
   function select(id) {
@@ -22,6 +24,7 @@ export function createPlacementView({ root, selection, renderer, refresh }) {
     selection.pending = entity.id;
     $("map-guide").textContent =
       message || "Click a free map tile to place " + entity.name;
+    if (help) help.open = true;
   }
   return { reset, select, place };
 }

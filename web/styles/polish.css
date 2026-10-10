@@ -1086,6 +1086,187 @@ dialog form > label {
   height: 72px;
 }
 
+/* Navigation and floating map controls sit above the rich terrain. */
+#planner[data-current-screen="formation"] {
+  height: 100dvh;
+  min-height: 0;
+}
+#formation-screen {
+  height: auto;
+  flex: 1;
+  min-height: 0;
+}
+.sidebar {
+  width: 320px;
+  min-height: 0;
+  background: var(--panel);
+}
+.sidebar-heading {
+  padding: 22px 20px 18px;
+}
+.sidebar-heading h1 {
+  font-size: 27px;
+}
+.sidebar .panel {
+  padding: 22px 18px;
+  min-height: 0;
+}
+.sidebar .panel h2 {
+  font-size: 23px;
+}
+.sidebar .players-row {
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 13px;
+  background: #253b2e;
+}
+.sidebar .players-row .name {
+  font-size: 13px;
+}
+.sidebar .players-row .detail {
+  font-size: 12px;
+}
+.sidebar .players-row .level {
+  font-size: 12px;
+}
+.sidebar .panel-formation {
+  overflow-y: auto;
+}
+.map-toolbar {
+  min-height: 56px;
+  gap: 12px;
+  padding-left: 12px;
+}
+.map-picker strong {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+}
+.view-options {
+  gap: 10px;
+}
+.view-options label {
+  font-size: 12px;
+  min-height: 40px;
+}
+.view-options button {
+  min-height: 38px;
+  font-size: 12px;
+  border-radius: 9px;
+}
+#auto-place {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  padding: 0;
+  color: var(--gold);
+  border-color: #dbc08760;
+}
+.map-section {
+  min-height: 0;
+}
+.map-surface {
+  min-height: 280px;
+}
+#formation-screen .map-surface > .map-caption {
+  top: 16px;
+  left: 18px;
+  width: auto;
+  max-width: calc(100% - 88px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 10px 14px;
+  border: 1px solid #dcebd32e;
+  border-radius: 12px;
+  background: #12251de8;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 16px #0002;
+}
+#formation-screen .map-surface > .map-caption h2 {
+  font-size: 21px;
+  margin: 0;
+}
+#formation-screen .map-surface > .map-caption .eyebrow {
+  font-size: 10px;
+}
+.map-controls {
+  right: 18px;
+  bottom: 62px;
+  padding: 5px;
+  border-radius: 12px;
+  border: 1px solid #dcebd365;
+  background: #12251ded;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 16px #0003;
+}
+.map-controls button {
+  width: 36px;
+  height: 38px;
+  min-height: 38px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+}
+.map-controls span {
+  font-size: 11px;
+  padding: 5px 0;
+}
+.map-footer {
+  min-height: 38px;
+  padding: 8px 18px;
+  background: #15271eee;
+  font-size: 12px;
+  gap: 10px;
+}
+.map-help {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  z-index: 3;
+  color: var(--text);
+}
+.map-help summary {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  list-style: none;
+  border: 1px solid #dcebd365;
+  border-radius: 12px;
+  background: #12251de8;
+  cursor: pointer;
+  font-size: 17px;
+}
+.map-help summary::-webkit-details-marker {
+  display: none;
+}
+.map-help .map-guide {
+  position: absolute;
+  top: 50px;
+  left: auto;
+  right: 0;
+  bottom: auto;
+  transform: none;
+  width: min(300px, calc(100vw - 50px));
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #12251df5;
+  white-space: normal;
+  line-height: 1.6;
+  font-size: 13px;
+  box-shadow: var(--shadow-float);
+}
+#map-editor .inspector {
+  padding: 20px;
+  max-height: 40vh;
+  overflow-y: auto;
+  background: var(--panel);
+}
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
