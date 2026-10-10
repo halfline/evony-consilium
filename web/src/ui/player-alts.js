@@ -34,8 +34,8 @@ export function createPlayerAlts({
       `${player.name} ${player.accountId} ${player.allianceTag}`
         .toLowerCase()
         .includes(query),
-    renderCard: (player) =>
-      playerPickerCard(player, getAvatars, { details: true }),
+    renderCard: (player, query) =>
+      playerPickerCard(player, getAvatars, { details: true, query }),
     closeOnSelect: false,
   });
   function accountButton(player, className, open) {
