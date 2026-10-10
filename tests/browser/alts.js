@@ -7,6 +7,10 @@ export async function altOwnership({ page, playersScreen }) {
   const altsScreen = () => page.locator('[data-screen="alts"]').click();
   await altsScreen();
   assert.equal(await page.locator("#alts-screen").isVisible(), true);
+  assert.equal(
+    await page.locator("#alts-list-empty").textContent(),
+    "No alts yet.",
+  );
   await page.locator("#add-alt").click();
   await page.locator("#add-player-dialog").waitFor({ state: "visible" });
   assert.equal(
@@ -160,6 +164,10 @@ export async function altOwnership({ page, playersScreen }) {
   );
   await page.locator("#alts-search").fill("First player");
   assert.equal(await page.locator("#alts .player-card").count(), 0);
+  assert.equal(
+    await page.locator("#alts-list-empty").textContent(),
+    "No matching alts.",
+  );
   await page.locator("#alts-search").fill("Second player");
   assert.equal(await page.locator("#alts .player-card").count(), 1);
   await page.locator("#alts-search").fill("");

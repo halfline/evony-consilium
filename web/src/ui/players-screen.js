@@ -122,6 +122,10 @@ export function createPlayersScreen({
       const hasOwner = getPlan().keeps.some((player) => player.ownerId == null);
       addButton.disabled = !hasOwner;
       $("alts-empty").hidden = hasOwner;
+      $("alts-list-empty").hidden = !hasOwner || players.length > 0;
+      $("alts-list-empty").textContent = query
+        ? "No matching alts."
+        : "No alts yet.";
     } else {
       $("players-empty").hidden = players.length > 0;
       $("players-empty").textContent = query
