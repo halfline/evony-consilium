@@ -234,49 +234,62 @@
         </div>
         <div class="header-actions">
           <span id="team-save-status" class="save-status" role="status"></span>
-          <button
-            id="team-activity"
-            class="icon-action"
-            aria-label="Activity log"
-            title="Team activity log"
-            type="button"
-          >
-            <svg
-              aria-hidden="true"
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <circle cx="12" cy="12" r="9" />
-              <path d="M12 7v5l3 2" />
-            </svg>
-          </button>
-          <button
-            id="undo"
-            class="icon-action"
-            aria-label="Undo"
-            title="Undo team edit (Ctrl+Z)"
-          >
-            <span aria-hidden="true">↶</span>
-          </button>
+          <div class="header-more">
+            <button
+              id="header-more-toggle"
+              type="button"
+              aria-label="More team actions"
+              aria-expanded="false"
+              aria-controls="header-more-menu"
+              class="icon-action"
+            ></button>
+            <div id="header-more-menu" class="header-more-menu">
+              <button
+                id="team-activity"
+                class="icon-action"
+                aria-label="Activity log"
+                title="Team activity log"
+                type="button"
+              >
+                <svg
+                  aria-hidden="true"
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 7v5l3 2" />
+                </svg>
+              </button>
+              <button
+                id="undo"
+                class="icon-action"
+                aria-label="Undo"
+                title="Undo team edit (Ctrl+Z)"
+              >
+                <span aria-hidden="true">↶</span>
+              </button>
+              <button
+                id="project-reload"
+                hidden
+                title="Discard local team edits and load the shared version"
+              >
+                Discard team draft
+              </button>
+            </div>
+          </div>
           <button
             id="drive-save"
             class="primary"
             aria-label="Save team"
             title="Save team planning changes"
           >
-            Save team</button
-          ><button
-            id="project-reload"
-            hidden
-            title="Discard local team edits and load the shared version"
-          >
-            Discard team draft
+            Save team
           </button>
         </div>
       </header>
@@ -360,7 +373,14 @@
           </select>
         </div>
         <div class="map-toolbar" data-map-action hidden>
-          <a class="mobile-roster-link" href="#formation-sidebar">Roster ↓</a>
+          <button
+            class="mobile-roster-link"
+            type="button"
+            aria-controls="formation-sidebar"
+            aria-expanded="false"
+          >
+            Roster
+          </button>
           <div class="map-picker">
             <strong id="formation-name"></strong>
           </div>
@@ -831,7 +851,9 @@
             <span class="eyebrow">YOUR ALLIANCE</span>
             <div class="team-title">
               <h1>Map &amp; formation</h1>
-              <a class="mobile-map-link" href="#map-surface">Map ↑</a>
+              <button class="mobile-map-link" type="button">
+                Expand roster
+              </button>
             </div>
           </div>
           <nav class="tabs" aria-label="Planner panels">

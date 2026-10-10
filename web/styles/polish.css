@@ -65,6 +65,157 @@ h1 {
 h2 {
   line-height: 1.2;
 }
+.topbar {
+  height: 78px;
+  flex-shrink: 0;
+  padding: 0 24px;
+  gap: 24px;
+  background: #15271eee;
+  border-color: var(--line);
+}
+.brand {
+  gap: 11px;
+  font-size: 15px;
+  letter-spacing: 1.6px;
+}
+.brand-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+}
+.brand small {
+  font-size: 9px;
+  letter-spacing: 2px;
+  margin-top: 4px;
+}
+.plan-heading {
+  gap: 8px;
+  padding-left: 20px;
+  min-width: 0;
+}
+.plan-heading input {
+  font-size: 15px;
+  min-height: 36px;
+  padding-right: 12px;
+}
+.plan-name {
+  min-width: 0;
+}
+.plan-name input {
+  max-width: 100%;
+}
+.project-back {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  padding: 0;
+}
+.header-actions {
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+}
+.header-more {
+  position: relative;
+}
+#header-more-toggle {
+  display: none;
+}
+.header-more-menu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.overflow-action-label {
+  display: none;
+}
+.header-actions .icon-action,
+#team-share {
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+}
+.account-avatar {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--gold);
+  font-size: 17px;
+}
+.account-popover {
+  background: var(--panel-raised);
+  border-radius: var(--radius-panel);
+}
+.save-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: auto;
+  max-width: none;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.save-status:empty {
+  display: none;
+}
+.save-status:not(:empty)::before,
+.draft-badge::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: currentColor;
+}
+:is(.save-status, .draft-badge)[data-status="saved"] {
+  color: var(--success);
+}
+:is(.save-status, .draft-badge)[data-status="draft"],
+:is(.save-status, .draft-badge)[data-status="warning"] {
+  color: var(--gold);
+}
+:is(.save-status, .draft-badge)[data-status="error"] {
+  color: var(--red);
+}
+[data-status="saving"]::before {
+  animation: status-pulse 1.2s ease-in-out infinite;
+}
+@keyframes status-pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+.workflow-nav {
+  gap: 4px;
+  flex-shrink: 0;
+  min-height: 54px;
+  padding: 0 24px;
+  background: #182b21;
+}
+.workflow-nav > button {
+  padding: 16px 18px;
+  font-size: 14px;
+}
+.tabs button {
+  color: var(--muted);
+}
+.tabs button.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+.workflow-nav .tab-search {
+  height: 38px;
+  max-width: 280px;
+  background: #112219;
+  border: 1px solid var(--control-line);
+  border-radius: var(--radius-control);
+  padding: 0 12px;
+}
+.workflow-nav .tab-search input {
+  min-height: 0;
+  font-size: 14px;
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
