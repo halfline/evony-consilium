@@ -16,6 +16,7 @@ export function createSubcityDialog({
   canEdit,
   commit,
   context,
+  status,
 }) {
   const $ = view(dialog);
   let editing = null,
@@ -175,6 +176,7 @@ export function createSubcityDialog({
         ),
       );
       dialog.close();
+      status("Subcity updated. Team changes save automatically.");
     } catch (error) {
       $("subcity-error").textContent = error.message;
     }

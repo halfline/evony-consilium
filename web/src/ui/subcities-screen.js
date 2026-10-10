@@ -48,6 +48,7 @@ export function createSubcitiesScreen({
     commit,
     context,
     locate,
+    status,
   });
   bindTileActions(grid, {
     tileSelector: ".subcity-tile",
