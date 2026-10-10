@@ -50,8 +50,8 @@ export class PlayerFiles {
         : !state
           ? "Cached profile · Connect player file"
           : state.file.capabilities?.canEdit
-            ? "Profile editable"
-            : "Profile read-only",
+            ? ""
+            : "Read-only profile",
       connected: !!state && !state.error,
       canEdit: !!state && !state.error && !!state.file.capabilities?.canEdit,
       busy: this.busy.has(player.playerSource.fileId),

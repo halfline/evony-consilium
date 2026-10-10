@@ -6,7 +6,6 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
   await page.waitForFunction(
     () => document.getElementById("player-save-status").textContent === "",
   );
-  assert.equal(await page.locator("#player-access-status").isVisible(), false);
   assert.equal(await page.locator("#player-save-status").textContent(), "");
   assert.equal(await page.locator("#player-save").isDisabled(), true);
   assert.equal(await page.locator("#player-rally-capacity").isVisible(), false);

@@ -71,18 +71,11 @@ export function createPlayerFileControls({
       "aria-label",
       $("player-unlock").textContent,
     );
-    $("player-unlock").title = state.connected
-      ? "Editor access must be granted by this file's owner in Drive"
-      : "Choose this player's file so Consilium can access it";
-    const accessStatus = $("player-access-status");
-    accessStatus.hidden = !!state.canEdit;
-    accessStatus.textContent = state.canEdit
-      ? ""
-      : !player.playerSource
-        ? "This legacy player is stored in the team. A team administrator can create its separate player file."
-        : state.connected
-          ? state.label
-          : `${state.label}. Showing the team's cached profile${player.playerSource ? `, last synced ${new Date(player.playerSource.syncedAt).toLocaleString()}` : ""}. Connect the linked file when you need to edit it.`;
+    $("player-unlock").title = !player.playerSource
+      ? "Read-only team copy. Create a player file to edit it."
+      : state.connected
+        ? "Read-only profile. The file owner can grant Editor access in Drive."
+        : "Read-only cached profile. Connect the player file to edit it.";
     const fileLink = $("player-drive-link");
     fileLink.hidden = !player.playerSource;
     if (player.playerSource) {

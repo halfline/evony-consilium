@@ -68,12 +68,16 @@ export function createPlayerWorkflow({
     },
   });
   let profile;
-  const fileState = (player) => ({
-    ...getWorkspace()?.players.state(player),
-    ...(profile?.hasDraft(player)
-      ? { label: profile.draftStatus(player) }
-      : {}),
-  });
+  const fileState = (player) => {
+    const access = getWorkspace()?.players.state(player);
+    const hasDraft = profile?.hasDraft(player) || false;
+    return {
+      ...access,
+      accessLabel: access?.label,
+      hasDraft,
+      label: hasDraft ? profile.draftStatus(player) : access?.label,
+    };
+  };
   function openAdd(alt = false) {
     if (canEditTeam()) dialog.open(alt);
   }

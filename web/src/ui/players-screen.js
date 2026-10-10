@@ -71,11 +71,21 @@ export function createPlayersScreen({
       identity.append(owner);
     }
     const state = fileState(player);
-    if (state && player.playerSource) {
+    if (state?.hasDraft) {
+      const draft = document.createElement("span");
+      draft.className = "detail";
+      draft.textContent = state.label;
+      identity.append(draft);
+    }
+    if (state && player.playerSource && !state.canEdit) {
       const sync = document.createElement("span");
-      sync.className = "detail";
-      sync.textContent = state.label;
-      identity.append(sync);
+      sync.className = "profile-access-indicator";
+      sync.setAttribute("role", "img");
+      sync.setAttribute("aria-label", state.accessLabel);
+      sync.title = state.accessLabel;
+      sync.innerHTML =
+        '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4"/></svg>';
+      portrait.append(sync);
     }
     button.append(portrait, identity);
     button.onclick = () => open(player.id);

@@ -463,6 +463,19 @@
   background: linear-gradient(145deg, #344739, #17261d);
   box-shadow: 0 8px 20px #0003;
 }
+.profile-access-indicator {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--panel);
+}
 :is(#players, #alts) .player-card:hover .player-portrait,
 :is(#players, #alts) .player-card.selected .player-portrait {
   border-color: var(--gold);

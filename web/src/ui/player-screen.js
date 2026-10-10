@@ -83,8 +83,8 @@ export function createPlayerScreen({
         ? "Loading player draft…"
         : !canEdit(player)
           ? state.draft
-            ? "Player draft kept · profile read-only"
-            : "Player profile read-only"
+            ? "Player draft kept"
+            : ""
           : state.review
             ? "Player changes need review · Save player"
             : state.error
