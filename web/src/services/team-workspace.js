@@ -38,6 +38,7 @@ export class TeamWorkspace {
   }
   async checkRemote() {
     await this.sync.checkRemote();
+    this.rememberCurrent();
     if (this.sync.canCheck()) await this.players.probe(this.getPlayer(), true);
     await this.refreshPlayers();
   }
@@ -197,8 +198,10 @@ export class TeamWorkspace {
   persist() {
     const key = this.key();
     if (!key) return;
+    const plan = this.getPlan();
+    this.rememberCurrent();
     this.sync.changed();
-    this.drafts.schedule(this.sync.draft(structuredClone(this.getPlan())), key);
+    this.drafts.schedule(this.sync.draft(structuredClone(plan)), key);
   }
   list() {
     return this.repository.list(this.account.sub);
@@ -236,11 +239,19 @@ export class TeamWorkspace {
     error.status = 401;
     throw error;
   }
-  remember() {
-    const plan = this.sync.basePlan || this.getPlan();
+  remember(plan = this.getPlan()) {
     this.project.folder.name = plan.title;
     this.project.folder.logo = plan.projectLogo || "";
     this.repository.remember(this.account.sub, this.project.folder);
+  }
+  rememberCurrent() {
+    if (!this.project || !this.sync.file || !this.account) return;
+    const plan = this.getPlan();
+    if (
+      plan.title !== this.project.folder.name ||
+      (plan.projectLogo || "") !== (this.project.folder.logo || "")
+    )
+      this.remember(plan);
   }
   async open(resource, discardDraft = false, preserveView = false) {
     this.authorize();
@@ -277,7 +288,7 @@ export class TeamWorkspace {
       );
     current();
     this.sync.opened(draft.file, plan, file.version, draft.basePlan);
-    this.remember();
+    this.remember(draft.plan);
     const opened = new Set(this.repository.openedPlayers?.(account.sub) || []);
     // Only revisit files this account explicitly opened; viewers need just the team grant.
     for (const player of draft.plan.keeps) {

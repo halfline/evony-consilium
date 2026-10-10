@@ -83,6 +83,18 @@ export async function teamDashboard({ page, driveFiles, projectLogo }) {
   await page.locator("#edit-project-name").fill("Renamed team");
   await page.locator("#edit-project-name").dispatchEvent("change");
   assert.equal(await page.locator("#plan-title").inputValue(), "Renamed team");
+  await page.locator("#project-back").click();
+  await page.locator("#projects-screen").waitFor({ state: "visible" });
+  const renamedTeam = page
+    .locator("#project-list .project-row")
+    .filter({ hasText: "Renamed team" });
+  assert.equal(await renamedTeam.count(), 1);
+  await renamedTeam.locator("button").first().click();
+  await page.locator('[data-screen="project"]').click();
+  assert.equal(
+    await page.locator("#edit-project-name").inputValue(),
+    "Renamed team",
+  );
   await page.mouse.move(0, 0);
   assert.equal(
     await page
