@@ -57,6 +57,12 @@ export function editPlayerProfile(plan, id, changes) {
 }
 export function removePlayer(plan, id) {
   const next = structuredClone(plan);
+  const source = next.keeps.find((player) => player.id === id)?.playerSource;
+  if (source) {
+    next.excludedPlayerFileIds ||= [];
+    if (!next.excludedPlayerFileIds.includes(source.fileId))
+      next.excludedPlayerFileIds.push(source.fileId);
+  }
   next.keeps = next.keeps.filter((player) => player.id !== id);
   for (const city of next.subcities || [])
     if (city.ownerId === id) city.ownerId = null;
