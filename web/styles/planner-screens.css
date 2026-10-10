@@ -691,8 +691,6 @@
 #maps-screen .players-workspace {
   width: 100%;
 }
-#players,
-#alts,
 #maps-list {
   display: flex;
   flex-direction: row;
@@ -703,9 +701,29 @@
   max-height: none;
   overflow: visible;
 }
-.player-tile,
 .map-list-row {
   flex: 0 0 168px;
+}
+#players,
+#alts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(164px, 1fr));
+  align-items: start;
+  gap: 24px 18px;
+  max-height: none;
+  overflow: visible;
+}
+#players .add-player-icon,
+#alts .add-player-icon {
+  justify-self: center;
+  align-self: start;
+  margin-top: 54px;
+}
+@media (max-width: 600px) {
+  #players,
+  #alts {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
 }
 #players .add-player-icon,
 #alts .add-player-icon,

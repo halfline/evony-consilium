@@ -119,6 +119,22 @@ export async function playerCreation({ page, playersScreen }) {
     /First player/,
   );
   await page.locator("#players-search").fill("");
+  for (const width of [390, 392]) {
+    await page.setViewportSize({ width, height: 844 });
+    const cards = await page
+      .locator("#players .player-tile")
+      .evaluateAll((tiles) =>
+        tiles.map((tile) => tile.getBoundingClientRect().toJSON()),
+      );
+    assert.equal(cards[0].y, cards[1].y);
+    assert.equal(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+      true,
+    );
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await page.screenshot({ path: "test-results/player-cards.png" });
   const removablePlayer = page
     .locator("#players .player-tile")
