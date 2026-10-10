@@ -218,7 +218,9 @@ export async function mapEditing({
   assert.equal(await page.locator("#hive-size").inputValue(), "20");
   await page.locator("#reset-view").click();
   for (let i = 0; i < 4; i++) await page.locator("#zoom-out").click();
-  await page.locator("#map").screenshot({ path: "test-results/hive-boundary.png" });
+  await page
+    .locator("#map")
+    .screenshot({ path: "test-results/hive-boundary.png" });
   await page.locator("#hive-size").selectOption("custom");
   await page.locator("#hive-size-custom").fill("22");
   await page.locator("#hive-size-custom").blur();
