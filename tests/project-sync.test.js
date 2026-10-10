@@ -66,11 +66,11 @@ test("remote-only changes use Reload without uploading, including view-only proj
     sync.remoteChanged = false;
   };
   await sync.checkRemote();
-  assert.equal(sync.state().label, "Reload");
+  assert.equal(sync.state().label, "Review updates");
   assert.equal(sync.state().disabled, false);
   await sync.save();
   assert.equal(reloads, 1);
-  assert.equal(sync.state().label, "Save");
+  assert.equal(sync.state().label, "Save team");
   assert.equal(sync.state().disabled, true);
 });
 test("edits arriving during a save remain dirty against the new shared version", async () => {
@@ -84,7 +84,12 @@ test("edits arriving during a save remain dirty against the new shared version",
   assert.equal(sync.state().disabled, false);
   assert.deepEqual(writes[0], {
     key: "alice/team",
-    draft: { plan: { title: "Second edit" }, baseVersion: "2", dirty: true },
+    draft: {
+      plan: { title: "Second edit" },
+      baseVersion: "2",
+      basePlan: { title: "First edit" },
+      dirty: true,
+    },
   });
 });
 test("a version conflict retains edits, offers conflict recovery and re-enables Save", async () => {
@@ -96,9 +101,9 @@ test("a version conflict retains edits, offers conflict recovery and re-enables 
   drive.save = async () => {
     throw conflict;
   };
-  await assert.rejects(sync.save(), conflict);
+  await assert.rejects(sync.save(), { status: 409 });
   assert.equal(sync.state().conflict, true);
-  assert.equal(sync.state().label, "Save");
+  assert.equal(sync.state().label, "Save team");
   assert.equal(sync.state().disabled, false);
   assert.equal(sync.saving, false);
 });
@@ -133,7 +138,7 @@ test("a later Drive revision of our saved content is not a teammate edit", async
   await sync.checkRemote();
   assert.equal(sync.file.version, "3");
   assert.equal(sync.remoteChanged, false);
-  assert.equal(sync.state().label, "Save");
+  assert.equal(sync.state().label, "Save team");
   assert.equal(sync.state().disabled, true);
   assert.equal(writes.at(-1).draft.baseVersion, "3");
 });
@@ -249,7 +254,7 @@ test("reload opening a new snapshot clears Saving even though the operation cont
     );
   await sync.save();
   assert.equal(sync.saving, false);
-  assert.equal(sync.state().label, "Save");
+  assert.equal(sync.state().label, "Save team");
 });
 
 test("an immediate remote check preserves a recovered draft's known conflict", async () => {

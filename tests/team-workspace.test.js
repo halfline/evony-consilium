@@ -240,7 +240,7 @@ test("automatic player refresh visits the roster and saves its cache once", asyn
     saved = [];
   f.workspace.players.probe = async () => {};
   f.workspace.players.state = () => ({ connected: true, busy: false });
-  f.workspace.profiles.commitPlan = () => {};
+  f.workspace.profiles.refreshPlan = () => {};
   f.workspace.profiles.collectCache = async (player) => {
     visited.push(player.id);
     return { ...player, name: "Updated" };
@@ -250,7 +250,7 @@ test("automatic player refresh visits the roster and saves its cache once", asyn
     f.workspace.sync.dirty = true;
     return true;
   };
-  f.workspace.save = async () => {
+  f.workspace.publishPlayers = async () => {
     saved.push(visited.at(-1));
     f.workspace.sync.dirty = false;
   };
@@ -259,9 +259,9 @@ test("automatic player refresh visits the roster and saves its cache once", asyn
   assert.deepEqual(saved, ["b"]);
   f.workspace.sync.dirty = true;
   await f.workspace.refreshPlayers();
-  assert.equal(visited.length, 2);
+  assert.equal(visited.length, 4);
   f.workspace.sync.dirty = false;
   f.workspace.sync.file.capabilities.canEdit = false;
   await f.workspace.refreshPlayers();
-  assert.equal(visited.length, 2);
+  assert.equal(visited.length, 6);
 });
