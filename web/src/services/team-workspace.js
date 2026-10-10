@@ -47,6 +47,9 @@ export class TeamWorkspace {
   save() {
     return this.sync.save();
   }
+  autosave() {
+    return this.sync.autosave();
+  }
   reload() {
     return this.open(this.project.folder, true, true);
   }

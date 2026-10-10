@@ -209,7 +209,8 @@ export function createPlanner(
   }
   function render() {
     const plan = getPlan();
-    $("plan-title").value = plan.title;
+    if (document.activeElement !== $("plan-title"))
+      $("plan-title").value = plan.title;
     teamScreen.render();
     formationControls.render();
     mapViewControls.render();
@@ -506,11 +507,22 @@ export function createPlanner(
     },
   });
   projects = new TeamEntry({
+    capturePending: () => {
+      if (!store.readOnly && document.activeElement === $("plan-title")) {
+        const title = $("plan-title").value.trim();
+        if (title && title !== getPlan().title)
+          mutate((plan) => {
+            plan.title = title;
+          });
+      }
+      teamScreen.capturePending();
+    },
     header: $("planner").querySelector(".topbar"),
     root: $("entry"),
     planner: $("planner"),
     toast: $("toast"),
     workspace,
+    autosave: () => workspace.autosave(),
     opened: () => {
       opening = false;
       navigation.opened();

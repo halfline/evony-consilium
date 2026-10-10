@@ -193,3 +193,66 @@ test("a cache publication cannot silently approve a conflicting local planning e
   assert.equal(f.resolutions.length, 1);
   assert.equal(f.shared().title, "Remote title");
 });
+test("autosave merges independent team changes without asking for resolution", async () => {
+  const f = fixture();
+  f.edit((plan) => {
+    plan.title = "Automatic title";
+  });
+  f.remote((plan) => {
+    plan.discordUrl = "https://discord.gg/example";
+  });
+  await f.sync.autosave();
+  assert.equal(f.shared().title, "Automatic title");
+  assert.equal(f.shared().discordUrl, "https://discord.gg/example");
+  assert.equal(f.sync.dirty, false);
+  assert.deepEqual(f.resolutions, []);
+});
+test("autosave retains overlapping edits for manual review without opening a dialog", async () => {
+  const f = fixture();
+  f.edit((plan) => {
+    plan.title = "My title";
+  });
+  f.remote((plan) => {
+    plan.title = "Their title";
+  });
+  await f.sync.autosave();
+  await f.sync.autosave();
+  assert.equal(f.shared().title, "Their title");
+  assert.equal(f.local().title, "My title");
+  assert.equal(f.sync.dirty, true);
+  assert.equal(f.sync.remoteChanged, true);
+  assert.equal(f.sync.saving, false);
+  assert.equal(f.uploads.length, 0);
+  assert.deepEqual(f.resolutions, []);
+  await f.sync.save();
+  assert.equal(f.resolutions.length, 1);
+});
+test("autosave retries a failed upload while preserving the team draft", async () => {
+  const f = fixture();
+  f.edit((plan) => {
+    plan.title = "Offline draft";
+  });
+  const save = f.drive.save;
+  f.drive.save = async () => {
+    throw new Error("Offline");
+  };
+  await f.sync.autosave();
+  assert.equal(f.sync.dirty, true);
+  assert.equal(f.sync.state().error, "Offline");
+  assert.equal(f.sync.saving, false);
+  f.drive.save = save;
+  await f.sync.autosave();
+  assert.equal(f.shared().title, "Offline draft");
+  assert.equal(f.sync.state().error, null);
+});
+test("autosave never uploads a read-only or clean team", async () => {
+  const f = fixture();
+  await f.sync.autosave();
+  f.edit((plan) => {
+    plan.title = "Local title";
+  });
+  f.sync.file.capabilities.canEdit = false;
+  await f.sync.autosave();
+  assert.equal(f.uploads.length, 0);
+  assert.equal(f.sync.dirty, true);
+});

@@ -14,6 +14,8 @@ export class TeamEntry {
     workspace,
     status,
     opened = () => {},
+    capturePending = () => {},
+    autosave = async () => {},
     initialTeam = null,
   }) {
     Object.assign(this, {
@@ -23,6 +25,8 @@ export class TeamEntry {
       workspace,
       status,
       opened,
+      capturePending,
+      autosave,
       initialTeam,
     });
     this.$ = view(root, header);
@@ -67,7 +71,7 @@ export class TeamEntry {
   show(screen) {
     clearInterval(this.remoteTimer);
     if (screen === "planner")
-      this.remoteTimer = setInterval(() => this.workspace.checkRemote(), 30000);
+      this.remoteTimer = setInterval(() => this.background(), 30000);
     clearTimeout(this.expiryTimer);
     if (screen === "projects" && !this.workspace.healthy()) screen = "login";
     if (screen === "login") {
@@ -94,6 +98,34 @@ export class TeamEntry {
         () => this.show("login"),
         this.workspace.expiresIn(),
       );
+    }
+  }
+  async background() {
+    if (
+      this.backgroundRunning ||
+      this.busy ||
+      this.planner.hidden ||
+      document.hidden ||
+      !this.workspace.healthy()
+    )
+      return;
+    this.backgroundRunning = true;
+    try {
+      this.capturePending();
+      await this.workspace.checkRemote();
+      if (
+        !this.busy &&
+        !this.planner.hidden &&
+        this.workspace.healthy() &&
+        !this.planner.parentElement.querySelector("dialog:modal")
+      )
+        await this.autosave();
+    } catch (error) {
+      if (error.status === 401) this.show("login");
+      else if (!(error instanceof OperationCancelled))
+        this.status("Automatic saving paused: " + error.message, true);
+    } finally {
+      this.backgroundRunning = false;
     }
   }
   async run(fn, message = "Working…") {

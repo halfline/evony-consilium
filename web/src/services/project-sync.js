@@ -51,6 +51,7 @@ export class ProjectSync {
     this.baselineKnown = true;
     this.saving = false;
     this.publishing = false;
+    this.saveError = null;
     this.notify();
   }
   opened(
@@ -62,6 +63,7 @@ export class ProjectSync {
     this.generation++;
     this.checking = null;
     this.saving = false;
+    this.saveError = null;
     this.file = file;
     this.remoteChanged = file.version !== sharedVersion;
     this.basePlan = structuredClone(basePlan || sharedPlan);
@@ -99,6 +101,7 @@ export class ProjectSync {
       conflict: this.remoteChanged,
       dirty: this.dirty,
       readOnly: !this.file?.capabilities?.canEdit,
+      error: this.saveError,
     };
   }
   notify() {
@@ -116,6 +119,7 @@ export class ProjectSync {
     this.baselineKnown = true;
     this.savedSnapshot = this.fingerprint(sharedPlan);
     this.remoteChanged = false;
+    this.saveError = null;
     this.applyPlan?.(plan, { base, remote });
     this.changed();
   }
@@ -193,9 +197,7 @@ export class ProjectSync {
     if (result.conflicts.length) {
       if (!interactive)
         throw Object.assign(
-          new Error(
-            "Team changes need review before player updates can be published.",
-          ),
+          new Error("Team changes need review. Use Save team to resolve them."),
           { status: 409 },
         );
       const resolution = await this.resolve(result.conflicts);
@@ -224,6 +226,22 @@ export class ProjectSync {
     if (this.remoteChanged && !this.dirty) return this.reload();
     return this.upload(null);
   }
+  async autosave() {
+    if (
+      !this.dirty ||
+      !this.file?.capabilities?.canEdit ||
+      this.saving ||
+      this.remoteChanged ||
+      !this.baselineKnown
+    )
+      return;
+    try {
+      await this.upload(null, { interactive: false });
+    } catch {
+      // upload retains the draft and exposes the failure in the save status.
+      // A later interval retries network failures; conflicts require review.
+    }
+  }
   async publish(transform) {
     if (
       !this.file?.capabilities?.canEdit ||
@@ -236,7 +254,7 @@ export class ProjectSync {
     if (JSON.stringify(next) === JSON.stringify(this.basePlan)) return;
     return this.upload(transform);
   }
-  async upload(transform) {
+  async upload(transform, { interactive = true } = {}) {
     const generation = this.generation,
       current = () => this.generation === generation;
     const key = this.key(),
@@ -246,6 +264,7 @@ export class ProjectSync {
       remote = originalBase;
     this.saving = true;
     this.publishing = !!transform;
+    this.saveError = null;
     this.notify();
     try {
       await this.flush();
@@ -275,7 +294,13 @@ export class ProjectSync {
           source.resourceKey ||= this.file.resourceKey;
           candidate = transform
             ? transform(structuredClone(remote))
-            : await this.combine(originalBase, snapshot, remote, true, current);
+            : await this.combine(
+                originalBase,
+                snapshot,
+                remote,
+                interactive,
+                current,
+              );
           if (!current() || !candidate) return;
           this.validate(candidate);
         }
@@ -320,6 +345,9 @@ export class ProjectSync {
     } catch (error) {
       if (!current()) return;
       if ([409, 412].includes(error.status)) this.remoteChanged = true;
+      if (isFileAccessError(error))
+        this.file.capabilities = { ...this.file.capabilities, canEdit: false };
+      this.saveError = error.message;
       if (!error.cancelled) throw error;
       this.status(error.message);
     } finally {

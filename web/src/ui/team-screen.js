@@ -127,11 +127,14 @@ export function createTeamScreen({
     $("team-access-status").textContent = canEdit()
       ? "You can edit the team. Player editing is controlled by each player file's Drive permissions."
       : "You have read-only team access. You can still edit player files shared with you as Editor.";
-    $("edit-project-name").value = plan.title;
+    if (document.activeElement !== $("edit-project-name"))
+      $("edit-project-name").value = plan.title;
     dashboard.render();
     const discordUrl = normalizeDiscordUrl(plan.discordUrl);
-    $("team-discord-url").value = discordUrl;
-    $("team-discord-url").removeAttribute("aria-invalid");
+    if (document.activeElement !== $("team-discord-url")) {
+      $("team-discord-url").value = discordUrl;
+      $("team-discord-url").removeAttribute("aria-invalid");
+    }
     discordTile.classList.remove("discord-actions-open");
     $("team-discord-entry").hidden = !!discordUrl;
     discordTile.hidden = !discordUrl;
@@ -140,5 +143,28 @@ export function createTeamScreen({
     else $("team-discord-open").removeAttribute("href");
     logoPicker.render();
   }
-  return { render };
+  return {
+    render,
+    capturePending: () => {
+      if (!canEdit()) return;
+      if (document.activeElement === $("edit-project-name")) {
+        const title = $("edit-project-name").value.trim();
+        if (title && title !== getPlan().title)
+          mutate((plan) => {
+            plan.title = title;
+          });
+      }
+      if (document.activeElement === $("team-discord-url")) {
+        try {
+          const discordUrl = normalizeDiscordUrl($("team-discord-url").value);
+          if (discordUrl !== getPlan().discordUrl)
+            mutate((plan) => {
+              plan.discordUrl = discordUrl;
+            });
+        } catch {
+          // Keep an unfinished URL available for the user to complete.
+        }
+      }
+    },
+  };
 }

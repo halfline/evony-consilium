@@ -1,5 +1,5 @@
 export function createSaveControls({ button, reload, status }) {
-  return ({ disabled, label, saving, conflict, dirty, readOnly }) => {
+  return ({ disabled, label, saving, conflict, dirty, readOnly, error }) => {
     button.disabled = disabled;
     button.setAttribute("aria-label", label);
     button.title = label;
@@ -13,10 +13,13 @@ export function createSaveControls({ button, reload, status }) {
           : "New team version available"
         : saving
           ? "Saving team…"
-          : dirty
-            ? "Team changes unsaved"
-            : readOnly
-              ? "Team read-only"
-              : "Team saved";
+          : readOnly
+            ? "Team read-only"
+            : error
+              ? "Team not saved · retrying automatically"
+              : dirty
+                ? "Team changes · autosaving every 30 seconds"
+                : "Team saved";
+    if (status) status.title = error || "";
   };
 }
