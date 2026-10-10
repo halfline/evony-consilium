@@ -808,8 +808,8 @@ code {
     min-width: 0;
   }
   .header-actions {
-    margin-left: auto;
-    flex-shrink: 0;
+    width: 100%;
+    margin-left: 0;
     justify-content: flex-end;
   }
   .workspace {
