@@ -53,16 +53,45 @@ export async function altOwnership({ page, playersScreen }) {
   );
   assert.equal(await page.locator("#alts-return-arrow").isVisible(), true);
   assert.equal(await page.locator("#players-return-arrow").isVisible(), false);
-  await page.locator('[data-player-tab="alts"]').click();
-  assert.equal(
-    await page.locator("#player-alt-owner").textContent(),
-    "Alt of First player",
+  for (const tab of ["buffs", "march-size", "rally-capacity", "troops", "alts"])
+    assert.equal(
+      await page.locator(`[data-player-tab="${tab}"]`).isVisible(),
+      false,
+    );
+  assert.deepEqual(
+    await page
+      .locator("#player-section-select option:not([hidden])")
+      .evaluateAll((options) => options.map((option) => option.value)),
+    ["overview", "subcities"],
   );
-  await page.locator("#player-alt-open-owner").click();
+  assert.match(await page.locator("#player-main").textContent(), /Main player/);
+  assert.match(
+    await page.locator("#player-main button").textContent(),
+    /First player/,
+  );
+  await page.screenshot({ path: "test-results/alt-overview.png" });
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.equal(await page.locator("#player-main button").isVisible(), true);
+  assert.equal(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+    true,
+  );
+  await page.screenshot({ path: "test-results/alt-overview-mobile.png" });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.locator("#player-main button").click();
   assert.equal(
     await page.locator("#player-title").textContent(),
     "First player",
   );
+  assert.equal(
+    await page
+      .locator('[data-player-tab="overview"]')
+      .getAttribute("aria-selected"),
+    "true",
+  );
+  await page.locator('[data-player-tab="alts"]').click();
   assert.equal(
     await page
       .locator('[data-player-tab="alts"]')
@@ -172,8 +201,8 @@ export async function altOwnership({ page, playersScreen }) {
   assert.equal(await page.locator("#alts .player-card").count(), 1);
   await page.locator("#alts-search").fill("");
   await page.locator("#alts .player-card").click();
+  await page.locator("#player-main button").click();
   await page.locator('[data-player-tab="alts"]').click();
-  await page.locator("#player-alt-open-owner").click();
   await page.locator("#player-alts summary").click();
   await page.locator("[data-alt-unlink]").click();
   await playersScreen();

@@ -635,6 +635,7 @@
                 </select>
               </label>
               <div data-player-panel="overview" role="tabpanel">
+                <div id="player-main" class="player-main" hidden></div>
                 <div class="player-appearance">
                   <button
                     id="player-castle"
@@ -745,10 +746,6 @@
                 </div>
               </div>
               <div data-player-panel="alts" role="tabpanel" hidden>
-                <p id="player-alt-owner" class="muted" hidden></p>
-                <button id="player-alt-open-owner" type="button" hidden>
-                  View player's alts
-                </button>
                 <div id="player-alts" class="player-alt-list"></div>
                 <button id="player-add-alt" type="button">
                   Assign player as alt

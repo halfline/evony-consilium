@@ -56,7 +56,7 @@ export function createPlayerAlts({
     name.textContent = `${player.allianceTag ? `[${player.allianceTag}] ` : ""}${player.name}`;
     const detail = document.createElement("span");
     detail.className = "muted";
-    detail.textContent = `K${player.level}${player.accountId ? ` · ID ${player.accountId}` : ""}`;
+    detail.textContent = `K${player.level}`;
     identity.append(name, detail);
     button.append(portrait, identity);
     button.onclick = open;
@@ -117,12 +117,6 @@ export function createPlayerAlts({
       $("assign-alt-help").textContent = error.message;
     }
   };
-  $("player-alt-open-owner").onclick = () => {
-    const ownerId = getPlayer()?.ownerId;
-    if (!ownerId) return;
-    openPlayer(ownerId);
-    root.querySelector('[data-player-tab="alts"]').click();
-  };
   function render() {
     const player = getPlayer();
     if (dialog.open) {
@@ -131,12 +125,16 @@ export function createPlayerAlts({
     }
     if (!player) return;
     const owner = getPlan().keeps.find((item) => item.id === player.ownerId);
-    $("player-alt-owner").hidden = !owner;
-    $("player-alt-owner").textContent = owner ? `Alt of ${owner.name}` : "";
-    $("player-alt-open-owner").hidden = !owner;
-    $("player-alt-open-owner").textContent = owner
-      ? `View ${owner.name}'s alts`
-      : "View player's alts";
+    $("player-main").hidden = !owner;
+    if (owner) {
+      const label = document.createElement("span");
+      label.className = "muted";
+      label.textContent = "Main player";
+      $("player-main").replaceChildren(
+        label,
+        accountButton(owner, "player-alt-open", () => openPlayer(owner.id)),
+      );
+    } else $("player-main").replaceChildren();
     const alts = getPlan().keeps.filter((item) => item.ownerId === player.id);
     $("player-add-alt").hidden = !!owner || !canEdit();
     $("player-alts").replaceChildren(

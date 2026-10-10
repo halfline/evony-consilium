@@ -1563,6 +1563,18 @@
   gap: 10px;
   margin: 16px 0;
 }
+.player-main {
+  display: grid;
+  gap: 6px;
+  width: min(100%, 320px);
+  margin: 0 auto 28px;
+}
+.player-main > .muted {
+  font-size: 0.8rem;
+}
+.player-main .player-alt-open {
+  padding: 8px;
+}
 .player-alt-list:empty {
   display: none;
 }

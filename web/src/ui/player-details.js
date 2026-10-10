@@ -14,8 +14,17 @@ export function createPlayerDetails({ root }) {
       root,
       getSizes: () => marchSizes.read().marchSizes,
     });
+  const mainOnlyTabs = new Set([
+    "buffs",
+    "march-size",
+    "rally-capacity",
+    "troops",
+    "alts",
+  ]);
   $("player-march-sizes").onchange = () => marches.syncSizes();
   function showTab(tab) {
+    if (root.querySelector(`[data-player-tab="${tab}"]`)?.hidden)
+      tab = "overview";
     $("player-section-select").value = tab;
     for (const button of root.querySelectorAll("[data-player-tab]")) {
       const active = button.dataset.playerTab === tab;
@@ -29,21 +38,25 @@ export function createPlayerDetails({ root }) {
   }
   const tabs = [...root.querySelectorAll("[data-player-tab]")];
   $("player-section-select").onchange = (event) => showTab(event.target.value);
-  tabs.forEach((button, index) => {
+  tabs.forEach((button) => {
     button.onclick = () => showTab(button.dataset.playerTab);
     button.onkeydown = (event) => {
       if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key))
         return;
       event.preventDefault();
+      const visibleTabs = tabs.filter((tab) => !tab.hidden);
+      const index = visibleTabs.indexOf(button);
       const next =
         event.key === "Home"
           ? 0
           : event.key === "End"
-            ? tabs.length - 1
-            : (index + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) %
-              tabs.length;
-      tabs[next].click();
-      tabs[next].focus();
+            ? visibleTabs.length - 1
+            : (index +
+                (event.key === "ArrowRight" ? 1 : -1) +
+                visibleTabs.length) %
+              visibleTabs.length;
+      visibleTabs[next].click();
+      visibleTabs[next].focus();
     };
   });
   function read({ sync = true } = {}) {
@@ -69,12 +82,21 @@ export function createPlayerDetails({ root }) {
       player.id,
       player.details,
       player.level,
+      player.ownerId,
     ]);
     if (signature === nextSignature) return;
     const changedPlayer = playerId !== player.id;
     playerId = player.id;
     signature = nextSignature;
     original = structuredClone(player.details || {});
+    const isAlt = player.ownerId != null;
+    for (const tab of mainOnlyTabs) {
+      root.querySelector(`[data-player-tab="${tab}"]`).hidden = isAlt;
+      $("player-section-select").querySelector(`[value="${tab}"]`).hidden =
+        isAlt;
+    }
+    if (isAlt && mainOnlyTabs.has($("player-section-select").value))
+      showTab("overview");
     $("player-rally-capacity").value = original.rallyCapacity ?? "";
     buffs.render(original);
     marchSizes.render(original);
