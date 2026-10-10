@@ -48,7 +48,7 @@ export class PlayerProfiles {
     this.validatePlan(addPlayer(this.getPlan(), player));
     this.workspace.authorize();
     const current = this.context();
-    const folder = await this.workspace.playerFolder();
+    const folder = await this.workspace.playerFolder({ interactive: false });
     current();
     const linked = await this.workspace.players.create(player, folder);
     current();
