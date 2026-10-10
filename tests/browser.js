@@ -1,3 +1,4 @@
+import { playerDiscovery } from "./browser/player-discovery.js";
 import { teamImprovements } from "./browser/team-improvements.js";
 import { subcityOwnership } from "./browser/subcity-ownership.js";
 import { subcities } from "./browser/subcities.js";
@@ -78,6 +79,7 @@ try {
   await terrainAndMobile({ page, formationScreen });
   await sharingAndRecovery({ page, driveFiles });
   await playerSharing({ browser });
+  await playerDiscovery({ browser });
   await subcities({ browser });
   await subcityOwnership({ browser });
   await teamImprovements({ browser });
