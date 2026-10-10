@@ -232,7 +232,14 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
   await page.screenshot({ path: "test-results/player-marches.png" });
   assert.equal(await page.locator('[data-player-tab="subcities"]').count(), 1);
   await page.locator("#player-form [type=submit]").click();
-  await page.locator("#drive-save").click();
+  await page.waitForFunction(
+    () =>
+      document.getElementById("player-save").disabled &&
+      document.getElementById("player-screen").getAttribute("aria-busy") ===
+        "false",
+  );
+  if (!(await page.locator("#drive-save").isDisabled()))
+    await page.locator("#drive-save").click();
   await page.waitForFunction(
     () =>
       document.getElementById("drive-save").disabled &&

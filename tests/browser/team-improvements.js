@@ -44,7 +44,7 @@ export async function teamImprovements({ browser }) {
     assert.equal(await page.locator("#team-subcity-count").textContent(), "1");
     assert.match(
       await page.locator("#team-save-status").textContent(),
-      /unsaved/,
+      /autosaving/,
     );
     // Navigation changes neither data nor save state.
     await page.locator("#team-subcities").click();

@@ -26,7 +26,6 @@ export async function playerSharing({ browser }) {
       await a.locator("#add-player-dialog").waitFor({ state: "hidden" });
       await a.locator('[data-screen="players"]').click();
     }
-    await a.locator("#drive-save").click();
     await a.waitForFunction(
       () =>
         document.getElementById("drive-save").disabled &&
@@ -84,7 +83,7 @@ export async function playerSharing({ browser }) {
     await p.locator('[data-screen="players"]').click();
     assert.match(
       await p.locator("#players .player-card").first().textContent(),
-      /draft unsaved/,
+      /autosaving/,
     );
     assert.equal(sources[0].data.profile.name, cachedName);
     assert.equal(await p.locator("#drive-save").isDisabled(), true);
