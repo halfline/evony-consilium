@@ -49,29 +49,32 @@ export function createPlayerSubcities({
     assigningTo = getPlayerId();
     openedContext = context();
     if (!getPlan().keeps.some((player) => player.id === assigningTo)) return;
-    $("assign-subcity-list").replaceChildren(
-      ...(getPlan().subcities || [])
-        .filter((city) => city.ownerId !== assigningTo)
-        .map((city) =>
-          createSubcityCard({
-            city,
-            types: types(),
-            owner:
-              getPlan().keeps.find((player) => player.id === city.ownerId) ||
-              null,
-            open: () => {
-              if (openedContext !== context() || !canEdit()) {
-                dialog.close();
-                return;
-              }
-              assign(city.id, assigningTo);
-              dialog.close();
-            },
-          }),
-        ),
+    const available = (getPlan().subcities || []).filter(
+      (city) => city.ownerId !== assigningTo,
     );
-    $("assign-subcity-empty").hidden = !!$("assign-subcity-list").children
-      .length;
+    if (!available.length) {
+      addSubcity(assigningTo);
+      return;
+    }
+    $("assign-subcity-list").replaceChildren(
+      ...available.map((city) =>
+        createSubcityCard({
+          city,
+          types: types(),
+          owner:
+            getPlan().keeps.find((player) => player.id === city.ownerId) ||
+            null,
+          open: () => {
+            if (openedContext !== context() || !canEdit()) {
+              dialog.close();
+              return;
+            }
+            assign(city.id, assigningTo);
+            dialog.close();
+          },
+        }),
+      ),
+    );
     $("assign-subcity-list").append(create);
     dialog.showModal();
   }

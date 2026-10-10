@@ -29,6 +29,24 @@ export async function subcityOwnership({ browser }) {
     const sourceSnapshot = sourceProfiles.map((record) =>
       JSON.stringify(record.data),
     );
+    await page.locator('[data-screen="players"]').click();
+    await page.locator("#players .player-card").first().click();
+    await page.locator('[data-player-tab="subcities"]').click();
+    await page.locator("#player-add-subcity").click();
+    assert.equal(
+      await page.locator("#assign-subcity-dialog").isVisible(),
+      false,
+    );
+    assert.equal(await page.locator("#subcity-dialog").isVisible(), true);
+    assert.equal(
+      await page.locator("#subcity-owner-name").textContent(),
+      "[AVN] Alice",
+    );
+    await page.locator("#subcity-castle").click();
+    await page.locator("#subcity-filter-color").selectOption("red");
+    await page.locator("#subcity-browser-grid button").first().click();
+    assert.equal(await page.locator("#subcity-name-field").isVisible(), false);
+    await page.locator('[data-close="subcity-dialog"]').click();
     await page.locator('[data-screen="subcities"]').click();
     await page.locator("#add-subcity").click();
     await page.locator("#subcity-name").fill("First city");
