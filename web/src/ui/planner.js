@@ -415,7 +415,9 @@ export function createPlanner(
     getPlan,
     commitPlan: commit,
     validatePlan: (plan) => validatePlan(plan, catalog),
-    isEditingPlayer: () => $("player-form").contains(document.activeElement),
+    isEditingPlayer: () =>
+      $("add-player-dialog").open ||
+      $("player-form").contains(document.activeElement),
     playersChanged: () => {
       teamScreen.render();
       players.renderList();
