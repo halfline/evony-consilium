@@ -13,5 +13,9 @@ export function resolveTeamDraft({
     file: { ...file, version: restored ? cached.baseVersion : file.version },
     restored,
     stale: restored && cached.baseVersion !== file.version,
+    basePlan: restored
+      ? cached.basePlan ||
+        (cached.baseVersion === file.version ? sharedPlan : null)
+      : sharedPlan,
   };
 }
