@@ -1,6 +1,6 @@
 // Presentation follows the same access state enforced by TeamStore.
 const fields =
-  ".project-settings [data-logo=upload], #player-castle, #player-avatar, #project-screen input, #subcity-form input, #player-form input, #player-form textarea, #player-form select:not(th select), #player-march-settings select, #entity-form input:not(#entity-w):not(#entity-h), #entity-form select, #panel-formation input, #panel-formation select";
+  ".project-settings [data-logo=upload], #player-castle, #player-avatar, #project-screen input, #subcity-form input, #player-form input, #player-form textarea, #player-form select:not(th select):not(#player-section-select), #player-march-settings select, #entity-form input:not(#entity-w):not(#entity-h), #entity-form select, #panel-formation input, #panel-formation select";
 export function createReadOnlyView(
   root,
   isReadOnly,
