@@ -1,6 +1,7 @@
 import { view } from "./dom.js";
 import { renderPortrait } from "./portrait.js";
 import { createSearchablePicker } from "./searchable-picker.js";
+import { playerPickerCard } from "./player-picker-card.js";
 
 export function createSubcityOwnerPicker({ root, getPlan, getAvatars }) {
   const $ = view(root);
@@ -21,16 +22,9 @@ export function createSubcityOwnerPicker({ root, getPlan, getAvatars }) {
     matches: (player, query) =>
       `${player.name} ${player.allianceTag}`.toLowerCase().includes(query),
     renderCard(player) {
-      const button = document.createElement("button");
-      button.className = "castle-card subcity-owner-card";
-      button.dataset.owner = player.id;
-      const portrait = document.createElement("span");
-      portrait.className = "avatar-choice";
-      renderOwner(portrait, player);
-      const name = document.createElement("strong");
-      name.textContent = `${player.allianceTag ? `[${player.allianceTag}] ` : ""}${player.name}`;
-      button.append(portrait, name);
-      return button;
+      const card = playerPickerCard(player, getAvatars);
+      card.dataset.owner = player.id;
+      return card;
     },
   });
   return {
