@@ -1015,10 +1015,6 @@
             ×
           </button>
         </div>
-        <p class="muted">
-          Choose a city to assign to this player. Choosing an owned city
-          transfers it from its current owner.
-        </p>
         <div id="assign-subcity-list" class="subcities-grid">
           <button
             id="player-create-subcity"
@@ -1028,6 +1024,17 @@
             title="Add subcity"
           >
             +
+          </button>
+        </div>
+        <p id="assign-subcity-help" class="muted" hidden></p>
+        <div class="dialog-actions">
+          <button
+            id="assign-subcity-confirm"
+            class="primary"
+            type="button"
+            disabled
+          >
+            Assign subcity
           </button>
         </div>
       </dialog>

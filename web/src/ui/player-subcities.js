@@ -29,7 +29,8 @@ export function createPlayerSubcities({
     add = $("player-add-subcity"),
     create = $("player-create-subcity");
   let assigningTo = null,
-    openedContext;
+    openedContext,
+    selectedId = null;
   bindTileActions(grid, {
     tileSelector: ".subcity-tile",
     triggerSelector: ".subcity-card",
@@ -37,17 +38,46 @@ export function createPlayerSubcities({
     enabled: canEdit,
   });
   function assign(id, ownerId) {
-    if (!canEdit()) return;
+    if (!canEdit()) return false;
     try {
       commit(assignSubcityOwner(getPlan(), id, ownerId));
+      status(
+        ownerId
+          ? "Subcity assigned. Team changes save automatically."
+          : "Subcity unlinked. Team changes save automatically.",
+      );
+      return true;
     } catch (error) {
       status(error.message, true);
+      return false;
     }
+  }
+  function renderSelection() {
+    const city = (getPlan().subcities || []).find(
+      (item) => item.id === selectedId && item.ownerId !== assigningTo,
+    );
+    $("assign-subcity-confirm").disabled = !city;
+    $("assign-subcity-confirm").textContent = city?.ownerId
+      ? "Transfer subcity"
+      : "Assign subcity";
+    const owner = getPlan().keeps.find((player) => player.id === city?.ownerId);
+    $("assign-subcity-help").hidden = !owner;
+    $("assign-subcity-help").textContent = owner
+      ? `Moves this city from ${owner.name}.`
+      : "";
+    for (const button of $("assign-subcity-list").querySelectorAll(
+      ".subcity-card",
+    ))
+      button.classList.toggle(
+        "selected",
+        button.dataset.subcity === selectedId,
+      );
   }
   function choose() {
     if (!canEdit()) return;
     assigningTo = getPlayerId();
     openedContext = context();
+    selectedId = null;
     if (!getPlan().keeps.some((player) => player.id === assigningTo)) return;
     const available = (getPlan().subcities || []).filter(
       (city) => city.ownerId !== assigningTo,
@@ -69,13 +99,14 @@ export function createPlayerSubcities({
               dialog.close();
               return;
             }
-            assign(city.id, assigningTo);
-            dialog.close();
+            selectedId = city.id;
+            renderSelection();
           },
         }),
       ),
     );
     $("assign-subcity-list").append(create);
+    renderSelection();
     dialog.showModal();
   }
   add.onclick = choose;
@@ -84,6 +115,19 @@ export function createPlayerSubcities({
     const owner = assigningTo;
     dialog.close();
     addSubcity(owner);
+  };
+  $("assign-subcity-confirm").onclick = () => {
+    if (
+      openedContext !== context() ||
+      !canEdit() ||
+      assigningTo !== getPlayerId()
+    )
+      return dialog.close();
+    const city = (getPlan().subcities || []).find(
+      (item) => item.id === selectedId && item.ownerId !== assigningTo,
+    );
+    if (!city) return renderSelection();
+    if (assign(city.id, assigningTo)) dialog.close();
   };
   function render() {
     const plan = getPlan(),

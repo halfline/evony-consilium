@@ -1234,6 +1234,11 @@
   color: var(--gold);
   border-radius: 10px;
 }
+#assign-subcity-help {
+  margin-top: 16px;
+  color: var(--gold);
+  text-align: right;
+}
 #subcity-dialog {
   width: min(480px, calc(100vw - 32px));
 }

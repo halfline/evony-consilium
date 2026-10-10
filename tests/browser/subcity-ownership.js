@@ -106,11 +106,48 @@ export async function subcityOwnership({ browser }) {
       false,
     );
     await page.locator("#player-add-subcity").click();
+    assert.equal(
+      await page.locator("#assign-subcity-confirm").isDisabled(),
+      true,
+    );
     await page.locator("#assign-subcity-list .subcity-card").first().click();
+    assert.equal(
+      await page.locator("#assign-subcity-confirm").isDisabled(),
+      false,
+    );
+    assert.equal(
+      await page.locator("#player-subcities .subcity-card").count(),
+      1,
+    );
+    await page.locator("#assign-subcity-confirm").click();
     assert.equal(
       await page.locator("#player-subcities .subcity-card").count(),
       2,
     );
+    await openPlayer(1);
+    await page.locator("#player-add-subcity").click();
+    await page
+      .locator("#assign-subcity-list .subcity-tile")
+      .filter({ hasText: "Second city" })
+      .locator(".subcity-card")
+      .click();
+    assert.match(
+      await page.locator("#assign-subcity-help").textContent(),
+      /Moves this city from Alice/,
+    );
+    assert.equal(
+      await page.locator("#assign-subcity-confirm").textContent(),
+      "Transfer subcity",
+    );
+    await page.locator("#assign-subcity-confirm").click();
+    await openPlayer(0);
+    await page.locator("#player-add-subcity").click();
+    await page
+      .locator("#assign-subcity-list .subcity-tile")
+      .filter({ hasText: "Second city" })
+      .locator(".subcity-card")
+      .click();
+    await page.locator("#assign-subcity-confirm").click();
     await page.locator("#player-subcities .subcity-card").first().click();
     await page.locator("#subcity-owner").click();
     await page.locator("#subcity-owner-search").fill("Bob");
