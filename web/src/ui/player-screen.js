@@ -11,6 +11,7 @@ import { renderAvatarButton } from "./avatar-browser.js";
 import { renderCastleButton } from "./castle-button.js";
 import { bindTileActions } from "./tile-actions.js";
 import { view } from "./dom.js";
+import { paintStatusBadge } from "./status-badge.js";
 
 // The profile has its own durable draft, autosave, and immediate Save button.
 // Team navigation and background refreshes cannot replace pending inputs.
@@ -79,22 +80,51 @@ export function createPlayerScreen({
     const player = getPlayer();
     if (!player) return;
     const state = entry(player);
-    $("player-save-status").textContent = state.saving
-      ? "Saving player…"
+    const editable = canEdit(player);
+    const badge = state.saving
+      ? "saving"
       : state.loading
-        ? "Loading player draft…"
-        : !canEdit(player)
-          ? state.draft
-            ? "Player draft kept"
-            : ""
+        ? "loading"
+        : !editable
+          ? "readonly"
           : state.review
-            ? "Player changes need review · Save player"
+            ? "warning"
             : state.error
-              ? "Player not saved · check fields or use Save player"
+              ? "error"
               : state.draft
-                ? "Player changes · autosaving every 30 seconds"
-                : "";
-    $("player-save-status").title = state.error || "";
+                ? "draft"
+                : "saved";
+    const label = state.saving
+      ? "Player · Saving"
+      : state.loading
+        ? "Player · Loading"
+        : !editable
+          ? state.draft
+            ? "Player · Draft kept"
+            : "Player · Read-only"
+          : state.review
+            ? "Player · Review"
+            : state.error
+              ? "Player · Not saved"
+              : state.draft
+                ? "Player · Draft"
+                : "Player · Saved";
+    const detail =
+      state.error ||
+      (state.saving
+        ? "Saving player to Drive."
+        : state.loading
+          ? "Loading the saved player draft."
+          : !editable && state.draft
+            ? "Player draft kept. The profile is read-only."
+            : !editable
+              ? "This player profile is read-only."
+              : state.review
+                ? "Player changes need review. Use Save player to resolve them."
+                : state.draft
+                  ? "Player changes are autosaving every 30 seconds."
+                  : "Player saved.");
+    paintStatusBadge($("player-save-status"), label, badge, detail);
     $("player-save").disabled =
       saving || state.loading || !state.draft || !canEdit(player);
     $("player-discard-draft").hidden = !state.draft;
