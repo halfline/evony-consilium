@@ -1236,11 +1236,14 @@
 }
 .collection-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   width: 100%;
   min-height: 44px;
   margin-bottom: 12px;
+}
+.collection-actions > .muted {
+  font-size: 13px;
 }
 .collection-actions :is(.add-player-icon, .add-map-icon, .add-subcity-icon) {
   flex: none;
