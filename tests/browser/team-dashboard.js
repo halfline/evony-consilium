@@ -86,6 +86,13 @@ export async function teamDashboard({ page, driveFiles, projectLogo }) {
     .locator('#edit-project-logo [data-logo="preview"]')
     .evaluate((image) => image.decode());
   await page.screenshot({ path: "test-results/project-screen.png" });
+  const logoRemove = await page
+    .locator('#edit-project-logo [data-logo="remove"]')
+    .boundingBox();
+  assert.ok(
+    Math.abs(logoRemove.width - logoRemove.height) < 1,
+    "Logo remove control stays circular",
+  );
   assert.equal(await page.locator("#formation-screen").isVisible(), false);
   await page.locator("#edit-project-name").fill("Renamed team");
   await page.locator("#edit-project-name").dispatchEvent("change");
