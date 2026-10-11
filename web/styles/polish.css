@@ -805,6 +805,71 @@ h2 {
 .player-section-select {
   font-size: 13px;
 }
+.player-alt-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 16px;
+}
+.player-alt-row {
+  min-width: 0;
+  gap: 0;
+  border: 1px solid #ffffff0c;
+  border-radius: 12px;
+  background: #ffffff04;
+}
+.player-alt-row:hover,
+.player-alt-row:focus-within {
+  background: var(--panel-raised);
+  border-color: var(--line);
+}
+.player-alt-row .player-alt-open {
+  min-height: 76px;
+  padding: 12px;
+  background: transparent;
+  border: 0;
+  border-radius: 12px;
+}
+.player-alt-portrait {
+  display: grid;
+  place-items: center;
+  flex-basis: 40px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+}
+.player-alt-portrait .portrait-monogram {
+  font-size: 17px;
+  letter-spacing: 0;
+}
+.player-alt-identity strong {
+  font-size: 14px;
+  line-height: 1.4;
+}
+.player-alt-identity .muted {
+  margin: 0;
+  font-size: 12px;
+}
+.player-alt-menu {
+  margin-right: 8px;
+}
+.player-alt-menu summary {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border-radius: 8px;
+}
+.player-alt-menu summary:hover {
+  background: #ffffff08;
+  color: var(--text);
+}
+.player-alt-menu button {
+  box-shadow: var(--shadow-float);
+}
+#player-add-alt:not([hidden]) {
+  margin: 16px 0 0;
+}
 .player-capacities label,
 .player-boost {
   font-size: 14px;
@@ -1669,6 +1734,9 @@ dialog form > label {
   }
   .player-detail-tabs {
     display: none;
+  }
+  .player-alt-list {
+    grid-template-columns: 1fr;
   }
   .player-section-select {
     display: grid;

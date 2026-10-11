@@ -156,6 +156,19 @@ export async function altOwnership({ page, playersScreen }) {
   await page.locator("#assign-alt-dialog").waitFor({ state: "hidden" });
   assert.equal(await page.locator("#player-alts .player-alt-row").count(), 1);
   assert.equal(await page.locator("#player-save").isDisabled(), true);
+  const altRow = await page
+    .locator("#player-alts .player-alt-row")
+    .boundingBox();
+  const altPanel = await page.locator("#player-alts").boundingBox();
+  const altMenu = await page.locator("#player-alts summary").boundingBox();
+  assert.ok(
+    altRow.width <= altPanel.width / 2,
+    "Desktop alts use compact columns",
+  );
+  assert.ok(
+    altMenu.x + altMenu.width < altRow.x + altRow.width,
+    "Alt action stays inside its row",
+  );
   await page.screenshot({ path: "test-results/player-alts.png" });
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(
@@ -163,6 +176,14 @@ export async function altOwnership({ page, playersScreen }) {
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
     true,
+  );
+  const mobileAlt = await page
+    .locator("#player-alts .player-alt-row")
+    .boundingBox();
+  const mobilePanel = await page.locator("#player-alts").boundingBox();
+  assert.ok(
+    Math.abs(mobileAlt.width - mobilePanel.width) < 1,
+    "Phone alts use full-width rows",
   );
   await page.screenshot({ path: "test-results/player-alts-mobile.png" });
   await page.setViewportSize({ width: 1440, height: 1000 });
