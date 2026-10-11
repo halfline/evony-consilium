@@ -1,4 +1,6 @@
 import { build } from "esbuild";
+import { mkdir, readFile, writeFile, copyFile } from "node:fs/promises";
+import { resolve } from "node:path";
 
 export async function appsScriptBundle() {
   const result = await build({
@@ -22,4 +24,23 @@ function showConsiliumSyncStatus() { return ConsiliumSync.status(); }
     },
   });
   return result.outputFiles[0].text;
+}
+
+export async function buildAppsScript(directory = "apps-script/build") {
+  await mkdir(directory, { recursive: true });
+  await writeFile(resolve(directory, "Code.gs"), await appsScriptBundle());
+  await copyFile(
+    "apps-script/appsscript.json",
+    resolve(directory, "appsscript.json"),
+  );
+  // Preserve a locally edited deployment configuration when rebuilding.
+  try {
+    await writeFile(
+      resolve(directory, "Config.gs"),
+      await readFile("apps-script/config.js"),
+      { flag: "wx" },
+    );
+  } catch (error) {
+    if (error.code !== "EEXIST") throw error;
+  }
 }
