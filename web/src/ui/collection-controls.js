@@ -9,6 +9,7 @@ export function createCollectionControls({
   kind,
   grid,
   views = false,
+  emptyTitle,
 }) {
   const heading = document.createElement("header");
   heading.className = "collection-heading";
@@ -89,7 +90,14 @@ export function createCollectionControls({
   clear.hidden = true;
   empty.append(clear);
   return {
-    render({ count, total, filtered = false, help: message, clear: reset }) {
+    render({
+      count,
+      total,
+      filtered = false,
+      help: message,
+      clear: reset,
+      emptyTitle: titleText,
+    }) {
       const singular =
         kind === "subcities"
           ? "subcity"
@@ -97,6 +105,10 @@ export function createCollectionControls({
       summary.textContent = `${count}${filtered ? ` of ${total}` : ""} ${count === 1 ? singular : title.toLowerCase()} · ${description}`;
       help.textContent = message;
       empty.hidden = count > 0;
+      if (emptyTitle) {
+        emptyTitle.hidden = count > 0 || titleText == null;
+        if (titleText != null) emptyTitle.textContent = titleText;
+      }
       art.replaceChildren(
         icon(
           filtered
