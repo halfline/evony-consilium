@@ -999,18 +999,18 @@ dialog form > label {
 }
 .catalog-grid {
   gap: 14px;
-  grid-template-columns: repeat(auto-fill, minmax(154px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(184px, 1fr));
   max-height: 52dvh;
   padding: 5px;
 }
 .castle-card {
   position: relative;
   justify-content: flex-start;
-  min-height: 196px;
+  min-height: 218px;
   padding: 14px 8px 12px;
   border-radius: 16px;
-  border-color: var(--line);
-  background: linear-gradient(145deg, #2b4234, #203429);
+  border-color: transparent;
+  background: #ffffff04;
 }
 .castle-card:hover {
   background: #334e3b;
