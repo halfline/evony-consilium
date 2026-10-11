@@ -12,6 +12,7 @@ import { renderCastleButton } from "./castle-button.js";
 import { bindTileActions } from "./tile-actions.js";
 import { view } from "./dom.js";
 import { paintStatusBadge } from "./status-badge.js";
+import { uppercaseInput } from "./player-fields.js";
 
 // The profile has its own durable draft, autosave, and immediate Save button.
 // Team navigation and background refreshes cannot replace pending inputs.
@@ -41,6 +42,7 @@ export function createPlayerScreen({
     details = createPlayerDetails({ root });
   // Handle invalid inputs ourselves so a field on a hidden tab can be shown.
   form.noValidate = true;
+  uppercaseInput($("player-tag"));
   const entries = new Map();
   const fields = {
     name: "player-name",

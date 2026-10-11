@@ -61,7 +61,8 @@ export async function playerCreation({ page, playersScreen }) {
   );
   await page.locator("#new-player-name").fill("First player");
   await page.locator("#new-player-account").fill("7319846102");
-  await page.locator("#new-player-tag").fill("ONE");
+  await page.locator("#new-player-tag").fill("one");
+  assert.equal(await page.locator("#new-player-tag").inputValue(), "ONE");
   await page.locator("#new-player-form [type=submit]").click();
   await page.locator("#add-player-dialog").waitFor({ state: "hidden" });
   assert.equal(await page.locator("#player-tag").inputValue(), "ONE");

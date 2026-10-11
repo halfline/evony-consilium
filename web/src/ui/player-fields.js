@@ -4,6 +4,15 @@ export const names = TROOP_NAMES;
 export const columns = TROOP_TYPES;
 export const numeric = (input) =>
   input.value === "" ? null : Number(input.value);
+export function uppercaseInput(input) {
+  input.addEventListener("input", (event) => {
+    if (event.isComposing) return;
+    const caret = input.selectionStart;
+    const beforeCaret = input.value.slice(0, caret).toUpperCase();
+    input.value = input.value.toUpperCase();
+    input.setSelectionRange(beforeCaret.length, beforeCaret.length);
+  });
+}
 export function element(tag, text, className) {
   const node = document.createElement(tag);
   if (text !== undefined) node.textContent = text;

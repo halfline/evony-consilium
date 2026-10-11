@@ -8,6 +8,7 @@ import { OperationCancelled } from "../services/cancellation.js";
 import { renderPortrait } from "./portrait.js";
 import { createSearchablePicker } from "./searchable-picker.js";
 import { playerPickerCard } from "./player-picker-card.js";
+import { uppercaseInput } from "./player-fields.js";
 export function createAddPlayerDialog({
   root,
   ownerDialog,
@@ -23,6 +24,7 @@ export function createAddPlayerDialog({
 }) {
   const $ = view(root, ownerDialog);
   const dialog = $("add-player-dialog");
+  uppercaseInput($("new-player-tag"));
   let openedContext,
     draft,
     busy = false,

@@ -13,7 +13,7 @@ export function newPlayer(assets, allianceTag = "", level = 42) {
     id: crypto.randomUUID(),
     name: "",
     accountId: "",
-    allianceTag,
+    allianceTag: allianceTag.toUpperCase(),
     level,
     skin: castle.id,
     w: footprint(castle),
@@ -39,6 +39,8 @@ export function validatePlayerProfile(player, defaultTag = "") {
   number(player.level, 1, 100, "keep level");
   if (player.avatarId !== undefined) string(player.avatarId, 120, "avatar ID");
   player.allianceTag ??= defaultTag;
+  string(player.allianceTag, 16, "alliance tag");
+  player.allianceTag = player.allianceTag.toUpperCase();
   string(player.allianceTag, 16, "alliance tag");
   string(player.accountId, 40, "account ID");
   if (player.accountId && !/^\d+$/.test(player.accountId))

@@ -6,7 +6,7 @@ import { validatePlan } from "../web/src/domain/validation.js";
 import { catalog } from "./fixtures/catalog.js";
 test("new players default to K42 Japan, reuse a tag, and have no map placement", () => {
   const assets = new Map(catalog.assets.map((asset) => [asset.id, asset]));
-  const player = newPlayer(assets, "TEAM");
+  const player = newPlayer(assets, "team");
   assert.equal(player.level, 42);
   assert.equal(assets.get(player.skin).family, "culture-japan");
   assert.equal(player.allianceTag, "TEAM");
@@ -20,8 +20,8 @@ test("new players default to K42 Japan, reuse a tag, and have no map placement",
 });
 test("legacy project tags become player tags without overriding individual tags", () => {
   const plan = createDemoPlan(catalog);
-  plan.allianceTag = "OLD";
-  plan.keeps[0].allianceTag = "OTHER";
+  plan.allianceTag = "old";
+  plan.keeps[0].allianceTag = "other";
   const validated = validatePlan(plan, catalog);
   assert.equal(validated.keeps[0].allianceTag, "OTHER");
   assert.equal(validated.keeps[1].allianceTag, "OLD");
