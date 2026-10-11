@@ -108,8 +108,10 @@ export async function visualPolish({ browser }) {
       .filter({ hasText: "Culture" })
       .click();
     assert.equal(
-      await page.locator("#catalog-category").inputValue(),
-      "culture",
+      await page
+        .locator('#catalog-chips [data-category="culture"]')
+        .getAttribute("aria-pressed"),
+      "true",
     );
     await page.locator("#catalog-search").fill("No such castle decoration");
     assert.equal(await page.locator("#catalog-grid .castle-card").count(), 0);

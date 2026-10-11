@@ -41,7 +41,7 @@ export async function playerAppearance({
   await page.locator("#player-castle").click();
   assert.ok((await page.locator("#catalog-grid .castle-card").count()) > 90);
   assert.deepEqual(
-    await page.locator("#catalog-category option").allTextContents(),
+    await page.locator("#catalog-chips button").allTextContents(),
     [
       "All castles",
       "Culture",
@@ -51,7 +51,7 @@ export async function playerAppearance({
       "Champion",
     ],
   );
-  await page.locator("#catalog-category").selectOption("excellent");
+  await page.locator('#catalog-chips [data-category="excellent"]').click();
   assert.equal(
     await page.locator('#catalog-grid [data-family="keep-verona"]').count(),
     2,
@@ -85,7 +85,7 @@ export async function playerAppearance({
   );
   assert.equal(await page.locator("#variant-dialog").isVisible(), false);
   await page.locator("#player-castle").click();
-  await page.locator("#catalog-category").selectOption("champion");
+  await page.locator('#catalog-chips [data-category="champion"]').click();
   assert.equal(
     await page
       .locator('#catalog-grid [data-family="keep-arcanum-athenaeum"]')
@@ -102,7 +102,7 @@ export async function playerAppearance({
     await page.locator('#catalog-grid [data-family="keep-verona"]').count(),
     0,
   );
-  await page.locator("#catalog-category").selectOption("activity");
+  await page.locator('#catalog-chips [data-category="activity"]').click();
   assert.equal(
     await page
       .locator('#catalog-grid [data-family="keep-golden-castle"]')
@@ -114,13 +114,13 @@ export async function playerAppearance({
     0,
   );
   for (const category of ["collection", "excellent", "champion"]) {
-    await page.locator("#catalog-category").selectOption(category);
+    await page.locator(`#catalog-chips [data-category="${category}"]`).click();
     assert.equal(
       await page.locator('#catalog-grid [data-family^="culture-"]').count(),
       0,
     );
   }
-  await page.locator("#catalog-category").selectOption("culture");
+  await page.locator('#catalog-chips [data-category="culture"]').click();
   assert.equal(
     await page.locator('#catalog-grid [data-family^="culture-"]').count(),
     7,
@@ -175,7 +175,7 @@ export async function playerAppearance({
       "true",
   );
   await page.locator("#player-castle").click();
-  await page.locator("#catalog-category").selectOption("collection");
+  await page.locator('#catalog-chips [data-category="collection"]').click();
   assert.ok((await page.locator(".castle-card").count()) > 10);
   await page.locator("#catalog-search").fill("Thebes");
   assert.equal(await page.locator("#catalog-grid .castle-card").count(), 1);

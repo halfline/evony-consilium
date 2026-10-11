@@ -1,5 +1,5 @@
 import { castlePickerEntries, castleForLevel } from "../domain/castles.js";
-import { view, option } from "./dom.js";
+import { view } from "./dom.js";
 import { artPreview } from "./art-preview.js";
 export function createCatalogBrowser({
   root,
@@ -10,8 +10,8 @@ export function createCatalogBrowser({
 }) {
   const $ = view(root, variantDialog);
   $("catalog-search").oninput = render;
-  $("catalog-category").onchange = render;
   let catalogKind = "keep",
+    categoryFilter = "",
     catalogCallback = null;
   function open(kind, callback) {
     catalogKind = kind;
@@ -19,14 +19,7 @@ export function createCatalogBrowser({
     $("catalog-title").textContent =
       kind === "keep" ? "Choose a castle" : "Choose a " + kind + " sprite";
     $("catalog-search").value = "";
-    $("catalog-category").replaceChildren(
-      option("", "All castles"),
-      ...(getCatalog().keepCategories || []).map((category) =>
-        option(category.id, category.name),
-      ),
-    );
-    $("catalog-category").value = "";
-    $("catalog-category").hidden = kind !== "keep";
+    categoryFilter = "";
     $("catalog-chips").hidden = kind !== "keep";
     $("catalog-chips").replaceChildren(
       ...[
@@ -38,7 +31,7 @@ export function createCatalogBrowser({
         button.dataset.category = category.id;
         button.textContent = category.name;
         button.onclick = () => {
-          $("catalog-category").value = category.id;
+          categoryFilter = category.id;
           render();
         };
         return button;
@@ -49,7 +42,7 @@ export function createCatalogBrowser({
   }
   function render() {
     const q = $("catalog-search").value.toLowerCase(),
-      filter = $("catalog-category").value;
+      filter = categoryFilter;
     const entries = castlePickerEntries(
       [...assets.values()].filter(
         (asset) => asset.kind === catalogKind && !asset.legacyOnly,
@@ -167,7 +160,7 @@ export function createCatalogBrowser({
       clear.textContent = "Clear filters";
       clear.onclick = () => {
         $("catalog-search").value = "";
-        $("catalog-category").value = "";
+        categoryFilter = "";
         render();
         $("catalog-search").focus();
       };
