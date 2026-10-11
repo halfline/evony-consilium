@@ -296,6 +296,8 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
   await page.locator("#player-form [type=submit]").click();
   await page.waitForFunction(
     () =>
+      document.getElementById("player-save-status").textContent ===
+        "Player · Saved" &&
       document.getElementById("player-save").disabled &&
       document.getElementById("player-screen").getAttribute("aria-busy") ===
         "false",
@@ -381,6 +383,8 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
     await page.locator("#player-form [type=submit]").click();
     await page.waitForFunction(
       () =>
+        document.getElementById("player-save-status").textContent ===
+          "Player · Saved" &&
         document.getElementById("player-save").disabled &&
         document.getElementById("player-screen").getAttribute("aria-busy") ===
           "false",
