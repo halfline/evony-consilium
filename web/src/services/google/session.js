@@ -48,7 +48,11 @@ export class GoogleSession {
           reject(
             error?.type === "popup_closed"
               ? new OperationCancelled("Google sign-in cancelled.")
-              : new Error("Google sign-in was closed or blocked. Try again."),
+              : new Error(
+                  error?.type === "popup_failed_to_open"
+                    ? "Google sign-in couldn’t open. Allow pop-ups for this site, then try again."
+                    : "Google sign-in was closed or blocked. Try again.",
+                ),
           ),
         callback: (response) => {
           this.identify(response, oauth).then(resolve, reject);

@@ -34,6 +34,29 @@ export async function signInFeedback({
       assert.equal(await page.locator("#entry-error").textContent(), "");
       assert.equal(await page.locator("#toast").isVisible(), false);
       assert.equal(await page.locator("#google-login").isEnabled(), true);
+
+      await nextResponse({ type: "popup_failed_to_open" });
+      await page.locator("#google-login").click();
+      await page
+        .locator("#entry-error")
+        .filter({ hasText: /Allow pop-ups/ })
+        .waitFor();
+      assert.equal(await page.locator('[role="alert"]:visible').count(), 1);
+      assert.equal(await page.locator("#toast").isVisible(), false);
+      const button = await page.locator("#google-login").boundingBox();
+      const feedback = await page.locator("#entry-error").boundingBox();
+      assert.equal(feedback.x, button.x);
+      assert.ok(feedback.y >= button.y + button.height);
+      assert.ok(feedback.x + feedback.width <= width);
+      await page.screenshot({
+        path: `test-results/sign-in-blocked-${width}.png`,
+      });
+
+      // A retry clears the previous error even if the user closes it again.
+      await nextResponse({ type: "popup_closed" });
+      await page.locator("#google-login").click();
+      await page.locator("#entry-progress").waitFor({ state: "hidden" });
+      assert.equal(await page.locator("#entry-error").isVisible(), false);
     }
     await nextResponse({
       access_token: "test-token",
