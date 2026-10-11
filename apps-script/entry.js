@@ -20,3 +20,4 @@ function runtime() {
 }
 
 export const configure = () => runtime().configure(consiliumConfig_());
+export const install = () => runtime().install();
