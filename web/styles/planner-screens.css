@@ -1040,6 +1040,21 @@
   border-bottom-color: var(--gold);
   color: var(--gold);
 }
+#player-reinforcement-list > .muted {
+  grid-column: 1 / -1;
+}
+.reinforcement-capacity {
+  display: grid;
+  gap: 8px;
+  max-width: 280px;
+  margin-top: 20px;
+}
+.reinforcement-layer-table {
+  min-width: 660px;
+}
+.reinforcement-layer-table th:first-child {
+  width: 58px;
+}
 .player-march-toolbar {
   display: flex;
   align-items: center;
