@@ -27,8 +27,8 @@ export function createPlayersScreen({
     views: true,
     title: alts ? "Alts" : "Players",
     description: alts
-      ? "Your alliance’s linked accounts"
-      : "The people behind your formation",
+      ? "Linked alternate accounts"
+      : "Profiles for strategy, tactics, and growth",
     label: alts ? "Add alt" : "Add player",
     kind: alts ? "alts" : "players",
   });
@@ -166,7 +166,7 @@ export function createPlayersScreen({
         ? "Try another name, alliance tag, or account ID."
         : alts
           ? "Create a regular player first, then link their alternate accounts here."
-          : "Add your first player to start building your alliance roster.",
+          : "Add a player to start planning tactics and tracking growth.",
       clear: () => {
         search.value = "";
         render();

@@ -158,7 +158,8 @@ export function createTeamDashboard({
       const empty = document.createElement("div");
       empty.className = "dashboard-empty";
       const text = document.createElement("p");
-      text.textContent = "Build a roster for your first formation.";
+      text.textContent =
+        "Add player profiles to plan tactics and track growth.";
       const button = document.createElement("button");
       button.type = "button";
       button.textContent = "Explore players";
