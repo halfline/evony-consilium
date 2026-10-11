@@ -776,15 +776,20 @@
               </div>
               <div data-player-panel="notes" role="tabpanel" hidden>
                 <div class="notes-toolbar">
-                  <p class="muted">
-                    Notes for this account’s strategy, tactics, and growth.
-                  </p>
+                  <div class="notes-heading">
+                    <h3>Notes <span id="notes-count" hidden></span></h3>
+                    <p class="muted">Strategy, tactics, and progress.</p>
+                  </div>
                   <div class="notes-buttons">
                     <button id="note-new" type="button" class="primary">
                       New note
                     </button>
-                    <button id="note-attach" type="button">
-                      Attach existing note
+                    <button
+                      id="note-attach"
+                      type="button"
+                      title="Attach an existing Consilium note"
+                    >
+                      Attach note
                     </button>
                   </div>
                 </div>
@@ -799,10 +804,13 @@
                 </div>
                 <p id="notes-status" class="muted" role="status"></p>
                 <div id="player-notes" class="note-list"></div>
-                <p id="notes-empty" class="muted">
-                  No notes yet. Personal notes are visible only to the Google
-                  accounts with access.
-                </p>
+                <div id="notes-empty" class="notes-empty">
+                  <span class="notes-empty-icon" aria-hidden="true"></span>
+                  <div>
+                    <h4>No notes yet</h4>
+                    <p>Capture an idea, track progress, or share a plan.</p>
+                  </div>
+                </div>
               </div>
               <div data-player-panel="rally-capacity" role="tabpanel" hidden>
                 <div class="player-capacities">

@@ -1,6 +1,7 @@
 import { view } from "./dom.js";
 import { routeHash } from "./navigation.js";
 import { OperationCancelled } from "../services/cancellation.js";
+import { icon, labelWithIcon } from "./icons.js";
 
 export function createPlayerNotes({
   root,
@@ -22,6 +23,9 @@ export function createPlayerNotes({
   const context = () =>
     `${workspace()?.key()}:${workspace()?.notes?.generation}:${getPlayer()?.id}`;
   $("note-form").noValidate = true;
+  labelWithIcon($("note-new"), "plus", "New note");
+  labelWithIcon($("note-attach"), "link", "Attach note");
+  root.querySelector(".notes-empty-icon").append(icon("note"));
   const rows = () =>
     getPlayer() && workspace()?.sync.file
       ? workspace().notes.list(getPlayer())
@@ -391,25 +395,42 @@ export function createPlayerNotes({
     const list = $("player-notes");
     list.replaceChildren();
     const items = rows();
+    $("notes-count").textContent = items.length;
+    $("notes-count").hidden = !items.length;
     $("notes-empty").hidden = !!items.length || loading;
     for (const item of items) {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "note-card";
       button.dataset.noteId = item.id;
+      const header = document.createElement("div");
+      header.className = "note-card-heading";
       const heading = document.createElement("strong");
       heading.textContent =
-        item.note?.title ||
+        (item.draft?.title ?? item.note?.title)?.trim() ||
         (item.note ? "Untitled note" : "Connect note to view");
+      header.append(heading, icon("forward"));
       const badge = document.createElement("span");
       badge.className = "note-audience";
-      badge.textContent = item.note
-        ? `${item.audience}${item.note.scope === "team" && !item.published ? " · awaiting publication" : ""}`
-        : "Access needed";
+      const audience = document.createElement("span");
+      audience.textContent = item.note ? item.audience : "Access needed";
+      badge.append(
+        icon(item.audience === "Only you" ? "lock" : "people"),
+        audience,
+      );
+      const labels = document.createElement("div");
+      labels.className = "note-card-labels";
+      labels.append(badge);
+      if (item.note?.scope === "team" && !item.published) {
+        const pending = document.createElement("span");
+        pending.className = "note-publication";
+        pending.textContent = "Awaiting publication";
+        labels.append(pending);
+      }
       const preview = document.createElement("p");
       preview.textContent =
-        item.draft?.body ||
-        item.note?.body ||
+        item.draft?.body ??
+        item.note?.body ??
         "Unlock the linked file to check access.";
       const meta = document.createElement("small");
       meta.textContent = item.draft
@@ -419,7 +440,7 @@ export function createPlayerNotes({
             ? "Source unavailable · published copy retained"
             : "Source unavailable · reconnect to check access"
           : `${item.note?.author || ""}${item.note?.updatedAt ? " · " + date(item.note.updatedAt) : ""}`;
-      button.append(heading, badge, preview, meta);
+      button.append(header, labels, preview, meta);
       button.onclick = () => open(item.id);
       list.append(button);
     }
