@@ -4,6 +4,7 @@ import { bindTileActions } from "./tile-actions.js";
 import { createCollectionControls } from "./collection-controls.js";
 import { labelWithIcon } from "./icons.js";
 import { paintStatusBadge } from "./status-badge.js";
+import { matchesPlayerSearch } from "./player-search.js";
 
 export function createPlayersScreen({
   root,
@@ -128,17 +129,7 @@ export function createPlayersScreen({
       const owner = getPlan().keeps.find((item) => item.id === player.ownerId);
       return (
         (player.ownerId != null) === alts &&
-        (
-          player.name +
-          " " +
-          player.accountId +
-          " " +
-          player.allianceTag +
-          " " +
-          (owner?.name || "")
-        )
-          .toLowerCase()
-          .includes(query)
+        matchesPlayerSearch(player, query, owner?.name)
       );
     });
     if (alts) {
