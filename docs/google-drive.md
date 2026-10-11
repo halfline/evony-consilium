@@ -43,7 +43,9 @@ Sharing a Drive folder or selecting it in Picker does not authorize every existi
 
 An account-owned `Consilium - Personal notes index.json` file stores its note connections and personal-folder reference. It uses `application/vnd.evony-consilium.notes-index+json` and an app-private discovery property. Discovery filters to files owned by the signed-in account and accessible under `drive.file`. This index is outside the team folder and contains no note text. A recipient connecting a shared personal note records it in their own index. Copying a note link itself grants neither app authorization nor Drive permission; recipients also need access to the linked team to open its player context.
 
-An editor's remembered published-note connections refresh the shared cache every 30 seconds while the team is open, visible, and authenticated, without opening the Notes tab. An editor lacking a source connection reads its last published snapshot until they unlock it. Source revision checks avoid redundant cache uploads. Removing a published attachment wins over a concurrent refresh; background work cannot rediscover it. There is no unattended synchronization, service account, or Apps Script.
+An editor's remembered published-note connections refresh the shared cache every 30 seconds while the team is open, visible, and authenticated, without opening the Notes tab. An editor lacking a source connection reads its last published snapshot until they unlock it. Source revision checks avoid redundant cache uploads. Removing a published attachment wins over a concurrent refresh; background work cannot rediscover it.
+
+An optional [team-owned Apps Script job](apps-script.md) refreshes already-linked players and published team notes without any browser open. It uses separate administrator authorization with full Drive scope, restricted by the implementation to the configured team folder. It does not alter the browser's scopes, grant browser access to sources, discover new roster entries, publish new notes, or inspect personal note indexes. The default remains browser synchronization until a team installs that job.
 
 ### Note drafts and conflicts
 
