@@ -18,3 +18,5 @@ function runtime() {
     uuid: () => Utilities.getUuid(),
   });
 }
+
+export const configure = () => runtime().configure(consiliumConfig_());
