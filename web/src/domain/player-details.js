@@ -13,6 +13,7 @@ export function editPlayerDetails(plan, id, changes) {
     "buffs",
     "marchSizes",
     "marches",
+    "reinforcementMarches",
     "troops",
     "subcities",
   ])
