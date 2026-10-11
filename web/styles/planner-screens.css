@@ -1621,13 +1621,25 @@
 #entity-form .entity-fields {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 18px;
 }
 #map-editor #entity-form {
   max-width: 660px;
 }
 #entity-form .player-appearance[hidden] {
   display: none;
+}
+#entity-form .entity-fields label:not([hidden]) {
+  display: grid;
+  gap: 6px;
+}
+#entity-form .entity-fields input {
+  margin-top: 0;
+  padding-inline: 10px;
+}
+#entity-form #entity-x,
+#entity-form #entity-y {
+  width: 12ch;
 }
 #entity-form .entity-fields label:first-child {
   flex: 1 0 100%;
