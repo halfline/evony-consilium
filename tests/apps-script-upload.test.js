@@ -1,9 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { linkProject, scriptId } from "../scripts/upload-apps-script.js";
+import {
+  linkProject,
+  scriptId,
+  uploadProject,
+} from "../scripts/upload-apps-script.js";
 
 async function fixture(t) {
   const directory = await mkdtemp(join(tmpdir(), "consilium-upload-test-"));
@@ -51,4 +55,152 @@ test("linking is local and requires an explicit replacement to switch projects",
     JSON.parse(await readFile(projectPath)).scriptId,
     "another-script",
   );
+});
+
+test("upload rebuilds code while preserving downloaded Config and extra project files", async (t) => {
+  const options = await fixture(t);
+  const remoteConfig =
+    'function consiliumConfig_() { return { teamFileId: "live-team", folderId: "live-folder" }; }\n';
+  const calls = [];
+  const run = async (args, { cwd }) => {
+    calls.push(args.at(-1));
+    const config = JSON.parse(await readFile(args[1], "utf8"));
+    assert.equal(config.scriptId, "script-project");
+    assert.equal(config.rootDir, ".");
+    assert.deepEqual(config.scriptExtensions, [".gs"]);
+    assert.equal(join(cwd, ".clasp.json"), args[1]);
+    assert.match(await readFile(args[3], "utf8"), /\.clasp\.json/);
+    if (args.at(-1) === "pull") {
+      await Promise.all([
+        writeFile(join(cwd, "Config.gs"), remoteConfig),
+        writeFile(join(cwd, "Code.gs"), "old sync code"),
+        writeFile(join(cwd, "Custom.gs"), "function custom() {}"),
+        writeFile(join(cwd, "Template.html"), "<p>Extra project file</p>"),
+        writeFile(join(cwd, "appsscript.json"), '{"runtimeVersion":"V8"}'),
+      ]);
+    } else {
+      assert.equal(args.includes("--force"), false);
+      assert.equal(
+        await readFile(join(cwd, "Config.gs"), "utf8"),
+        remoteConfig,
+      );
+      assert.equal(
+        await readFile(join(cwd, "Custom.gs"), "utf8"),
+        "function custom() {}",
+      );
+      assert.equal(
+        await readFile(join(cwd, "Template.html"), "utf8"),
+        "<p>Extra project file</p>",
+      );
+      assert.match(
+        await readFile(join(cwd, "Code.gs"), "utf8"),
+        /function syncConsiliumTeam\(\)/,
+      );
+      const manifest = JSON.parse(
+        await readFile(join(cwd, "appsscript.json"), "utf8"),
+      );
+      assert.ok(
+        manifest.oauthScopes.includes("https://www.googleapis.com/auth/drive"),
+      );
+      assert.deepEqual((await readdir(cwd)).sort(), [
+        ".clasp.json",
+        ".claspignore",
+        "Code.gs",
+        "Config.gs",
+        "Custom.gs",
+        "Template.html",
+        "appsscript.json",
+      ]);
+    }
+  };
+  assert.equal(await uploadProject({ ...options, run }), "script-project");
+  assert.deepEqual(calls, ["pull", "push"]);
+  assert.deepEqual(await readdir(options.directory), [".clasp.json"]);
+});
+
+test("a new project receives a Config template during its first upload", async (t) => {
+  const options = await fixture(t);
+  await uploadProject({
+    ...options,
+    run: async (args, { cwd }) => {
+      if (args.at(-1) === "pull") {
+        await writeFile(join(cwd, "appsscript.json"), "{}");
+      } else {
+        assert.match(
+          await readFile(join(cwd, "Config.gs"), "utf8"),
+          /PASTE_TEAM_FILE_ID/,
+        );
+      }
+    },
+  });
+});
+
+test("failed download never builds or uploads and removes staging files", async (t) => {
+  const options = await fixture(t);
+  let calls = 0;
+  await assert.rejects(
+    uploadProject({
+      ...options,
+      build: () => assert.fail("Must not build after a failed pull"),
+      run: async () => {
+        calls++;
+        throw new Error("Download failed");
+      },
+    }),
+    /Download failed/,
+  );
+  assert.equal(calls, 1);
+  assert.deepEqual(await readdir(options.directory), [".clasp.json"]);
+});
+
+test("incomplete download never replaces the remote project", async (t) => {
+  const options = await fixture(t);
+  let calls = 0;
+  await assert.rejects(
+    uploadProject({
+      ...options,
+      build: () => assert.fail("Must not build without a downloaded manifest"),
+      run: async () => {
+        calls++;
+      },
+    }),
+    { code: "ENOENT" },
+  );
+  assert.equal(calls, 1);
+  assert.deepEqual(await readdir(options.directory), [".clasp.json"]);
+});
+
+test("failed build never uploads and failed upload also removes staging files", async (t) => {
+  const options = await fixture(t);
+  for (const failure of ["build", "push"]) {
+    const calls = [];
+    await assert.rejects(
+      uploadProject({
+        ...options,
+        build: async () => {
+          if (failure === "build") throw new Error("Build failed");
+        },
+        run: async (args, { cwd }) => {
+          calls.push(args.at(-1));
+          if (args.at(-1) === "pull")
+            await writeFile(join(cwd, "appsscript.json"), "{}");
+          else throw new Error("Push failed");
+        },
+      }),
+      new RegExp(`${failure === "build" ? "Build" : "Push"} failed`),
+    );
+    assert.deepEqual(calls, failure === "build" ? ["pull"] : ["pull", "push"]);
+    assert.deepEqual(await readdir(options.directory), [".clasp.json"]);
+  }
+});
+
+test("missing or invalid linked project fails before invoking clasp", async (t) => {
+  const options = await fixture(t);
+  await rm(options.projectPath);
+  const run = () =>
+    assert.fail("Must not invoke clasp without a valid project");
+  await assert.rejects(uploadProject({ ...options, run }), /apps-script:link/);
+  await writeFile(options.projectPath, '{"scriptId":"../../somewhere"}');
+  await assert.rejects(uploadProject({ ...options, run }), /Script ID/);
+  assert.deepEqual(await readdir(options.directory), [".clasp.json"]);
 });
