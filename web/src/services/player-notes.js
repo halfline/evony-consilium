@@ -205,6 +205,10 @@ export class PlayerNotes {
       author: this.workspace.account.email || this.workspace.account.sub,
       createdAt: now,
       updatedAt: now,
+      context: {
+        teamName: this.workspace.getPlan().title,
+        playerName: player.name,
+      },
     });
     const folder =
       scope === "team"

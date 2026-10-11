@@ -63,6 +63,10 @@ export async function playerNotes({ browser, base = "http://127.0.0.1:4174" }) {
         row.data?.format === "evony-consilium-notes-index",
     );
     assert.deepEqual(adminIndex.file.parents, personal.file.parents);
+    assert.match(
+      personal.file.name,
+      /^Note - Notes team - Tracked account - Personal assessment \[[\da-f]{8}\]\.note\.consilium\.json$/,
+    );
     assert.doesNotMatch(
       JSON.stringify(team.data),
       /Personal assessment|Only my draft/,

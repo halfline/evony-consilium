@@ -31,6 +31,7 @@ export function validateNote(input) {
       "author",
       "createdAt",
       "updatedAt",
+      "context",
     ]
       .filter((key) => input[key] !== undefined)
       .map((key) => [key, structuredClone(input[key])]),
@@ -48,6 +49,14 @@ export function validateNote(input) {
   else if (note.teamFileId)
     throw new Error("Personal notes cannot be published to a team.");
   string(note.author, 200, "note author");
+  if (note.context) {
+    string(note.context.teamName, 120, "note team name");
+    string(note.context.playerName, 120, "note player name");
+    note.context = {
+      teamName: note.context.teamName,
+      playerName: note.context.playerName,
+    };
+  }
   for (const key of ["createdAt", "updatedAt"])
     if (
       typeof note[key] !== "string" ||
@@ -68,8 +77,13 @@ export function readNoteDocument(data) {
     throw new Error("Choose a Consilium note file.");
   return validateNote(data.note);
 }
-export const noteFilename = (note) =>
-  `Note - ${(note.title.trim() || "Untitled").replace(/[\u0000-\u001f/\\]/g, " ")}${NOTE_SUFFIX}`;
+export function noteFilename(note) {
+  const label = (value, fallback) =>
+    (value?.trim() || fallback)
+      .replace(/[\u0000-\u001f/\\]/g, " ")
+      .slice(0, 60);
+  return `Note - ${label(note.context?.teamName, "Team")} - ${label(note.context?.playerName, "Player")} - ${label(note.title, "Untitled")} [${note.id.slice(0, 8)}]${NOTE_SUFFIX}`;
+}
 // The body is one conflict unit. Identity, subject, and audience come from the source.
 export function mergeNote(base, local, remote, resolution = null) {
   const note = structuredClone(remote),

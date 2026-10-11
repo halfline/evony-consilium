@@ -10,6 +10,7 @@ import {
   mergeNote,
   applyNoteCaches,
   validateTeamNotes,
+  noteFilename,
 } from "../web/src/domain/note-document.js";
 import {
   teamFingerprint,
@@ -189,6 +190,10 @@ test("personal note bodies and metadata never enter a team save or export", asyn
   );
   assert.deepEqual(index.file.parents, f.files.get(id).file.parents);
   assert.deepEqual(index.file.parents, [index.data.folder.id]);
+  assert.deepEqual(f.files.get(id).data.note.context, {
+    teamName: f.local().title,
+    playerName: f.player().name,
+  });
   await f.w.notes.share(id, "bob@example.test", "reader");
   await f.w.notes.refresh();
   assert.equal(f.w.notes.list(f.player())[0].audience, "Specific people");
@@ -660,6 +665,36 @@ test("an index is not created in a folder whose sharing cannot be verified as pr
   }
 });
 
+test("Drive note names distinguish matching titles by team, player, and note identity", () => {
+  const base = {
+    id: "01234567-note-one",
+    title: "Growth",
+    context: { teamName: "Avalon", playerName: "Ice" },
+  };
+  const filename = noteFilename(base);
+  assert.equal(
+    filename,
+    "Note - Avalon - Ice - Growth [01234567].note.consilium.json",
+  );
+  for (const variant of [
+    { ...base, context: { ...base.context, teamName: "Another team" } },
+    { ...base, context: { ...base.context, playerName: "Another player" } },
+    { ...base, id: "89abcdef-note-two" },
+  ])
+    assert.notEqual(noteFilename(variant), filename);
+  assert.equal(
+    noteFilename({ ...base, title: " " }).includes("Untitled"),
+    true,
+  );
+  assert.doesNotMatch(
+    noteFilename({
+      ...base,
+      title: "Folder/Name\\Title\n",
+      context: { teamName: "Team/Name", playerName: "Player\\Name" },
+    }),
+    /[/\\\n]/,
+  );
+});
 test("note documents validate free-form text and omit unknown fields from cacheable data", async () => {
   const f = fixture(),
     id = await f.w.notes.create(f.player(), {
