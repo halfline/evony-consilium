@@ -2,6 +2,7 @@ import { view } from "./dom.js";
 import { renderPortrait } from "./portrait.js";
 import { createSearchablePicker } from "./searchable-picker.js";
 import { playerPickerCard } from "./player-picker-card.js";
+import { matchesPlayerSearch } from "./player-search.js";
 
 export function createSubcityOwnerPicker({ root, getPlan, getAvatars }) {
   const $ = view(root);
@@ -19,10 +20,7 @@ export function createSubcityOwnerPicker({ root, getPlan, getAvatars }) {
     grid: $("subcity-owner-grid"),
     empty: $("subcity-owner-empty"),
     items: () => getPlan().keeps,
-    matches: (player, query) =>
-      `${player.name} ${player.allianceTag} ${player.accountId}`
-        .toLowerCase()
-        .includes(query),
+    matches: matchesPlayerSearch,
     renderCard(player, query) {
       const card = playerPickerCard(player, getAvatars, { query });
       card.dataset.owner = player.id;
