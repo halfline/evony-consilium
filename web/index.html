@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="styles/entry.css" />
     <link rel="stylesheet" href="styles/planner-screens.css" />
     <link rel="stylesheet" href="styles/polish.css" />
+    <link rel="stylesheet" href="styles/notes.css" />
     <link rel="icon" type="image/svg+xml" href="assets/branding/favicon.svg" />
   </head>
   <body>
@@ -672,6 +673,14 @@
                 <button
                   type="button"
                   role="tab"
+                  data-player-tab="notes"
+                  aria-selected="false"
+                >
+                  Notes
+                </button>
+                <button
+                  type="button"
+                  role="tab"
                   data-player-tab="buffs"
                   aria-selected="false"
                 >
@@ -722,6 +731,7 @@
                 Section
                 <select id="player-section-select">
                   <option value="overview">Overview</option>
+                  <option value="notes">Notes</option>
                   <option value="buffs">Buffs</option>
                   <option value="march-size">March size</option>
                   <option value="rally-capacity">Rally capacity</option>
@@ -763,6 +773,36 @@
                       required
                   /></label>
                 </div>
+              </div>
+              <div data-player-panel="notes" role="tabpanel" hidden>
+                <div class="notes-toolbar">
+                  <p class="muted">
+                    Notes for this account’s strategy, tactics, and growth.
+                  </p>
+                  <div class="notes-buttons">
+                    <button id="note-new" type="button" class="primary">
+                      New note
+                    </button>
+                    <button id="note-attach" type="button">
+                      Attach existing note
+                    </button>
+                  </div>
+                </div>
+                <div id="note-incoming" class="note-incoming" hidden>
+                  <p>
+                    A note link is ready. Connect the file to view it or publish
+                    it to the team.
+                  </p>
+                  <button id="note-connect-incoming" type="button">
+                    Unlock linked note
+                  </button>
+                </div>
+                <p id="notes-status" class="muted" role="status"></p>
+                <div id="player-notes" class="note-list"></div>
+                <p id="notes-empty" class="muted">
+                  No notes yet. Personal notes are visible only to the Google
+                  accounts with access.
+                </p>
               </div>
               <div data-player-panel="rally-capacity" role="tabpanel" hidden>
                 <div class="player-capacities">
@@ -1251,6 +1291,115 @@
           <select id="avatar-category" aria-label="Avatar category"></select>
         </div>
         <div id="avatar-grid" class="catalog-grid"></div>
+      </dialog>
+      <dialog
+        id="note-dialog"
+        class="note-dialog"
+        aria-labelledby="note-heading"
+      >
+        <div class="dialog-heading">
+          <h2 id="note-heading">New note</h2>
+          <button id="note-close" type="button" aria-label="Close note">
+            ×
+          </button>
+        </div>
+        <p id="note-error" class="entry-error" role="alert"></p>
+        <form id="note-form">
+          <div id="note-create-options">
+            <label
+              >Who can read this?<select id="note-audience">
+                <option value="personal">Only me</option>
+                <option value="people">Specific people</option>
+                <option value="team">Team</option>
+              </select></label
+            >
+            <p id="note-storage" class="muted"></p>
+          </div>
+          <label
+            ><span>Title <span class="muted">(optional)</span></span
+            ><input id="note-title" maxlength="120"
+          /></label>
+          <label
+            >Note<textarea
+              id="note-body"
+              rows="12"
+              maxlength="50000"
+              required
+              placeholder="Write your note…"
+            ></textarea>
+          </label>
+          <div id="note-review" class="note-review" hidden>
+            <p>
+              This note changed in Drive. Compare the latest text with your
+              draft above.
+            </p>
+            <label>Latest title<input id="note-remote-title" readonly /></label>
+            <label
+              >Latest text<textarea
+                id="note-remote-body"
+                rows="8"
+                readonly
+              ></textarea>
+            </label>
+            <div class="notes-buttons">
+              <button id="note-keep-mine" type="button">Save my version</button
+              ><button id="note-use-remote" type="button">
+                Use latest version
+              </button>
+            </div>
+          </div>
+          <div id="note-sharing" hidden>
+            <p>
+              Stored in personal Drive. Only accounts granted access can read
+              this note.
+            </p>
+            <label
+              >Google account email<input
+                id="note-email"
+                type="email"
+                placeholder="name@example.com"
+            /></label>
+            <label
+              >Permission<select id="note-share-role">
+                <option value="reader">Can view</option>
+                <option value="writer">Can edit</option>
+              </select></label
+            >
+            <button id="note-share" type="button">
+              Share with this account
+            </button>
+          </div>
+          <div class="note-footer">
+            <p id="note-save-status" class="muted" role="status"></p>
+            <div class="notes-buttons">
+              <button id="note-unlock" type="button" hidden>Unlock note</button
+              ><button id="note-save" class="primary" type="submit">
+                Save note
+              </button>
+            </div>
+          </div>
+          <div id="note-document-actions" class="note-document-actions" hidden>
+            <div class="notes-buttons">
+              <button id="note-publish" type="button" hidden>
+                Publish to team
+              </button>
+              <button id="note-team-copy" type="button" hidden>
+                Create team copy
+              </button>
+              <button id="note-copy-link" type="button">Copy note link</button>
+              <input
+                id="note-link-result"
+                aria-label="Note link"
+                readonly
+                hidden
+              />
+              <a id="note-drive-link" target="_blank" rel="noopener noreferrer"
+                >Open in Drive / manage access ↗</a
+              >
+            </div>
+            <button id="note-remove" type="button">Remove from list</button>
+          </div>
+        </form>
       </dialog>
       <dialog id="add-player-dialog">
         <div class="dialog-heading">

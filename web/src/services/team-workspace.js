@@ -1,6 +1,7 @@
 import { PlayerProfiles } from "./player-profiles.js";
 import { PlayerCacheSync } from "./player-cache-sync.js";
 import { PlayerFiles } from "./player-files.js";
+import { PlayerNotes } from "./player-notes.js";
 import { OperationCancelled } from "./cancellation.js";
 import { loadTeamFiles, loadPlayerFolder } from "./team-files.js";
 import { ProjectSync } from "./project-sync.js";
@@ -42,6 +43,7 @@ export class TeamWorkspace {
     this.rememberCurrent();
     if (this.sync.canCheck()) await this.players.probe(this.getPlayer(), true);
     await this.refreshPlayers();
+    await this.notes.refresh();
   }
   refreshPlayers() {
     return this.playerCache.refresh();
@@ -75,6 +77,7 @@ export class TeamWorkspace {
     validatePlan = () => {},
     isEditingPlayer = () => false,
     playersChanged = () => {},
+    notesChanged = () => {},
     openPlan,
     setReadOnly,
     status,
@@ -154,6 +157,7 @@ export class TeamWorkspace {
       save: (updates) => this.publishPlayers(updates),
       status,
     });
+    this.notes = new PlayerNotes(this, notesChanged);
   }
   key() {
     return this.account && this.project && this.sync.file
@@ -222,6 +226,7 @@ export class TeamWorkspace {
     this.sync.reset();
     this.players.reset();
     this.playerCache.reset();
+    this.notes.reset();
     this.account = null;
     this.project = null;
   }
@@ -235,6 +240,7 @@ export class TeamWorkspace {
       this.sync.reset();
       this.players.reset();
       this.playerCache.reset();
+      this.notes.reset();
       this.project = null;
     }
     this.account = account;
@@ -285,6 +291,7 @@ export class TeamWorkspace {
     });
     this.players.reset();
     this.playerCache.reset();
+    this.notes.reset();
     this.openPlan(draft.plan, { preserveView });
     this.setReadOnly(readOnly);
     this.project = project;
@@ -296,6 +303,11 @@ export class TeamWorkspace {
     current();
     this.sync.opened(draft.file, plan, file.version, draft.basePlan);
     this.remember(draft.plan);
+    if (this.drive.noteIndexes)
+      this.notes.initialize().catch((error) => {
+        if (!(error instanceof OperationCancelled))
+          this.status("Notes synchronization paused: " + error.message, true);
+      });
     const opened = new Set(this.repository.openedPlayers?.(account.sub) || []);
     // Only revisit files this account explicitly opened; viewers need just the team grant.
     for (const player of draft.plan.keeps) {

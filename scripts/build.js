@@ -63,6 +63,7 @@ for (const path of [
   "styles/entry.css",
   "styles/planner-screens.css",
   "styles/polish.css",
+  "styles/notes.css",
   "app.js",
 ]) {
   const attribute = path.endsWith(".css") ? "href" : "src";

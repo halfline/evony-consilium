@@ -27,6 +27,30 @@ New team/player files use distinct `application/vnd.evony-consilium.team+json` a
 
 Opening never initializes a seemingly empty shared folder: a filtered Drive listing is not proof that it is empty.
 
+## Notes and their audiences
+
+Each note is a separate `{format: "evony-consilium-note", schema: 1, note}` JSON file, named `Note - <title>.note.consilium.json` with MIME type `application/vnd.evony-consilium.note+json`. Notes apply equally to regular players and alts. A linked profile file provides the stable subject identity, so changing alt ownership does not move or relabel its notes. Embedded profiles use a team/player identity; those existing notes remain attached if the profile later gets a central file. Attaching a note validates that identity; arbitrary documents and another player's notes are rejected.
+
+**New note** defaults to **Only me**, creating the file in an app-created **Consilium - Personal notes** folder in the signed-in account's My Drive. The app checks that folder for inherited sharing before creating a private note. **Specific people** uses the same storage and explicitly grants each entered Google account Viewer or Editor permission on that one file. Additional recipients can be added after creation. Sharing may send Google's normal notification. Recipient permissions, permission removal, moving files, and deletion remain manageable in Drive. If the app cannot inspect all permissions, the audience label says **Access in Drive** rather than claiming the note is private.
+
+**Team** stores the source directly in the shared team folder and inherits its permissions. Creating a file needs `canAddChildren` on that folder, separately from Editor access to the team document. A member with those creation permissions can save a team note without team Editor access. The app reports missing folder permissions and suggests a personal note followed by an editor-created team copy. It does not request broader Drive scopes or change folder permissions.
+
+The team document contains only published team-note attachments and snapshots, in `plan.teamNotes`. Personal/restricted note bodies, titles, recipients, and references never enter that cache. **Create team copy** is an explicit publication step: it creates a new team source and retains the personal original. Team-file readers can see published snapshots regardless of source-file authorization. Moving or restricting a source stops subsequent publication but does not retract its previous snapshot; a team editor must remove the published attachment, and collaborators may already retain copies.
+
+### Connecting and publishing under `drive.file`
+
+Sharing a Drive folder or selecting it in Picker does not authorize every existing child file for the app. A non-editor's new team note therefore says **awaiting publication** until an editor follows its Consilium link, uses **Unlock linked note**, and selects that exact file in Picker. The app then shows **Publish to team**, allowing review before adding the source snapshot to the team cache. There is no automatic discovery of unpublished notes. Send the copied note link to an editor outside the app; the app does not send that request for you.
+
+An account-owned `Consilium - Personal notes index.json` file stores its note connections and personal-folder reference. It uses `application/vnd.evony-consilium.notes-index+json` and an app-private discovery property. Discovery filters to files owned by the signed-in account and accessible under `drive.file`. This index is outside the team folder and contains no note text. A recipient connecting a shared personal note records it in their own index. Copying a note link itself grants neither app authorization nor Drive permission; recipients also need access to the linked team to open its player context.
+
+An editor's remembered published-note connections refresh the shared cache every 30 seconds while the team is open, visible, and authenticated, without opening the Notes tab. An editor lacking a source connection reads its last published snapshot until they unlock it. Source revision checks avoid redundant cache uploads. Removing a published attachment wins over a concurrent refresh; background work cannot rediscover it. There is no unattended synchronization, service account, or Apps Script.
+
+### Note drafts and conflicts
+
+New-note drafts use account/subject-scoped IndexedDB records; existing drafts use account/source-file keys. Both remain separate from player and team drafts. Existing editable notes autosave at the normal interval, and **Save note** saves immediately. The note dialog's timer also saves existing drafts while it is open. Creating a new note always requires an explicit save. Title and text merge independently, with the entire body treated as one conflict unit; review shows the latest source text and offers **Save my version** or **Use latest version**. A later source revision requires renewed review. A changed subject or audience blocks saving a recovered draft. Note uploads use the same strong ETag preconditions as team/player writes. Edits arriving during an upload remain pending, and failed saves retain local drafts.
+
+Note publication transforms only the shared team baseline, so an unrelated unfinished formation cannot be included. Source saves and publication remain separate transactions. **Undo team** does not undo source-file saves or note publication. Removing a player removes its published note attachments while retaining source files and account-private connections for deliberate later recovery.
+
 ## Google Cloud setup
 
 Use one Google Cloud project for all three public configuration values. No backend, service account, client secret, or stored refresh token is used.
@@ -55,6 +79,8 @@ Use two distinct Google accounts, ideally personal Gmail accounts:
 - Sign in as the teammate in a separate browser profile. Paste the folder link, select the single team file in Picker. Open the same formation and verify a save with editor permissions.
 - Reload and reopen the remembered project without selecting files again. Test cancelled Picker dialogs and missing/revoked access. If a file was truly deleted or moved, repair the folder in Drive rather than initializing it again.
 - Give the teammate view-only permission and verify they can open but cannot save over the formation. Test the draft conflict behavior after the creator changes the Drive version.
+- Create a personal note and share it with the second account as Viewer. Verify that its text and reference stay outside the team file and that the recipient explicitly connects the source to read it. Test an Editor recipient and competing note edits as well.
+- With the teammate able to add files to the shared folder but unable to edit the team document, create a team note, send its app link to the creator, and unlock/publish it. Change its source in the teammate's session and verify publication from the creator's next background interval, including after reloading without opening Notes. Verify cancelled Picker, missing folder permissions, and revoked source access.
 - Confirm the requested Drive permission is for files used with the app, not all Drive files. If testing an account that granted full Drive access to an earlier build, remove that old app connection in Google Account settings before this check. Narrow token requests do not erase an earlier account-wide grant.
 
 ## Persistence and collaboration

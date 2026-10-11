@@ -32,7 +32,12 @@ export function createPlayerDetails({ root }) {
       button.setAttribute("aria-selected", String(active));
       button.tabIndex = active ? 0 : -1;
     }
-    $("player-profile-actions").hidden = ["subcities", "alts"].includes(tab);
+    $("player-profile-actions").hidden = [
+      "subcities",
+      "alts",
+      "notes",
+    ].includes(tab);
+    root.querySelector(".player-footer").hidden = tab === "notes";
     for (const panel of root.querySelectorAll("[data-player-panel]"))
       panel.hidden = panel.dataset.playerPanel !== tab;
   }

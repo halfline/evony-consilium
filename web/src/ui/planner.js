@@ -357,6 +357,7 @@ export function createPlanner(
         alts: $("alts-screen"),
         profile: $("player-screen"),
         add: $("add-player-dialog"),
+        notes: $("note-dialog"),
         ownerPicker: $("new-player-owner-dialog"),
         avatars: $("avatar-dialog"),
         sync: $("player-sync-dialog"),
@@ -455,6 +456,7 @@ export function createPlanner(
     resolveTeamConflicts: teamConflicts.resolve,
     validatePlan: (plan) => validatePlan(plan, catalog),
     isEditingPlayer: () => $("add-player-dialog").open,
+    notesChanged: () => players.renderNotes(),
     playersChanged: () => {
       teamScreen.render();
       players.renderList();
@@ -523,6 +525,7 @@ export function createPlanner(
       resourceKey: workspace.sync.file?.resourceKey || null,
       screen: screens.current(),
       player: screens.isPlayer() ? placement.id : null,
+      ...(screens.isPlayer() ? players.noteRoute() : {}),
       map: screens.current() === "formation" ? getPlan().activeMapId : null,
     }),
     ready: () => !opening && !!workspace.sync.file && !$("planner").hidden,
@@ -538,6 +541,7 @@ export function createPlanner(
         placement.id = route.player;
       }
       screens.show(route.screen);
+      if (route.screen === "player") players.openNoteLink(route);
     },
   });
   projects = new TeamEntry({
@@ -558,6 +562,7 @@ export function createPlanner(
     workspace,
     autosave: async () => {
       await players.autosave();
+      await workspace.notes.autosave();
       if (workspace.healthy()) await workspace.autosave();
     },
     opened: () => {

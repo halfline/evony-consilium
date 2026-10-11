@@ -18,11 +18,23 @@ export function parseRoute(hash) {
     screen: SCREENS.has(screen) ? screen : "project",
     player: params.get("player"),
     map: params.get("map"),
+    ...(params.get("section") ? { section: params.get("section") } : {}),
+    ...(params.get("note") ? { note: params.get("note") } : {}),
+    ...(params.get("noteKey") ? { noteKey: params.get("noteKey") } : {}),
   };
 }
 export function routeHash(route) {
   const params = new URLSearchParams();
-  for (const field of ["team", "resourceKey", "screen", "player", "map"])
+  for (const field of [
+    "team",
+    "resourceKey",
+    "screen",
+    "player",
+    "map",
+    "section",
+    "note",
+    "noteKey",
+  ])
     if (route[field]) params.set(field, route[field]);
   return "#" + params;
 }

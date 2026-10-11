@@ -162,7 +162,7 @@ export function createPlayerScreen({
       .composedPath()
       .some((node) =>
         node.matches?.(
-          '[data-player-panel="subcities"], [data-player-panel="alts"]',
+          '[data-player-panel="subcities"], [data-player-panel="alts"], [data-player-panel="notes"]',
         ),
       );
   for (const event of ["input", "change"])

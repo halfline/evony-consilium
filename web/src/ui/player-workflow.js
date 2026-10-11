@@ -1,3 +1,4 @@
+import { createPlayerNotes } from "./player-notes.js";
 import { createPlayerFileControls } from "./player-file-controls.js";
 import { createPlayersScreen } from "./players-screen.js";
 import { createPlayerScreen } from "./player-screen.js";
@@ -195,7 +196,17 @@ export function createPlayerWorkflow({
       lastTag = player.allianceTag;
     },
   });
+  const notes = createPlayerNotes({
+    root: roots.profile,
+    dialog: roots.notes,
+    getWorkspace,
+    getPlayer: cachedPlayer,
+    status,
+  });
   return {
+    renderNotes: notes.render,
+    openNoteLink: notes.openLink,
+    noteRoute: notes.route,
     autosave: () => profile.autosave(),
     renderList: () => {
       list.render();
@@ -206,6 +217,7 @@ export function createPlayerWorkflow({
       fileControls.render();
       refreshAccess();
       ownedAlts.render();
+      notes.render();
       getWorkspace()?.players.probe(cachedPlayer());
     },
     canEditPlayer: () =>

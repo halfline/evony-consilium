@@ -1,6 +1,7 @@
 import { projectFingerprint, syncMapLayouts } from "./map-plans.js";
 import { applyLayout } from "./layout.js";
 import { playerProfile } from "./player-document.js";
+import { newerNoteCache } from "./note-document.js";
 import { ensureMapRallySetters } from "./rally.js";
 import { overlap } from "./geometry.js";
 
@@ -53,6 +54,7 @@ function newerCache(local, remote) {
 
 export function teamFingerprint(plan) {
   const next = canonical(plan);
+  for (const note of next.teamNotes || []) delete note.noteCache;
   for (const player of next.keeps || []) {
     if (player.profileCache) {
       player.playerFileId = player.profileCache.playerSource.fileId;
@@ -74,6 +76,10 @@ export function mergeTeamPlans(
   const choiceFor = (path) =>
     typeof resolution === "string" ? resolution : resolution?.[path];
   function merge(before, mine, theirs, path = "") {
+    if (path.endsWith(".noteCache")) {
+      const latest = newerNoteCache(mine, theirs);
+      if (latest) return copy(latest);
+    }
     if (path.endsWith("profileCache")) {
       const newest = newerCache(mine, theirs);
       if (newest) return copy(newest);
@@ -83,7 +89,7 @@ export function mergeTeamPlans(
     if (equal(before, theirs)) return copy(mine);
     // Removing membership wins over a concurrent refresh of that member's cache.
     if (
-      path.startsWith("keeps[") &&
+      (path.startsWith("keeps[") || path.startsWith("teamNotes[")) &&
       (mine === undefined || theirs === undefined)
     ) {
       const remaining = mine ?? theirs;
@@ -91,6 +97,7 @@ export function mergeTeamPlans(
         if (!value) return value;
         const result = { ...value };
         delete result.profileCache;
+        delete result.noteCache;
         return result;
       };
       if (equal(withoutCache(before), withoutCache(remaining)))

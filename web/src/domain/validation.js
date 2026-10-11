@@ -7,6 +7,7 @@ import { MAPS } from "./maps.js";
 import { captureLayout, applyLayout } from "./layout.js";
 import { defaultFormationName } from "./map-plans.js";
 import { migratePlan } from "./document-migrations.js";
+import { validateTeamNotes } from "./note-document.js";
 import { overlap, unproject } from "./geometry.js";
 import { MAX_ENTITIES, ENTITY_COLLECTIONS } from "./entities.js";
 
@@ -235,6 +236,7 @@ export function validatePlan(
     throw new Error("Invalid team document.");
   const plan = migratePlan(input);
   validateDocument(plan);
+  if (plan.teamNotes) plan.teamNotes = validateTeamNotes(plan.teamNotes);
   validateCustomAssets(plan);
   validateEntities(plan, catalog);
   validatePlayerOwnership(plan.keeps);

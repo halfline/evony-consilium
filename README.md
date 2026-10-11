@@ -36,6 +36,14 @@ The Team dashboard includes Players, Subcities, and Maps counts. The header dist
 
 Screen, player, and map navigation is reflected in the URL. Browser Back restores the previous view, and opening a team link after sign-in restores its requested view subject to the usual Drive permissions.
 
+## Player and alt notes
+
+Every player and alt has a **Notes** tab, independent of permission to edit that player's profile. **New note** creates a separate Drive file. Choose **Only me** for your personal notes folder, **Specific people** to grant a Google account Viewer or Editor access, or **Team** for the shared team folder. Personal notes and their attachment index stay outside the team document, exports, and activity. **Attach existing note** connects a Consilium note for the same player; copying a note link does not grant Drive access.
+
+A member can create a team note when their folder permissions allow adding files. If they cannot edit the team document, its card says **awaiting publication**. Send the note link to a team editor, who uses **Unlock linked note** to select that single file in Picker, reviews it, and chooses **Publish to team**. The editor's connection is remembered in their own Drive index. Published notes refresh every 30 seconds while a connected editor has the team open, including after reload and without visiting Notes. Other teammates can read the last published copy without connecting the source. Folder sharing already controls access to the original file in Drive; publication controls its appearance in Consilium.
+
+Notes support an optional title and plain free-form text. Existing editable note drafts save automatically and survive navigation and reload on the same device; new notes require **Save note**. Note saves merge independent title/text changes and require review for competing text edits. **Create team copy** deliberately copies a personal note into the shared folder, leaving the original intact. Removing a note from a list keeps its Drive file; removing a published note does not erase previously downloaded copies. Manage permission removal and file deletion in Drive. Automatic synchronization needs an open, authenticated browser session; no server or Apps Script runs it.
+
 ## Features
 
 - Team dashboard: editable name/logo, optional Discord chat link, and player/map counts.
@@ -46,6 +54,7 @@ Screen, player, and map navigation is reflected in the URL. Browser Back restore
 - One compact formation: Arrange packs higher keep levels nearest the rally setter’s current position, without configurable gaps or a separate center. The highest keep is the default rally setter; a hover or long-press star selects another, independently per map. Locked keeps and occupied footprints are respected.
 - Alliance castle type/location, warehouse, farm and other resource tiles, server landmarks (Throne, catapults, towers, temples and altars), battlefield objectives, and blocked tiles; configured castle/objective footprints; their dimensions are read-only. “Use game size” restores the configured size of an existing building without allowing overlaps.
 - Shared Drive project folders, account-scoped remembered projects in localStorage, IndexedDB draft backup, 30-second Drive autosave with version checks, immediate Save buttons, Undo.
+- Separate player and alt notes: personal, shared with specific Google accounts, or published to the team, with independent drafts and conflict review.
 - Map screenshot imports, adjustable grid axes, and background image alignment for current battlefield references.
 - Responsive desktop/mobile layout.
 

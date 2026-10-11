@@ -1,8 +1,18 @@
 // Network-boundary mock: production code still runs the full Google/Drive UI.
 export async function mockGoogleDrive(
   context,
-  { files = new Map(), grants = new Set() } = {},
+  {
+    files = new Map(),
+    grants = new Set(),
+    account = { sub: "test-account", email: "team@example.test" },
+    access = new Map(),
+  } = {},
 ) {
+  const metadataFor = (entry) => ({
+    ...entry.file,
+    ownedByMe: entry.owner === account.sub,
+    capabilities: { ...entry.file.capabilities, ...access.get(entry.file.id) },
+  });
   let next = Math.max(
     0,
     ...[...files.keys()].map((id) => Number(id.replace(/^mock/, "")) || 0),
@@ -68,12 +78,37 @@ export async function mockGoogleDrive(
     });
   });
   await context.route("https://openidconnect.googleapis.com/v1/userinfo", (r) =>
-    r.fulfill({ json: { sub: "test-account", email: "team@example.test" } }),
+    r.fulfill({ json: account }),
   );
   await context.route("https://www.googleapis.com/**", async (route) => {
     const request = route.request(),
       url = new URL(request.url());
     const id = url.pathname.match(/\/files\/([^/]+)/)?.[1];
+    if (id && url.pathname.endsWith("/permissions")) {
+      const entry = files.get(id);
+      if (!entry || !grants.has(id))
+        return route.fulfill({
+          status: 404,
+          json: { error: { message: "Not found" } },
+        });
+      entry.permissions ||= [
+        {
+          id: "owner",
+          type: "user",
+          role: "owner",
+          emailAddress: account.email,
+        },
+      ];
+      if (request.method() === "POST") {
+        const permission = {
+          id: "permission" + entry.permissions.length,
+          ...JSON.parse(request.postData()),
+        };
+        entry.permissions.push(permission);
+        return route.fulfill({ json: permission });
+      }
+      return route.fulfill({ json: { permissions: entry.permissions } });
+    }
     if (request.method() === "POST") {
       const body = request.postData();
       let metadata, data;
@@ -87,10 +122,27 @@ export async function mockGoogleDrive(
         ...metadata,
         id: "mock" + ++next,
         version: "1",
-        capabilities: { canEdit: true, canAddChildren: true },
+        capabilities: {
+          canEdit: true,
+          canAddChildren: true,
+          canShare: true,
+          canCopy: true,
+        },
         webViewLink: "https://drive.google.com/drive/folders/mock" + next,
       };
-      files.set(file.id, { file, data });
+      files.set(file.id, {
+        file,
+        data,
+        owner: account.sub,
+        permissions: [
+          {
+            id: "owner",
+            type: "user",
+            role: "owner",
+            emailAddress: account.email,
+          },
+        ],
+      });
       grants.add(file.id);
       return route.fulfill({ json: file });
     }
@@ -107,7 +159,7 @@ export async function mockGoogleDrive(
           status: 404,
           json: { error: { message: "Not found" } },
         });
-      if (!entry.file.capabilities.canEdit)
+      if (!metadataFor(entry).capabilities.canEdit)
         return route.fulfill({
           status: 403,
           json: { error: { message: "Read-only file" } },
@@ -155,7 +207,7 @@ export async function mockGoogleDrive(
                 ? entry.data
                 : url.pathname.includes("/v2/")
                   ? {
-                      ...entry.file,
+                      ...metadataFor(entry),
                       title: entry.file.name,
                       etag: `"${id}:${entry.file.version}"`,
                       parents: entry.file.parents?.map((id) => ({ id })),
@@ -166,19 +218,25 @@ export async function mockGoogleDrive(
                           ([key]) => key !== "parents",
                         ),
                       )
-                    : entry.file,
+                    : metadataFor(entry),
           })
         : route.fulfill({
             status: 404,
             json: { error: { message: "Not found" } },
           });
     }
-    const folder = url.searchParams.get("q")?.match(/^'([^']+)'/)?.[1];
+    const query = url.searchParams.get("q") || "";
+    const folder = query.match(/^'([^']+)'/)?.[1];
     return route.fulfill({
       json: {
         files: [...files.values()]
           .filter(
-            (r) => grants.has(r.file.id) && r.file.parents?.includes(folder),
+            (r) =>
+              grants.has(r.file.id) &&
+              (query.includes("consiliumKind")
+                ? r.owner === account.sub &&
+                  r.file.appProperties?.consiliumKind === "notes-index"
+                : r.file.parents?.includes(folder)),
           )
           .map((r) => r.file),
       },

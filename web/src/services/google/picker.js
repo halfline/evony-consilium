@@ -1,4 +1,5 @@
 import { OperationCancelled } from "../cancellation.js";
+import { NOTE_MIME } from "../../domain/note-document.js";
 import { TEAM_MIME, PLAYER_MIME } from "../../domain/drive-documents.js";
 
 class PickerCancelled extends OperationCancelled {
@@ -47,6 +48,8 @@ export class DrivePicker {
     folders = false,
     file = null,
     player = false,
+    note = false,
+    purpose = null,
   } = {}) {
     if (!this.config.apiKey || !/^\d+$/.test(this.config.appId || ""))
       throw new Error(
@@ -61,7 +64,7 @@ export class DrivePicker {
     const p = globalThis.google.picker;
     const mime = folders
       ? "application/vnd.google-apps.folder"
-      : `${player ? PLAYER_MIME : TEAM_MIME},application/json`;
+      : `${note ? NOTE_MIME : player ? PLAYER_MIME : TEAM_MIME},application/json`;
     // File format is an implementation detail. Search both content types in
     // the same view; the common filename identifies the intended document.
     const documentView = (label) => {
@@ -73,7 +76,13 @@ export class DrivePicker {
         .setMimeTypes(mime);
       // A linked file may have been renamed in Drive. Its ID is sufficient.
       if (!folders && !file)
-        view.setQuery(player ? "player.consilium.json" : "team.consilium.json");
+        view.setQuery(
+          note
+            ? "note.consilium.json"
+            : player
+              ? "player.consilium.json"
+              : "team.consilium.json",
+        );
       return view;
     };
     const view = documentView(
@@ -81,9 +90,11 @@ export class DrivePicker {
         ? "Team folder"
         : file
           ? "Linked file"
-          : player
-            ? "Player files"
-            : "Team files",
+          : note
+            ? "Note files"
+            : player
+              ? "Player files"
+              : "Team files",
     );
     if (folders) {
       if (folder) view.setFileIds(folder.id);
@@ -102,13 +113,18 @@ export class DrivePicker {
         .setAppId(this.config.appId)
         .setOrigin(location.origin)
         .setTitle(
-          folders
-            ? `Add player: select the ${folder?.name || "team"} folder`
-            : player
+          purpose ||
+            (note
               ? file
-                ? `Connect ${file.name || "this player"}: select the linked Player file`
-                : "Add existing player: select a Player file"
-              : "Open team: select a Team file",
+                ? "Unlock note: select the linked note file"
+                : "Attach existing note: select a Consilium note"
+              : folders
+                ? `Add player: select the ${folder?.name || "team"} folder`
+                : player
+                  ? file
+                    ? `Connect ${file.name || "this player"}: select the linked Player file`
+                    : "Add existing player: select a Player file"
+                  : "Open team: select a Team file"),
         )
         .setCallback((data) => {
           if (data.action === p.Action.CANCEL) {
@@ -134,15 +150,21 @@ export class DrivePicker {
             if (file && selected[0].id !== file.id)
               return reject(
                 new Error(
-                  player
-                    ? `Choose the linked Player file for ${file.name || "this player"}.`
-                    : "Choose the Team file from the link you opened.",
+                  note
+                    ? "Choose the linked note file."
+                    : player
+                      ? `Choose the linked Player file for ${file.name || "this player"}.`
+                      : "Choose the Team file from the link you opened.",
                 ),
               );
             if (selected.length !== 1)
               return reject(
                 new Error(
-                  player ? "Choose one player file." : "Choose one team file.",
+                  note
+                    ? "Choose one note file."
+                    : player
+                      ? "Choose one player file."
+                      : "Choose one team file.",
                 ),
               );
             resolve(selected);
@@ -160,8 +182,11 @@ export class DrivePicker {
       picker.setVisible(true);
     });
   }
-  async folder(resource = null) {
-    return (await this.select({ folder: resource, folders: true }))[0];
+  async folder(resource = null, purpose = null) {
+    return (await this.select({ folder: resource, folders: true, purpose }))[0];
+  }
+  note(file = null) {
+    return this.select({ file, note: true });
   }
   player(file = null, folder = null) {
     return this.select({ file, folder, player: true });

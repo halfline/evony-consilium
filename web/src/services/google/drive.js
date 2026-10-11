@@ -5,6 +5,15 @@ import {
 } from "../../domain/player-document.js";
 import { isTeamLogo } from "../../domain/team.js";
 import {
+  NOTE_MIME,
+  NOTE_INDEX_MIME,
+  noteFilename,
+  noteDocument,
+  readNoteDocument,
+  validateNoteIndex,
+  fileId,
+} from "../../domain/note-document.js";
+import {
   TEAM_MIME,
   PLAYER_MIME,
   teamFilename,
@@ -13,7 +22,7 @@ import {
 } from "../../domain/drive-documents.js";
 const API = "https://www.googleapis.com/drive/v3";
 const FIELDS =
-  "id,name,mimeType,version,parents,capabilities(canEdit,canAddChildren),webViewLink,resourceKey";
+  "id,name,mimeType,version,parents,ownedByMe,capabilities(canEdit,canAddChildren,canShare,canCopy),webViewLink,resourceKey";
 export const isFileAccessError = (error) =>
   error.status === 404 ||
   (error.status === 403 &&
@@ -165,13 +174,14 @@ export class Drive {
     name,
     data,
     folder = null,
-    { mimeType = "application/json" } = {},
+    { mimeType = "application/json", appProperties } = {},
   ) {
     const metadata = {
       name,
       mimeType,
     };
     if (folder) metadata.parents = [folder.id];
+    if (appProperties) metadata.appProperties = appProperties;
     const boundary = "evony_" + crypto.randomUUID();
     const body = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n--${boundary}\r\nContent-Type: ${mimeType}\r\n\r\n${JSON.stringify(data)}\r\n--${boundary}--`;
     return this.request(
@@ -193,6 +203,100 @@ export class Drive {
         mimeType: "application/vnd.google-apps.folder",
       }),
     });
+  }
+  async loadJSON(file, read) {
+    fileId(file.id);
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const before = await this.metadata(file);
+      const data = await this.request(
+        `/files/${file.id}?alt=media&supportsAllDrives=true`,
+        { resource: file },
+      );
+      const after = await this.metadata(file);
+      if (before.version !== after.version) continue;
+      after.resourceKey ||= file.resourceKey || "";
+      return { file: after, data: read(data) };
+    }
+    throw new DriveError("The note changed while opening. Try again.", 409);
+  }
+  async loadNote(file) {
+    const loaded = await this.loadJSON(file, readNoteDocument);
+    return { file: loaded.file, note: loaded.data };
+  }
+  loadNoteIndex(file) {
+    return this.loadJSON(file, validateNoteIndex);
+  }
+  async noteIndexes() {
+    const query = new URLSearchParams({
+      q: "'me' in owners and trashed = false and appProperties has { key='consiliumKind' and value='notes-index' }",
+      fields: `nextPageToken,files(${FIELDS})`,
+      pageSize: "100",
+    });
+    const files = [];
+    do {
+      const result = await this.request(`/files?${query}`);
+      files.push(...result.files);
+      if (!result.nextPageToken) return files;
+      query.set("pageToken", result.nextPageToken);
+    } while (true);
+  }
+  createNoteIndex(data) {
+    return this.createJSON(
+      "Consilium - Personal notes index.json",
+      validateNoteIndex(data),
+      null,
+      {
+        mimeType: NOTE_INDEX_MIME,
+        appProperties: { consiliumKind: "notes-index" },
+      },
+    );
+  }
+  saveNoteIndex(file, data) {
+    return this.conditionalSave(
+      file,
+      () => validateNoteIndex(data),
+      "Consilium - Personal notes index.json",
+      NOTE_INDEX_MIME,
+    );
+  }
+  createNote(note, folder) {
+    if (!folder?.capabilities?.canAddChildren)
+      throw new DriveError(
+        "You need permission to create files in the notes folder.",
+        403,
+      );
+    return this.createJSON(noteFilename(note), noteDocument(note), folder, {
+      mimeType: NOTE_MIME,
+    });
+  }
+  saveNote(file, note) {
+    return this.conditionalSave(
+      file,
+      () => noteDocument(note),
+      noteFilename(note),
+      NOTE_MIME,
+    );
+  }
+  notePermissions(file) {
+    fileId(file.id);
+    return this.request(
+      `/files/${file.id}/permissions?supportsAllDrives=true&fields=nextPageToken,permissions(id,type,role,emailAddress)&pageSize=100`,
+      { resource: file },
+    );
+  }
+  shareNote(file, emailAddress, role) {
+    fileId(file.id);
+    if (!["reader", "writer"].includes(role))
+      throw new Error("Invalid note sharing role.");
+    return this.request(
+      `/files/${file.id}/permissions?supportsAllDrives=true&fields=id,type,role,emailAddress`,
+      {
+        method: "POST",
+        resource: file,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "user", role, emailAddress }),
+      },
+    );
   }
   async initializeProject(folder, plan, { logo = "" } = {}) {
     const files = await this.children(folder);
@@ -273,7 +377,7 @@ export class Drive {
     // v2 exposes a strong metadata ETag in JSON. v3 omits it. Use the exact
     // token as a server-side precondition, never a guessed version or media ETag.
     const fields =
-      "id,title,mimeType,etag,version,parents(id),capabilities(canEdit,canAddChildren),alternateLink,resourceKey";
+      "id,title,mimeType,etag,version,parents(id),capabilities(canEdit,canAddChildren,canShare,canCopy),alternateLink,resourceKey";
     const current = await this.request(
       `https://www.googleapis.com/drive/v2/files/${encodeURIComponent(file.id)}?supportsAllDrives=true&fields=${fields}`,
       { resource: file },

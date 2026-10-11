@@ -62,7 +62,7 @@ export async function altOwnership({ page, playersScreen }) {
     await page
       .locator("#player-section-select option:not([hidden])")
       .evaluateAll((options) => options.map((option) => option.value)),
-    ["overview", "subcities"],
+    ["overview", "notes", "subcities"],
   );
   assert.match(await page.locator("#player-main").textContent(), /Main player/);
   assert.match(

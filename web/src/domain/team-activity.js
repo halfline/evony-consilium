@@ -51,7 +51,11 @@ export function appendTeamActivity(
   { sync = false } = {},
 ) {
   const changes = sync
-    ? ["Synced player files into the team"]
+    ? [
+        JSON.stringify(before.teamNotes) !== JSON.stringify(after.teamNotes)
+          ? "Updated published team notes"
+          : "Synced player files into the team",
+      ]
     : teamChanges(before, after);
   if (!changes.length) return after;
   return {
