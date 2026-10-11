@@ -1,6 +1,7 @@
 import { policyPage } from "./policy-pages.js";
 import { browserConfigModule } from "./browser-config.js";
 import { prepareAssets } from "./assets.js";
+import { buildAppsScript } from "./build-apps-script.js";
 import { createHash } from "node:crypto";
 import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { join, resolve, sep } from "node:path";
@@ -33,6 +34,7 @@ const appPath = `releases/${hash.digest("hex").slice(0, 12)}`;
 
 await rm("dist", { recursive: true, force: true });
 await mkdir("dist");
+await buildAppsScript("dist/apps-script");
 const assets = resolve("web/assets");
 const branding = resolve(assets, "branding");
 await cp("web", "dist", {
