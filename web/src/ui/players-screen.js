@@ -2,9 +2,9 @@ import { renderPlayerPortrait } from "./portrait.js";
 import { view } from "./dom.js";
 import { bindTileActions } from "./tile-actions.js";
 import { createCollectionControls } from "./collection-controls.js";
-import { labelWithIcon } from "./icons.js";
 import { paintStatusBadge } from "./status-badge.js";
 import { matchesPlayerSearch } from "./player-search.js";
+import { createRemoveButton } from "./remove-button.js";
 
 export function createPlayersScreen({
   root,
@@ -113,13 +113,11 @@ export function createPlayersScreen({
     }
     button.append(portrait, identity);
     button.onclick = () => open(player.id);
-    const removeButton = document.createElement("button");
-    removeButton.type = "button";
-    removeButton.className = "player-remove";
-    labelWithIcon(removeButton, "close");
-    removeButton.title = "Remove " + player.name;
-    removeButton.setAttribute("aria-label", removeButton.title);
-    removeButton.onclick = () => remove(player.id);
+    const removeButton = createRemoveButton({
+      className: "player-remove",
+      label: "Remove " + player.name,
+      remove: () => remove(player.id),
+    });
     tile.append(button, removeButton);
     return tile;
   }
