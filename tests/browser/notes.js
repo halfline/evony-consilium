@@ -57,6 +57,12 @@ export async function playerNotes({ browser, base = "http://127.0.0.1:4174" }) {
       (row) => row.data?.format === "evony-consilium-team",
     );
     assert.notEqual(personal.file.parents[0], team.file.parents[0]);
+    const adminIndex = [...files.values()].find(
+      (row) =>
+        row.owner === "alice" &&
+        row.data?.format === "evony-consilium-notes-index",
+    );
+    assert.deepEqual(adminIndex.file.parents, personal.file.parents);
     assert.doesNotMatch(
       JSON.stringify(team.data),
       /Personal assessment|Only my draft/,
@@ -143,6 +149,14 @@ export async function playerNotes({ browser, base = "http://127.0.0.1:4174" }) {
       (row) => row.data?.note?.title === "Team growth plan",
     );
     assert.equal(contribution.file.parents[0], team.file.parents[0]);
+    const memberIndex = [...files.values()].find(
+      (row) =>
+        row.owner === "bob" &&
+        row.data?.format === "evony-consilium-notes-index",
+    );
+    assert.deepEqual(memberIndex.file.parents, [memberIndex.data.folder.id]);
+    assert.notEqual(memberIndex.data.folder.id, team.file.parents[0]);
+    assert.notEqual(memberIndex.data.folder.id, adminIndex.data.folder.id);
     assert.equal(team.data.plan.teamNotes, undefined);
     await m.locator(`[data-note-id="${contribution.file.id}"]`).click();
     await m.locator("#note-copy-link").click();

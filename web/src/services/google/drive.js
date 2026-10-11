@@ -241,10 +241,15 @@ export class Drive {
     } while (true);
   }
   createNoteIndex(data) {
+    const index = validateNoteIndex(data);
+    if (!index.folder)
+      throw new Error(
+        "A personal notes folder is required for the notes index.",
+      );
     return this.createJSON(
       "Consilium - Personal notes index.json",
-      validateNoteIndex(data),
-      null,
+      index,
+      index.folder,
       {
         mimeType: NOTE_INDEX_MIME,
         appProperties: { consiliumKind: "notes-index" },

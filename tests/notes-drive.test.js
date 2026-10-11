@@ -43,6 +43,7 @@ test("note and index creation use independent files with explicit storage and pr
     format: "evony-consilium-notes-index",
     schema: 1,
     links: [],
+    folder: { id: "personal-folder", resourceKey: "folder-key" },
   });
   assert.equal(uploads[0].blocks[0].mimeType, NOTE_MIME);
   assert.deepEqual(uploads[0].blocks[0].parents, ["personal-folder"]);
@@ -52,10 +53,23 @@ test("note and index creation use independent files with explicit storage and pr
     "personal-folder/folder-key",
   );
   assert.equal(uploads[1].blocks[0].mimeType, NOTE_INDEX_MIME);
-  assert.equal(uploads[1].blocks[0].parents, undefined);
+  assert.deepEqual(uploads[1].blocks[0].parents, ["personal-folder"]);
+  assert.equal(
+    uploads[1].options.headers["X-Goog-Drive-Resource-Keys"],
+    "personal-folder/folder-key",
+  );
   assert.deepEqual(uploads[1].blocks[0].appProperties, {
     consiliumKind: "notes-index",
   });
+  assert.throws(
+    () =>
+      drive.createNoteIndex({
+        format: "evony-consilium-notes-index",
+        schema: 1,
+        links: [],
+      }),
+    /folder is required/,
+  );
   assert.throws(() => drive.createNote(note, { id: "readonly" }), /permission/);
 });
 

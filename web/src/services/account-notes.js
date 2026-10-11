@@ -68,10 +68,33 @@ export class AccountNotes {
             this.file = loaded.file;
             this.index = loaded.data;
           }
+          // Provision storage inside the serialized change, including when the
+          // first attachment is a team note or a note shared by another account.
+          if (!this.index.folder) {
+            const folder = await this.drive.createFolder(
+              "Consilium - Personal notes",
+            );
+            current();
+            this.index.folder = {
+              id: folder.id,
+              resourceKey: folder.resourceKey || "",
+            };
+          }
           const next = validateNoteIndex(
             transform(structuredClone(this.index)),
           );
           try {
+            if (!this.file) {
+              const access = await this.drive.notePermissions(next.folder);
+              current();
+              if (
+                access.nextPageToken ||
+                access.permissions.some((row) => row.role !== "owner")
+              )
+                throw new Error(
+                  "Your personal notes folder is shared. Remove its sharing in Drive before storing your notes index.",
+                );
+            }
             const file = this.file
               ? await this.drive.saveNoteIndex(this.file, next)
               : await this.drive.createNoteIndex(next);
@@ -108,14 +131,8 @@ export class AccountNotes {
   }
   async personalFolder() {
     await this.load();
-    if (this.index.folder) return this.drive.metadata(this.index.folder);
     const current = this.context();
-    const folder = await this.drive.createFolder("Consilium - Personal notes");
-    current();
-    await this.change((index) => {
-      index.folder ||= { id: folder.id, resourceKey: folder.resourceKey || "" };
-      return index;
-    });
+    if (!this.index.folder) await this.change((index) => index);
     current();
     return this.drive.metadata(this.index.folder);
   }

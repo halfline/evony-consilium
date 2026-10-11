@@ -100,7 +100,7 @@ function fixture() {
       file: copy(entry(file).file),
       data: copy(entry(file).data),
     }),
-    createNoteIndex: async (data) => createFile(data),
+    createNoteIndex: async (data) => createFile(data, data.folder),
     saveNoteIndex: save,
     createFolder: async () => createFile(null),
     createNote: async (note, folder) => createFile(noteDocument(note), folder),
@@ -184,6 +184,11 @@ test("personal note bodies and metadata never enter a team save or export", asyn
   });
   assert.equal(f.files.get(id).file.parents.length, 1);
   assert.notEqual(f.files.get(id).file.parents[0], "central");
+  const index = [...f.files.values()].find(
+    (row) => row.data?.format === "evony-consilium-notes-index",
+  );
+  assert.deepEqual(index.file.parents, f.files.get(id).file.parents);
+  assert.deepEqual(index.file.parents, [index.data.folder.id]);
   await f.w.notes.share(id, "bob@example.test", "reader");
   await f.w.notes.refresh();
   assert.equal(f.w.notes.list(f.player())[0].audience, "Specific people");
@@ -206,6 +211,11 @@ test("a non-editor's team note stays pending until an editor explicitly connects
     "team",
   );
   assert.equal(f.files.get(id).file.parents[0], "central");
+  const index = [...f.files.values()].find(
+    (row) => row.data?.format === "evony-consilium-notes-index",
+  );
+  assert.deepEqual(index.file.parents, [index.data.folder.id]);
+  assert.notEqual(index.data.folder.id, "central");
   assert.equal(f.w.notes.list(f.player())[0].published, undefined);
   assert.equal(f.remote().teamNotes, undefined);
   await assert.rejects(f.w.notes.publish(f.player(), id), /team editor/);
@@ -602,7 +612,54 @@ test("account index updates reload the latest index before adding an attachment"
     ["first", "second", "third"],
   );
   assert.equal((await f.drive.noteIndexes()).length, 1);
+  const row = f.files.get(b.file.id);
+  assert.deepEqual(row.file.parents, [b.index.folder.id]);
 });
+
+test("opening notes does not provision storage, and concurrent folder requests create one folder", async () => {
+  const f = fixture(),
+    account = new AccountNotes(f.drive);
+  await account.load();
+  assert.equal(f.files.size, 2);
+  const [a, b] = await Promise.all([
+    account.personalFolder(),
+    account.personalFolder(),
+  ]);
+  assert.equal(a.id, b.id);
+  assert.equal(f.files.size, 4);
+  assert.deepEqual(f.files.get(account.file.id).file.parents, [a.id]);
+});
+
+test("attachment-only users store their own index in a personal folder", async () => {
+  const f = fixture(),
+    account = new AccountNotes(f.drive);
+  await account.remember({ id: "shared-note" }, "player:profile");
+  assert.deepEqual(
+    account.index.links.map((row) => row.id),
+    ["shared-note"],
+  );
+  assert.deepEqual(f.files.get(account.file.id).file.parents, [
+    account.index.folder.id,
+  ]);
+  assert.notEqual(account.index.folder.id, "central");
+});
+
+test("an index is not created in a folder whose sharing cannot be verified as private", async () => {
+  for (const access of [
+    { permissions: [{ role: "owner" }, { role: "reader" }] },
+    { permissions: [{ role: "owner" }], nextPageToken: "more" },
+  ]) {
+    const f = fixture(),
+      account = new AccountNotes(f.drive);
+    f.drive.notePermissions = async () => access;
+    await assert.rejects(
+      account.remember({ id: "private-link" }, "player:profile"),
+      /folder is shared/,
+    );
+    assert.equal((await f.drive.noteIndexes()).length, 0);
+  }
+});
+
 test("note documents validate free-form text and omit unknown fields from cacheable data", async () => {
   const f = fixture(),
     id = await f.w.notes.create(f.player(), {
