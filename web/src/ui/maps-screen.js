@@ -3,7 +3,8 @@ import { MAP_ICONS } from "../domain/maps.js";
 import { view, option } from "./dom.js";
 import { defaultFormationName } from "../domain/map-plans.js";
 import { createCollectionControls } from "./collection-controls.js";
-import { icon, labelWithIcon } from "./icons.js";
+import { icon } from "./icons.js";
+import { createRemoveButton } from "./remove-button.js";
 export function createMapsScreen({
   root,
   dialog,
@@ -109,18 +110,17 @@ export function createMapsScreen({
           "Custom map";
         button.append(detail);
         button.onclick = () => openMap(map.id);
-        const forget = document.createElement("button");
-        forget.className = "map-forget";
-        labelWithIcon(forget, "close");
-        forget.title = `Forget ${map.name}`;
-        forget.setAttribute("aria-label", `Forget ${map.name}`);
-        forget.onclick = () => {
-          try {
-            remove(map.id);
-          } catch (error) {
-            status(error.message, true);
-          }
-        };
+        const forget = createRemoveButton({
+          className: "map-forget",
+          label: `Forget ${map.name}`,
+          remove: () => {
+            try {
+              remove(map.id);
+            } catch (error) {
+              status(error.message, true);
+            }
+          },
+        });
         row.append(button, forget);
         return row;
       }),
