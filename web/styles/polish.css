@@ -535,22 +535,42 @@ h2 {
   padding: 40px 32px;
 }
 .project-settings {
-  max-width: 640px;
-  gap: 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);
+  max-width: none;
+  gap: 24px 40px;
+  align-items: center;
+}
+.project-identity {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+}
+.project-identity-copy {
+  min-width: 0;
+  flex: 1;
+}
+.project-identity-copy .eyebrow {
+  display: block;
+  margin-left: 12px;
+}
+#team-unlock {
+  grid-column: 1 / -1;
 }
 .project-settings [data-logo="upload"] {
-  width: 120px;
-  height: 120px;
+  width: 80px;
+  height: 80px;
   padding: 7px;
 }
 .project-settings
   [data-logo="upload"]:has([data-logo="placeholder"]:not([hidden])) {
-  width: 120px;
-  height: 120px;
+  width: 80px;
+  height: 80px;
 }
 .project-settings [data-logo="placeholder"] {
   font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 46px;
+  font-size: 32px;
   letter-spacing: 1px;
 }
 #edit-project-name {
@@ -558,14 +578,20 @@ h2 {
   font-size: clamp(30px, 4vw, 42px);
   padding: 4px 12px;
   min-height: 50px;
+  text-align: left;
 }
 .team-stats {
+  grid-column: 1 / -1;
+  grid-row: 2;
   gap: 12px;
 }
 .team-stat {
-  padding: 16px 12px;
-  min-height: 96px;
-  border-color: var(--line);
+  flex-direction: row;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px;
+  min-height: 66px;
+  border-color: transparent;
   border-radius: 14px;
   background: var(--panel);
 }
@@ -574,7 +600,7 @@ h2 {
   background: var(--panel-raised);
 }
 .team-stat strong {
-  font-size: 30px;
+  font-size: 26px;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
 }
@@ -582,6 +608,8 @@ h2 {
   font-size: 13px;
 }
 .team-discord {
+  grid-column: 2;
+  grid-row: 1;
   max-width: 420px;
   padding-top: 4px;
 }
@@ -1736,6 +1764,17 @@ dialog form > label {
     padding: 28px 18px;
   }
   .project-settings {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .team-discord {
+    grid-column: 1;
+    grid-row: 3;
+    max-width: none;
+  }
+  .project-identity {
+    gap: 8px;
+  }
   #player-screen [data-player-panel="overview"] {
     grid-template-columns: 1fr;
     gap: 16px;
@@ -1749,7 +1788,9 @@ dialog form > label {
     height: 160px;
   }
   .team-stat {
-    padding: 16px 8px;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 6px;
   }
   .team-stat span {
     font-size: 12px;
@@ -2084,7 +2125,7 @@ dialog form > label {
     font-size: 26px;
   }
   .team-stat {
-    min-height: 84px;
+    min-height: 72px;
   }
   .catalog-filters {
     flex-wrap: wrap;
