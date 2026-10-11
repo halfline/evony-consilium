@@ -54,6 +54,16 @@ export function validateMarches(marches, kind = "attack") {
   return marches;
 }
 
+export function validateReinforcementMarches(marches) {
+  if (
+    Array.isArray(marches) &&
+    marches.some((march) => march?.generation !== undefined)
+  )
+    throw new Error("Reinforcement marches must be entered manually.");
+  validateMarches(marches, "reinforcement");
+  return marches;
+}
+
 export function marchTotals(march) {
   const totals = troopTotals(march.layers || []);
   for (const type of TROOP_TYPES) {
