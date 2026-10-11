@@ -145,5 +145,11 @@ export function createRuntime({
     run(dryRun = false) {
       return exclusive(() => execute(config(), dryRun));
     },
+    uninstall() {
+      return exclusive(() => {
+        uninstallOwnTriggers();
+        return { installed: false };
+      });
+    },
   };
 }
