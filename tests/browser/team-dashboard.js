@@ -96,6 +96,11 @@ export async function teamDashboard({ page, driveFiles, projectLogo }) {
     .locator("#project-list .project-row")
     .filter({ hasText: "Renamed team" });
   assert.equal(await renamedTeam.count(), 1);
+  const forget = await renamedTeam.locator(".team-forget").boundingBox();
+  assert.ok(
+    Math.abs(forget.width - forget.height) < 1,
+    "Team forget control stays circular",
+  );
   await renamedTeam.locator("button").first().click();
   await page.locator('[data-screen="project"]').click();
   assert.equal(

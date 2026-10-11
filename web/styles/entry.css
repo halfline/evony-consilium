@@ -95,8 +95,9 @@
   right: calc(50% - 70px);
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
   padding: 0;
   border-radius: 50%;
   border: 1px solid var(--line);
