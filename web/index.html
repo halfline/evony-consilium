@@ -702,7 +702,7 @@
                   data-player-tab="troops"
                   aria-selected="false"
                 >
-                  Attack marches
+                  Marches
                 </button>
                 <button
                   type="button"
@@ -736,7 +736,7 @@
                   <option value="buffs">Buffs</option>
                   <option value="march-size">March size</option>
                   <option value="rally-capacity">Rally capacity</option>
-                  <option value="troops">Attack marches</option>
+                  <option value="troops">Marches</option>
                   <option value="alts">Alts</option>
                   <option value="subcities">Subcities</option>
                   <option value="notes">Notes</option>
@@ -833,39 +833,114 @@
                 <div id="player-march-sizes" class="player-table-scroll"></div>
               </div>
               <div data-player-panel="troops" role="tabpanel" hidden>
-                <div id="player-march-list" class="march-grid"></div>
-                <div id="player-march-editor" hidden>
-                  <div class="player-march-toolbar">
-                    <button
-                      id="player-march-back"
-                      type="button"
-                      aria-label="Back to marches"
-                    >
-                      ←
-                    </button>
-                    <input
-                      id="player-march-name"
-                      maxlength="100"
-                      aria-label="March name"
-                    />
-                  </div>
-                  <div id="player-march-settings" class="march-settings"></div>
-                  <button id="player-reset-strategy" type="button" hidden>
-                    Use tier percentages
-                  </button>
-                  <div
-                    id="player-troop-summary"
-                    class="player-stat-summary"
-                  ></div>
-                  <div id="player-troops" class="player-table-scroll"></div>
+                <div class="march-subtabs" role="tablist" aria-label="Marches">
                   <button
-                    id="player-add-tier"
                     type="button"
-                    class="player-small-add"
-                    aria-label="Add troop tier"
+                    role="tab"
+                    data-march-tab="attack"
+                    aria-selected="true"
+                    aria-controls="player-attack-marches"
                   >
-                    ＋
+                    Attack
                   </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    data-march-tab="reinforcements"
+                    aria-selected="false"
+                    aria-controls="player-reinforcement-marches"
+                  >
+                    Reinforcements
+                  </button>
+                </div>
+                <div
+                  id="player-attack-marches"
+                  data-march-panel="attack"
+                  role="tabpanel"
+                >
+                  <div id="player-march-list" class="march-grid"></div>
+                  <div id="player-march-editor" hidden>
+                    <div class="player-march-toolbar">
+                      <button
+                        id="player-march-back"
+                        type="button"
+                        aria-label="Back to marches"
+                      >
+                        ←
+                      </button>
+                      <input
+                        id="player-march-name"
+                        maxlength="100"
+                        aria-label="March name"
+                      />
+                    </div>
+                    <div
+                      id="player-march-settings"
+                      class="march-settings"
+                    ></div>
+                    <button id="player-reset-strategy" type="button" hidden>
+                      Use tier percentages
+                    </button>
+                    <div
+                      id="player-troop-summary"
+                      class="player-stat-summary"
+                    ></div>
+                    <div id="player-troops" class="player-table-scroll"></div>
+                    <button
+                      id="player-add-tier"
+                      type="button"
+                      class="player-small-add"
+                      aria-label="Add troop tier"
+                    >
+                      ＋
+                    </button>
+                  </div>
+                </div>
+                <div
+                  id="player-reinforcement-marches"
+                  data-march-panel="reinforcements"
+                  role="tabpanel"
+                  hidden
+                >
+                  <div id="player-reinforcement-list" class="march-grid"></div>
+                  <div id="player-reinforcement-editor" hidden>
+                    <div class="player-march-toolbar">
+                      <button
+                        id="player-reinforcement-back"
+                        type="button"
+                        aria-label="Back to reinforcement marches"
+                      >
+                        ←
+                      </button>
+                      <input
+                        id="player-reinforcement-name"
+                        maxlength="100"
+                        aria-label="Reinforcement march name"
+                      />
+                    </div>
+                    <p class="muted">
+                      Enter this reinforcement march manually.
+                    </p>
+                    <label class="reinforcement-capacity"
+                      >March capacity (optional)
+                      <input
+                        id="player-reinforcement-capacity"
+                        type="number"
+                        min="0"
+                        step="1"
+                        inputmode="numeric"
+                        placeholder="—"
+                      />
+                    </label>
+                    <div
+                      id="player-reinforcement-summary"
+                      class="player-stat-summary"
+                    ></div>
+                    <div
+                      id="player-reinforcement-troops"
+                      class="player-table-scroll"
+                    ></div>
+                  </div>
                 </div>
               </div>
               <div data-player-panel="subcities" role="tabpanel" hidden>
