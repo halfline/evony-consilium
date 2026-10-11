@@ -292,6 +292,38 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
     "2295435",
   );
   await page.screenshot({ path: "test-results/player-marches.png" });
+  assert.equal(
+    (await page.locator('[data-player-tab="troops"]').textContent()).trim(),
+    "Marches",
+  );
+  await page.locator('[data-march-tab="reinforcements"]').click();
+  assert.equal(await page.locator("#player-march-list").isVisible(), false);
+  assert.equal(
+    await page.locator("#player-reinforcement-list .march-card").count(),
+    0,
+  );
+  await page.locator("#player-add-reinforcement").click();
+  await page.locator("#player-reinforcement-name").fill("Building ground");
+  await page.locator("#player-reinforcement-capacity").fill("2000000");
+  await page
+    .locator(
+      '[data-reinforcement-tier="15"] [data-reinforcement-type="ground"]',
+    )
+    .fill("1200000");
+  await page
+    .locator('[data-reinforcement-tier="1"] [data-reinforcement-type="siege"]')
+    .fill("10000");
+  assert.match(
+    await page.locator("#player-reinforcement-summary").textContent(),
+    /1,210,000 troops · 790,000 available/,
+  );
+  await page.locator('[data-march-tab="attack"]').click();
+  assert.equal(
+    await page
+      .locator('[data-tier-row="15"] [data-count="ground"]')
+      .inputValue(),
+    "2295435",
+  );
   assert.equal(await page.locator('[data-player-tab="subcities"]').count(), 1);
   await page.locator("#player-form [type=submit]").click();
   await page.waitForFunction(
@@ -321,6 +353,14 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
   assert.equal(details.buffs.city.siege.hp, 0);
   assert.equal(details.buffs.city.ground.hp, null);
   assert.equal(details.marches.length, 2);
+  assert.deepEqual(
+    details.reinforcementMarches[0].layers.sort((a, b) => b.tier - a.tier),
+    [
+      { tier: 15, ground: 1200000 },
+      { tier: 1, siege: 10000 },
+    ],
+  );
+  assert.equal(details.reinforcementMarches[0].capacityOverride, 2000000);
   const groundMarch = details.marches.find((march) => march.name === "Ground");
   assert.equal(groundMarch.baseThrough, 9);
   assert.equal(groundMarch.generation.manual, true);
@@ -344,6 +384,14 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
     await page.locator('[data-buff="city.ground.attack"]').inputValue(),
     "3385",
   );
+  await page.locator('[data-player-tab="troops"]').click();
+  await page.locator('[data-march-tab="reinforcements"]').click();
+  assert.equal(
+    await page.locator('.march-card[aria-label="Building ground"]').count(),
+    1,
+  );
+  await page.locator('[data-march-tab="attack"]').click();
+  await page.locator('[data-player-tab="buffs"]').click();
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(
     await page.locator("#player-section-select").inputValue(),
