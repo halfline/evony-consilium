@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { mockGoogleDrive } from "../drive-mock.js";
 
-export async function autosave({ browser }) {
+export async function autosave({ browser, base = "http://127.0.0.1:4174" }) {
   const context = await browser.newContext();
   try {
     // Invoke the actual interval callback without waiting 30 seconds per case.
@@ -20,7 +20,7 @@ export async function autosave({ browser }) {
       page = await context.newPage(),
       errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
-    await page.goto("http://127.0.0.1:4174");
+    await page.goto(base);
     await page.locator("#google-login:not([disabled])").click();
     await page.locator("#project-tab-create").click();
     await page.locator("#project-name").fill("Autosave team");
@@ -119,6 +119,118 @@ export async function autosave({ browser }) {
     await context.unroute(uploadUrl, offline);
     await tick();
     assert.equal(sources[0].data.profile.name, "Retry this player");
+
+    // Autosave keeps the nested march editor and its live controls in place.
+    await page.locator('[data-player-tab="troops"]').click();
+    await page.locator('.march-card[aria-label="Siege"]').click();
+    await page.locator("#player-march-capacity").fill("1000000");
+    await page.locator("#player-march-capacity").blur();
+    await page.locator("#player-march-type").selectOption("small-siege");
+    await page.locator("#player-troops details summary").click();
+    const count = page.locator('[data-tier-row="11"] [data-count="siege"]');
+    await count.fill("123456");
+    await count.evaluate((input) => {
+      window.__marchInput = input;
+      window.__marchScroll = window.scrollY;
+    });
+    await tick();
+    assert.equal(await page.locator("#player-march-editor").isVisible(), true);
+    assert.equal(await page.locator("#player-march-list").isVisible(), false);
+    assert.equal(
+      await page.locator("#player-march-type").inputValue(),
+      "small-siege",
+    );
+    assert.equal(
+      await page.locator("#player-troops details").getAttribute("open"),
+      "",
+    );
+    assert.equal(await count.inputValue(), "123456");
+    assert.equal(
+      await count.evaluate(
+        (input) =>
+          input === window.__marchInput && input === document.activeElement,
+      ),
+      true,
+    );
+    assert.equal(
+      await page.evaluate(() => window.scrollY === window.__marchScroll),
+      true,
+    );
+    const savedMarch = sources[0].data.profile.details.marches.find(
+      (march) => march.name === "Siege",
+    );
+    assert.equal(savedMarch.troopType, "siege");
+    assert.equal(savedMarch.generation.strategy, "small-siege");
+    assert.equal(savedMarch.generation.manual, true);
+    assert.equal(
+      savedMarch.layers.find((layer) => layer.tier === 11).siege,
+      123456,
+    );
+    // The retained input still edits the active draft after the save.
+    await count.fill("123457");
+    await tick();
+    assert.equal(
+      sources[0].data.profile.details.marches
+        .find((march) => march.id === savedMarch.id)
+        .layers.find((layer) => layer.tier === 11).siege,
+      123457,
+    );
+    // A failed explicit save keeps the editor open for correction or retry.
+    await page.locator("#player-march-name").fill("Little siege");
+    await context.route(uploadUrl, offline);
+    await page.locator("#player-save").click();
+    await page.waitForFunction(
+      () =>
+        document.getElementById("player-save-status").textContent ===
+        "Player · Not saved",
+    );
+    assert.equal(await page.locator("#player-march-editor").isVisible(), true);
+    await context.unroute(uploadUrl, offline);
+    // A successful explicit Save returns to the list.
+    await page.locator("#player-save").click();
+    await page.waitForFunction(
+      () =>
+        document.getElementById("player-save").disabled &&
+        document.getElementById("player-screen").getAttribute("aria-busy") ===
+          "false",
+    );
+    assert.equal(await page.locator("#player-march-editor").isVisible(), false);
+    assert.equal(await page.locator("#player-march-list").isVisible(), true);
+    await open(1);
+    await page.locator('[data-player-tab="troops"]').click();
+    assert.equal(await page.locator("#player-march-list").isVisible(), true);
+    await open(0);
+    await page.locator('[data-player-tab="troops"]').click();
+    // Touch uses the same long-press removal workflow as other resource cards.
+    await page.setViewportSize({ width: 390, height: 844 });
+    const card = page.locator('.march-card[aria-label="Little siege"]');
+    await card.dispatchEvent("pointerdown", {
+      pointerType: "touch",
+      clientX: 10,
+      clientY: 10,
+    });
+    await page.waitForFunction(() =>
+      document
+        .querySelector('.march-card[aria-label="Little siege"]')
+        .closest(".march-tile")
+        .classList.contains("player-actions-open"),
+    );
+    await card.dispatchEvent("pointerup", { pointerType: "touch" });
+    await card.dispatchEvent("click");
+    assert.equal(await page.locator("#player-march-editor").isVisible(), false);
+    await page
+      .getByRole("button", { name: "Remove Little siege march", exact: true })
+      .click();
+    await tick();
+    assert.equal(
+      sources[0].data.profile.details.marches.some(
+        (march) => march.id === savedMarch.id,
+      ),
+      false,
+    );
+    assert.equal(await page.locator("#player-march-list").isVisible(), true);
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.locator('[data-player-tab="overview"]').click();
 
     // Invalid input is retained locally rather than uploaded or discarded.
     await page.locator("#player-name").fill("");

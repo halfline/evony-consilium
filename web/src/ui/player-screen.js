@@ -272,6 +272,7 @@ export function createPlayerScreen({
           renderedKey = null;
         }
         render();
+        if (interactive) details.closeEditors();
       }
       if (interactive) status("Player saved to Drive.");
     } catch (error) {

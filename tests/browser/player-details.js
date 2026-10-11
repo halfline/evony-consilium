@@ -381,11 +381,13 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
     await page.locator("#player-form [type=submit]").click();
     await page.waitForFunction(
       () =>
-        document
-          .getElementById("player-inspector")
-          .getAttribute("aria-busy") !== "true",
+        document.getElementById("player-save").disabled &&
+        document.getElementById("player-screen").getAttribute("aria-busy") ===
+          "false",
     );
     await page.locator('[data-player-tab="troops"]').click();
+    if (await page.locator("#player-march-editor").isVisible())
+      await page.locator("#player-march-back").click();
     await page.locator('.march-card[aria-label="Ground"]').click();
     assert.equal(await page.locator(`[data-tier-row="${highest}"]`).count(), 1);
   }

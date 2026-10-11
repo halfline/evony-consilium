@@ -23,7 +23,8 @@ export function createPlayerMarches({ root, getSizes }) {
   const $ = view(root);
   const draft = new MarchDraft(getSizes);
   const addTier = $("player-add-tier");
-  let editing = false;
+  let editing = false,
+    sizes;
   bindTileActions($("player-march-list"), {
     tileSelector: ".march-tile",
     triggerSelector: ".march-card",
@@ -31,6 +32,9 @@ export function createPlayerMarches({ root, getSizes }) {
   });
   const generate = () => draft.generate();
   function syncSizes() {
+    const nextSizes = JSON.stringify(getSizes());
+    if (sizes === nextSizes) return;
+    sizes = nextSizes;
     draft.syncSizes();
     if (editing) renderMarch();
   }
@@ -271,9 +275,40 @@ export function createPlayerMarches({ root, getSizes }) {
     $("player-march-name").focus();
     $("player-march-name").select();
   }
-  function render(details, level) {
+  function render(details, level, { preserveView = false } = {}) {
+    // Saving unchanged march data should not replace controls under the user's
+    // cursor. Keep the live draft objects too, since handlers refer to them.
+    const nextSizes = JSON.stringify(getSizes());
+    if (
+      preserveView &&
+      sizes === nextSizes &&
+      draft.maxTier === (level >= 50 ? 17 : level >= 45 ? 16 : 15) &&
+      JSON.stringify(draft.read()) === JSON.stringify(details.marches || [])
+    ) {
+      draft.original = structuredClone(details);
+      return;
+    }
+    const selected = preserveView && editing ? draft.current : null;
+    const transient =
+      selected &&
+      !draft.original.marches?.some((march) => march.id === selected.id);
+    const baseOpen = $("player-troops").querySelector("details")?.open;
     draft.load(details, level);
-    showList();
+    sizes = nextSizes;
+    const index = selected
+      ? draft.marches.findIndex(
+          (march) =>
+            march.id === selected.id ||
+            (transient &&
+              march.name === selected.name &&
+              marchType(march) === marchType(selected)),
+        )
+      : -1;
+    if (index >= 0) {
+      draft.currentIndex = index;
+      renderMarch();
+      $("player-troops").querySelector("details").open = !!baseOpen;
+    } else showList();
   }
-  return { render, read: () => draft.read(), syncSizes };
+  return { render, read: () => draft.read(), syncSizes, close: showList };
 }

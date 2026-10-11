@@ -105,7 +105,7 @@ export function createPlayerDetails({ root }) {
     $("player-rally-capacity").value = original.rallyCapacity ?? "";
     buffs.render(original);
     marchSizes.render(original);
-    marches.render(original, player.level);
+    marches.render(original, player.level, { preserveView: !changedPlayer });
     if (changedPlayer) showTab("overview");
   }
   return {
@@ -113,6 +113,7 @@ export function createPlayerDetails({ root }) {
     snapshot: () => read({ sync: false }),
     reveal: (input) => buffs.reveal(input),
     render,
+    closeEditors: () => marches.close(),
     reset: () => {
       signature = null;
     },
