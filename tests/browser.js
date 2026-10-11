@@ -1,5 +1,6 @@
 import { playerImport } from "./browser/player-import.js";
 import { playerNotes } from "./browser/notes.js";
+import { unattendedSync } from "./browser/apps-script.js";
 import { autosave } from "./browser/autosave.js";
 import { teamCollaboration } from "./browser/team-collaboration.js";
 import { altOwnership } from "./browser/alts.js";
@@ -89,6 +90,7 @@ try {
   await playerSharing({ browser });
   await playerImport({ browser });
   await playerNotes({ browser });
+  await unattendedSync({ browser });
   await autosave({ browser });
   await teamCollaboration({ browser });
   await subcities({ browser });
