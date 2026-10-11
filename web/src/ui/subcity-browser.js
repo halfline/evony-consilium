@@ -1,5 +1,9 @@
 import { view, option } from "./dom.js";
-import { SUBCITY_COLORS, SUBCITY_CULTURES } from "../domain/subcities.js";
+import { SUBCITY_COLORS } from "../domain/subcities.js";
+import {
+  subcityFilterCategory,
+  subcityTypeOptions,
+} from "./subcity-filters.js";
 
 export function renderSubcityArt(root, type) {
   const color = SUBCITY_COLORS.find((item) => item.id === type?.color);
@@ -28,9 +32,7 @@ export function createSubcityBrowser({ root, types }) {
     const choices = types().filter(
       (type) =>
         type.color !== "white" &&
-        (!category ||
-          (type.category === "culture" ? type.culture : type.category) ===
-            category) &&
+        (!category || subcityFilterCategory(type, type.culture) === category) &&
         (!color || type.color === color) &&
         `${type.name} ${type.culture}`.toLowerCase().includes(query),
     );
@@ -78,12 +80,7 @@ export function createSubcityBrowser({ root, types }) {
       selectedId = id;
       choose = callback;
       $("subcity-search").value = "";
-      $("subcity-filter-type").replaceChildren(
-        option("", "All types"),
-        ...SUBCITY_CULTURES.map((culture) => option(culture, culture)),
-        option("historic", "Historic"),
-        option("famous", "Famous"),
-      );
+      $("subcity-filter-type").replaceChildren(...subcityTypeOptions());
       $("subcity-filter-color").replaceChildren(
         option("", "All colors"),
         ...SUBCITY_COLORS.filter((color) => color.id !== "white").map((color) =>
