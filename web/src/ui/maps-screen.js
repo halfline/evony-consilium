@@ -25,6 +25,7 @@ export function createMapsScreen({
     description: "A place for every plan",
     label: "Add map",
     kind: "maps",
+    emptyTitle: $("maps-empty"),
   });
   bindTileActions($("maps-list"), {
     tileSelector: ".map-list-row",
@@ -73,11 +74,11 @@ export function createMapsScreen({
   }
   function render() {
     const plan = getPlan();
-    $("maps-empty").hidden = !!plan.maps?.length;
     collection.render({
       count: plan.maps?.length || 0,
       total: plan.maps?.length || 0,
       help: "Create a hive or battlefield map, then bring your formation together.",
+      emptyTitle: "No maps yet.",
     });
     $("maps-list").replaceChildren(
       ...(plan.maps || []).map((map) => {
