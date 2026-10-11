@@ -1053,18 +1053,18 @@ dialog form > label {
 .art-preview {
   position: relative;
   display: block;
-  width: 140px;
-  height: 124px;
+  width: min(168px, 100%);
+  aspect-ratio: 140 / 124;
   flex-shrink: 0;
   overflow: hidden;
   margin: 0 auto 8px;
 }
 .castle-card .art-preview img {
   position: absolute;
-  width: 120px;
-  height: 112px;
+  width: 86%;
+  height: 90%;
   top: 0;
-  left: 10px;
+  left: 7%;
   max-width: none;
   object-fit: contain;
   padding: 0;
@@ -1996,8 +1996,7 @@ dialog form > label {
     min-height: 194px;
   }
   .art-preview {
-    transform: scale(0.9);
-    transform-origin: bottom center;
+    width: min(140px, 100%);
     margin-left: auto;
     margin-right: auto;
   }
@@ -2054,10 +2053,6 @@ dialog form > label {
   }
   .team-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .art-preview {
-    width: 140px;
-    margin-left: calc((100% - 140px) / 2);
   }
 }
 @media (prefers-reduced-motion: no-preference) {

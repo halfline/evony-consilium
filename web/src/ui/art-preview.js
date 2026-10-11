@@ -50,10 +50,10 @@ export function artPreview(src, alt = "") {
     const ratio = image.naturalWidth / image.naturalHeight;
     const height = Math.min(100 / box.height, 116 / (box.width * ratio));
     const width = height * ratio;
-    image.style.width = `${width}px`;
-    image.style.height = `${height}px`;
-    image.style.left = `${(140 - width * box.width) / 2 - width * box.left}px`;
-    image.style.top = `${112 - height * (box.top + box.height)}px`;
+    image.style.width = `${(width / 140) * 100}%`;
+    image.style.height = `${(height / 124) * 100}%`;
+    image.style.left = `${(((140 - width * box.width) / 2 - width * box.left) / 140) * 100}%`;
+    image.style.top = `${((112 - height * (box.top + box.height)) / 124) * 100}%`;
     stage.classList.add("art-ready");
   };
   image.src = src;
