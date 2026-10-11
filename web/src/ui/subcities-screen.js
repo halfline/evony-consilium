@@ -37,6 +37,7 @@ export function createSubcitiesScreen({
     description: "Your cities, coordinates, and owners",
     label: "Add subcity",
     kind: "subcities",
+    emptyTitle: $("subcities-empty"),
   });
   const filter = view(root.closest("#planner"));
   filter("subcities-type").replaceChildren(...subcityTypeOptions());
@@ -113,10 +114,6 @@ export function createSubcitiesScreen({
           city.color === filter("subcities-color").value)
       );
     });
-    $("subcities-empty").hidden = cities.length > 0;
-    $("subcities-empty").textContent = getPlan().subcities?.length
-      ? "No matching subcities."
-      : "No subcities yet.";
     const filtered = !!(
       query ||
       filter("subcities-type").value ||
@@ -126,6 +123,9 @@ export function createSubcitiesScreen({
       count: cities.length,
       total: getPlan().subcities?.length || 0,
       filtered,
+      emptyTitle: getPlan().subcities?.length
+        ? "No matching subcities."
+        : "No subcities yet.",
       help: filtered
         ? "Try a different name, city type, or color."
         : "Keep your alliance’s subcities and their owners in one place.",
