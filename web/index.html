@@ -673,14 +673,6 @@
                 <button
                   type="button"
                   role="tab"
-                  data-player-tab="notes"
-                  aria-selected="false"
-                >
-                  Notes
-                </button>
-                <button
-                  type="button"
-                  role="tab"
                   data-player-tab="buffs"
                   aria-selected="false"
                 >
@@ -726,18 +718,26 @@
                 >
                   Subcities
                 </button>
+                <button
+                  type="button"
+                  role="tab"
+                  data-player-tab="notes"
+                  aria-selected="false"
+                >
+                  Notes
+                </button>
               </div>
               <label class="player-section-select" for="player-section-select">
                 Section
                 <select id="player-section-select">
                   <option value="overview">Overview</option>
-                  <option value="notes">Notes</option>
                   <option value="buffs">Buffs</option>
                   <option value="march-size">March size</option>
                   <option value="rally-capacity">Rally capacity</option>
                   <option value="troops">Attack marches</option>
                   <option value="alts">Alts</option>
                   <option value="subcities">Subcities</option>
+                  <option value="notes">Notes</option>
                 </select>
               </label>
               <div data-player-panel="overview" role="tabpanel">
