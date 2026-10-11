@@ -77,7 +77,7 @@ h2 {
   flex-shrink: 0;
   padding: 0 24px;
   gap: 24px;
-  background: #15271eee;
+  background: #171f1bee;
   border-color: var(--line);
 }
 .brand {
@@ -950,7 +950,7 @@ h2 {
   padding: 12px 10px;
 }
 .player-data-table thead {
-  background: #263c30;
+  background: var(--panel-raised);
 }
 .player-data-table thead th:first-child {
   border-radius: 9px 0 0 9px;

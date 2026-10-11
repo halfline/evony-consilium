@@ -1,10 +1,10 @@
 @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap");
 :root {
   color-scheme: dark;
-  --bg: #111d17;
-  --panel: #1b2b23;
-  --panel-raised: #263b30;
-  --line: #40574a;
+  --bg: #141b18;
+  --panel: #1e2923;
+  --panel-raised: #2a3930;
+  --line: #3b4c40;
   --control-line: #718675;
   --text: #f0eee2;
   --muted: #acbaad;
