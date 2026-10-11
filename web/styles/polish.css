@@ -2249,6 +2249,18 @@ dialog form > label {
   }
 }
 @media (prefers-reduced-motion: no-preference) {
+  :is(
+    #login-screen,
+    #projects-screen,
+    #project-screen,
+    #players-screen,
+    #alts-screen,
+    #subcities-screen,
+    #maps-screen,
+    #player-screen
+  ):not([hidden]) {
+    animation: reveal-surface 180ms ease-out both;
+  }
   .collection-heading,
   .dashboard-overview {
     animation: reveal-surface 180ms ease-out;
