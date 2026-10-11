@@ -2,13 +2,13 @@ import { number, string } from "./constraints.js";
 import { TROOP_TYPES, troopTotals, validateTroops } from "./troops.js";
 import { initialGeneration, validateGeneration } from "./march-generation.js";
 
-export function validateMarches(marches) {
+export function validateMarches(marches, kind = "attack") {
   if (!Array.isArray(marches) || marches.length > 50)
-    throw new Error("Maximum 50 attack marches.");
+    throw new Error(`Maximum 50 ${kind} marches.`);
   const ids = new Set();
   for (const march of marches) {
     if (!march || typeof march !== "object" || Array.isArray(march))
-      throw new Error("Invalid attack march.");
+      throw new Error(`Invalid ${kind} march.`);
     string(march.id, 120, "march ID");
     if (!march.id || ids.has(march.id))
       throw new Error("Invalid or duplicate march ID.");
