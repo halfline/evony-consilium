@@ -184,6 +184,10 @@ export async function playerNotes({ browser, base = "http://127.0.0.1:4174" }) {
     await a.locator("#note-close").click();
     await m.evaluate(() => window.__notesTick());
     await m.locator(`[data-note-id="${contribution.file.id}"]`).click();
+    assert.equal(
+      await m.locator(`[data-note-remove="${contribution.file.id}"]`).count(),
+      0,
+    );
     await m.locator("#note-body").fill("Author updated this later");
     await m.locator("#note-save").click();
     await m.locator("#note-dialog").waitFor({ state: "hidden" });
@@ -250,6 +254,69 @@ export async function playerNotes({ browser, base = "http://127.0.0.1:4174" }) {
       `player:${team.data.plan.keeps[1].playerSource.fileId}`,
     );
     assert.notEqual(altNote.data.note.subject, personal.data.note.subject);
+
+    await a.locator('[data-screen="players"]').click();
+    await a
+      .locator("#players .player-card")
+      .filter({ hasText: "Tracked account" })
+      .click();
+    await a.locator('[data-player-tab="notes"]').click();
+    const personalCard = a.locator(`[data-note-id="${personal.file.id}"]`);
+    const personalRemoval = a.locator(
+      `[data-note-remove="${personal.file.id}"]`,
+    );
+    await personalCard.focus();
+    await a.waitForFunction(
+      (id) =>
+        getComputedStyle(document.querySelector(`[data-note-remove="${id}"]`))
+          .opacity === "1",
+      personal.file.id,
+    );
+    assert.match(
+      await personalRemoval.getAttribute("aria-label"),
+      /from my notes/,
+    );
+    await personalRemoval.click();
+    await personalCard.waitFor({ state: "detached" });
+    assert.equal(files.has(personal.file.id), true);
+    assert.equal(personal.data.note.body, "Durable note draft");
+    assert.equal(team.data.plan.teamNotes.length, 1);
+
+    await a.setViewportSize({ width: 390, height: 844 });
+    const teamCard = a.locator(`[data-note-id="${contribution.file.id}"]`);
+    await teamCard.dispatchEvent("pointerdown", {
+      pointerType: "touch",
+      clientX: 10,
+      clientY: 10,
+    });
+    await a.waitForFunction(
+      (id) =>
+        document
+          .querySelector(`[data-note-id="${id}"]`)
+          .closest(".note-tile")
+          .classList.contains("player-actions-open"),
+      contribution.file.id,
+    );
+    await teamCard.dispatchEvent("pointerup", { pointerType: "touch" });
+    await teamCard.dispatchEvent("click");
+    assert.equal(await a.locator("#note-dialog").isVisible(), false);
+    const teamRemoval = a.locator(
+      `[data-note-remove="${contribution.file.id}"]`,
+    );
+    await a.waitForFunction(
+      (id) =>
+        getComputedStyle(document.querySelector(`[data-note-remove="${id}"]`))
+          .opacity === "1",
+      contribution.file.id,
+    );
+    assert.match(await teamRemoval.getAttribute("aria-label"), /from the team/);
+    await a.screenshot({ path: "test-results/note-removal-mobile.png" });
+    await teamRemoval.click();
+    await teamCard.waitFor({ state: "detached" });
+    assert.equal(team.data.plan.teamNotes.length, 0);
+    assert.equal(files.has(contribution.file.id), true);
+    assert.equal(contribution.data.note.body, "Author updated this later");
+    assert.equal(files.has(altNote.file.id), true);
     assert.deepEqual(errors, []);
   } finally {
     await admin.close();

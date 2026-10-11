@@ -2,6 +2,7 @@ import { view } from "./dom.js";
 import { routeHash } from "./navigation.js";
 import { OperationCancelled } from "../services/cancellation.js";
 import { icon, labelWithIcon } from "./icons.js";
+import { bindTileActions } from "./tile-actions.js";
 
 export function createPlayerNotes({
   root,
@@ -29,6 +30,11 @@ export function createPlayerNotes({
   labelWithIcon($("note-copy-link"), "link", "Copy note link");
   root.querySelector(".notes-empty-icon").append(icon("note"));
   dialog.querySelector(".note-heading-icon").append(icon("note"));
+  bindTileActions($("player-notes"), {
+    tileSelector: ".note-tile",
+    triggerSelector: ".note-card",
+    className: "player-actions-open",
+  });
   const rows = () =>
     getPlayer() && workspace()?.sync.file
       ? workspace().notes.list(getPlayer())
@@ -63,7 +69,6 @@ export function createPlayerNotes({
     $("note-link-result").hidden = true;
     $("note-link-result").value = "";
     $("note-sharing").open = false;
-    $("note-more-actions").open = false;
   }
   $("note-close").onclick = () => dialog.close();
   dialog.addEventListener("close", () => {
@@ -107,13 +112,6 @@ export function createPlayerNotes({
       !item?.connected ||
       !workspace()?.notes.canPublish() ||
       item?.entry?.file?.capabilities?.canCopy === false;
-    $("note-remove").hidden =
-      !!item?.published && !workspace()?.notes.canPublish();
-    $("note-remove").textContent = item?.published
-      ? "Remove from team"
-      : "Remove from my notes";
-    $("note-more-actions").hidden =
-      $("note-team-copy").hidden && $("note-remove").hidden;
     if (existing) {
       const url = new URL(`https://drive.google.com/file/d/${editor.id}/view`);
       if (item?.resourceKey)
@@ -381,16 +379,18 @@ export function createPlayerNotes({
         $("note-link-result").select();
       }
     });
-  $("note-remove").onclick = () =>
-    run(async () => {
-      await workspace().notes.detach(
-        getPlayer(),
-        editor.id,
-        !!row()?.published,
+  function remove(id) {
+    return run(async () => {
+      const item = rows().find((item) => item.id === id);
+      if (!item || (item.published && !workspace().notes.canPublish())) return;
+      await workspace().notes.detach(getPlayer(), id, !!item.published);
+      status(
+        item.published
+          ? "Note removed from the team. The file stays in Drive."
+          : "Note removed from your notes. The file stays in Drive.",
       );
-      clearEditor();
-      dialog.close();
     });
+  }
   $("note-connect-incoming").onclick = () =>
     run(async () => {
       const id = await workspace().notes.connect(getPlayer(), incoming);
@@ -436,6 +436,8 @@ export function createPlayerNotes({
     $("notes-count").hidden = !items.length;
     $("notes-empty").hidden = !!items.length || loading;
     for (const item of items) {
+      const tile = document.createElement("div");
+      tile.className = "note-tile player-tile";
       const button = document.createElement("button");
       button.type = "button";
       button.className = "note-card";
@@ -446,7 +448,7 @@ export function createPlayerNotes({
       heading.textContent =
         (item.draft?.title ?? item.note?.title)?.trim() ||
         (item.note ? "Untitled note" : "Connect note to view");
-      header.append(heading, icon("forward"));
+      header.append(heading);
       const badge = document.createElement("span");
       badge.className = "note-audience";
       const audience = document.createElement("span");
@@ -479,7 +481,20 @@ export function createPlayerNotes({
           : `${item.note?.author || ""}${item.note?.updatedAt ? " · " + date(item.note.updatedAt) : ""}`;
       button.append(header, labels, preview, meta);
       button.onclick = () => open(item.id);
-      list.append(button);
+      tile.append(button);
+      if (!item.published || workspace().notes.canPublish()) {
+        const removeButton = document.createElement("button");
+        removeButton.type = "button";
+        removeButton.className = "player-remove note-remove";
+        removeButton.dataset.noteRemove = item.id;
+        labelWithIcon(removeButton, "close");
+        const label = `Remove ${heading.textContent} from ${item.published ? "the team" : "my notes"}`;
+        removeButton.setAttribute("aria-label", label);
+        removeButton.title = `${label}. The file stays in Drive.`;
+        removeButton.onclick = () => remove(item.id);
+        tile.append(removeButton);
+      }
+      list.append(tile);
     }
     if (editor?.id && row()?.entry?.error) fillEditor(row());
     else paintEditor();
