@@ -213,6 +213,32 @@ export async function visualPolish({ browser }) {
       await page.locator(".mobile-roster-link").getAttribute("aria-expanded"),
       "true",
     );
+    // Keep the rally action outside the level badge, including narrow rows
+    // containing a long player name and the placement hint.
+    for (const width of [320, 390, 620, 1440]) {
+      await page.setViewportSize({ width, height: 844 });
+      const row = page.locator(".formation-player-row").first();
+      const level = await row.locator(".level").boundingBox();
+      const star = await row.locator(".rally-star").boundingBox();
+      const button = await row.locator(".players-row").boundingBox();
+      assert.ok(
+        star.x >= level.x + level.width + 4,
+        `${width}px rally badge overlap`,
+      );
+      assert.ok(
+        star.x + star.width <= button.x + button.width,
+        `${width}px rally action overflow`,
+      );
+      assert.ok(star.width >= 44 && star.height >= 44);
+      assert.equal(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth > innerWidth,
+        ),
+        false,
+        `${width}px formation overflow`,
+      );
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
     await page.locator(".mobile-map-link").click();
     assert.equal(
       await page.locator(".mobile-roster-link").getAttribute("aria-expanded"),
