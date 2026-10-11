@@ -2264,6 +2264,12 @@ dialog form > label {
   #formation-screen:not([hidden]) .map-caption {
     animation: reveal-surface 180ms ease-out both;
   }
+  dialog[open] {
+    animation: reveal-surface 180ms ease-out both;
+  }
+  dialog[open]::backdrop {
+    animation: reveal-backdrop 180ms ease-out both;
+  }
   .collection-heading,
   .dashboard-overview {
     animation: reveal-surface 180ms ease-out;
@@ -2276,6 +2282,14 @@ dialog form > label {
     to {
       opacity: 1;
       transform: none;
+    }
+  }
+  @keyframes reveal-backdrop {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
     }
   }
 }
