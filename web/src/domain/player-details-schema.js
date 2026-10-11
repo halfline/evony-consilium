@@ -5,7 +5,10 @@ import {
   BUFF_TYPES,
   validateTroops,
 } from "./troops.js";
-import { validateMarches } from "./attack-marches.js";
+import {
+  validateMarches,
+  validateReinforcementMarches,
+} from "./attack-marches.js";
 
 const optionalNumber = (value, max, label, integer = true) => {
   if (value != null) number(value, 0, max, label, integer);
@@ -66,6 +69,8 @@ export function validatePlayerDetails(details) {
   if (details.buffs !== undefined) validateBuffs(details.buffs);
   if (details.marchSizes !== undefined) validateMarchSizes(details.marchSizes);
   if (details.marches !== undefined) validateMarches(details.marches);
+  if (details.reinforcementMarches !== undefined)
+    validateReinforcementMarches(details.reinforcementMarches);
   if (details.troops !== undefined) validateTroops(details.troops);
   if (details.subcities !== undefined) validateSubcities(details.subcities);
   return details;
