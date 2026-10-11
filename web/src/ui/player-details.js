@@ -22,6 +22,36 @@ export function createPlayerDetails({ root }) {
     "alts",
   ]);
   $("player-march-sizes").onchange = () => marches.syncSizes();
+  function showMarchTab(tab) {
+    for (const button of root.querySelectorAll("[data-march-tab]")) {
+      const active = button.dataset.marchTab === tab;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-selected", String(active));
+      button.tabIndex = active ? 0 : -1;
+    }
+    for (const panel of root.querySelectorAll("[data-march-panel]"))
+      panel.hidden = panel.dataset.marchPanel !== tab;
+  }
+  const marchTabs = [...root.querySelectorAll("[data-march-tab]")];
+  marchTabs.forEach((button, index) => {
+    button.onclick = () => showMarchTab(button.dataset.marchTab);
+    button.onkeydown = (event) => {
+      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key))
+        return;
+      event.preventDefault();
+      const next =
+        event.key === "Home"
+          ? 0
+          : event.key === "End"
+            ? marchTabs.length - 1
+            : (index +
+                (event.key === "ArrowRight" ? 1 : -1) +
+                marchTabs.length) %
+              marchTabs.length;
+      marchTabs[next].click();
+      marchTabs[next].focus();
+    };
+  });
   function showTab(tab) {
     if (root.querySelector(`[data-player-tab="${tab}"]`)?.hidden)
       tab = "overview";
