@@ -814,6 +814,17 @@ h2 {
   border-top: 1px solid var(--line);
   align-items: center;
 }
+.player-footer #player-profile-actions {
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+#player-save-status {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: normal;
+  text-align: right;
+  justify-content: flex-end;
+}
 .player-export-icon {
   min-width: 44px;
   min-height: 44px;
@@ -1979,8 +1990,7 @@ dialog form > label {
     margin-bottom: 20px;
   }
   .player-footer {
-    flex-wrap: wrap;
-    gap: 12px;
+    gap: 8px;
   }
   .player-footer .inspector-actions {
     flex: 1;
@@ -1988,8 +1998,17 @@ dialog form > label {
     gap: 8px;
   }
   #player-save-status {
+    font-size: 11px;
+  }
+  .player-footer:has(#player-discard-draft:not([hidden]))
+    #player-profile-actions {
+    flex-wrap: wrap;
+  }
+  .player-footer:has(#player-discard-draft:not([hidden])) #player-save-status {
     flex-basis: 100%;
-    justify-content: flex-end;
+  }
+  .player-footer:has(#player-discard-draft:not([hidden])) .player-export-icon {
+    align-self: end;
   }
   .buff-context-switcher {
     display: flex;

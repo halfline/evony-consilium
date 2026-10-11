@@ -176,6 +176,18 @@ export async function visualPolish({ browser }) {
         false,
         `${width}px profile overflow`,
       );
+      const footer = await page.locator("#player-save").boundingBox();
+      const status = await page.locator("#player-save-status").boundingBox();
+      const share = await page.locator("#player-drive-link").boundingBox();
+      const middle = (box) => box.y + box.height / 2;
+      assert.ok(
+        Math.abs(middle(status) - middle(footer)) < 1,
+        `${width}px save status alignment`,
+      );
+      assert.ok(
+        Math.abs(middle(share) - middle(footer)) < 1,
+        `${width}px sharing action alignment`,
+      );
       await page.locator('[data-screen="players"]').click();
     }
     await page.setViewportSize({ width: 390, height: 844 });
