@@ -3,6 +3,7 @@ import { renderPlayerPortrait } from "./portrait.js";
 import { assignPlayerOwner } from "../domain/players.js";
 import { createSearchablePicker } from "./searchable-picker.js";
 import { playerPickerCard } from "./player-picker-card.js";
+import { matchesPlayerSearch } from "./player-search.js";
 
 // Alt relationships are team data. Manage them from the owning player's tab,
 // independently of access to either account's profile file.
@@ -30,10 +31,7 @@ export function createPlayerAlts({
     grid: $("assign-alt-list"),
     empty: $("assign-alt-empty"),
     items: candidates,
-    matches: (player, query) =>
-      `${player.name} ${player.accountId} ${player.allianceTag}`
-        .toLowerCase()
-        .includes(query),
+    matches: matchesPlayerSearch,
     renderCard: (player, query) =>
       playerPickerCard(player, getAvatars, { details: true, query }),
     closeOnSelect: false,
