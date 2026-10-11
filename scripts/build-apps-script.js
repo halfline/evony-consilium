@@ -1,6 +1,7 @@
 import { build } from "esbuild";
 import { mkdir, readFile, writeFile, copyFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
 export async function appsScriptBundle() {
   const result = await build({
@@ -43,4 +44,14 @@ export async function buildAppsScript(directory = "apps-script/build") {
   } catch (error) {
     if (error.code !== "EEXIST") throw error;
   }
+}
+
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(resolve(process.argv[1])).href
+) {
+  await buildAppsScript();
+  console.log(
+    "Apps Script files built in apps-script/build/ (local Config.gs preserved).",
+  );
 }
