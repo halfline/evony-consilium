@@ -640,3 +640,99 @@ test("transport failures never echo malformed document text, tokens, or Google r
       !/secret-token|Private content/.test(error.message),
   );
 });
+
+function environment() {
+  const f = fixture(),
+    t = transport(f),
+    state = new Map(),
+    scheduled = [],
+    logs = [];
+  let locked = false,
+    unavailable = false,
+    clock = Date.parse(stamp);
+  const properties = {
+    getProperty: (key) => state.get(key) || null,
+    setProperty: (key, value) => state.set(key, value),
+    deleteProperty: (key) => state.delete(key),
+  };
+  const lock = {
+    tryLock: () => {
+      if (locked || unavailable) return false;
+      locked = true;
+      return true;
+    },
+    releaseLock: () => {
+      locked = false;
+    },
+  };
+  const triggers = {
+    list: () => [...scheduled],
+    remove: (trigger) => scheduled.splice(scheduled.indexOf(trigger), 1),
+    create: (handler, minutes) => {
+      scheduled.push({ getHandlerFunction: () => handler, minutes });
+    },
+  };
+  const services = {
+    properties,
+    lock,
+    triggers,
+    fetch: t.fetch,
+    token: () => "token",
+    uuid: () => "uuid",
+    now: () => clock,
+    log: (value) => logs.push(value),
+  };
+  return {
+    ...f,
+    ...t,
+    properties,
+    lock,
+    triggers,
+    state,
+    scheduled,
+    logs,
+    services,
+    runtime: createRuntime(services),
+    locked: () => locked,
+    block: () => {
+      unavailable = true;
+    },
+    nextDay: () => {
+      clock += 86400000;
+    },
+  };
+}
+
+test("installation, configuration, preview, status, and removal manage only the owner's sync trigger", () => {
+  const f = environment();
+  assert.throws(() => f.runtime.install(), /configure/);
+  f.triggers.create("unrelatedJob", 30);
+  f.runtime.configure(config);
+  assert.equal(f.writes.length, 0);
+  f.runtime.install();
+  f.runtime.install();
+  assert.deepEqual(
+    f.scheduled.map((trigger) => trigger.getHandlerFunction()),
+    ["unrelatedJob", "syncConsiliumTeam"],
+  );
+  f.runtime.run(true);
+  assert.equal(f.writes.length, 0);
+  const report = f.runtime.run();
+  assert.equal(report.written, true);
+  assert.equal(f.runtime.status().installed, true);
+  assert.equal(f.runtime.status().lastRun.state, "ok");
+  assert.ok(f.runtime.status().usage.calls > 0);
+  f.runtime.configure({ ...config, intervalMinutes: 15 });
+  assert.equal(f.runtime.status().installed, false);
+  f.runtime.install();
+  f.runtime.uninstall();
+  assert.deepEqual(
+    f.scheduled.map((trigger) => trigger.getHandlerFunction()),
+    ["unrelatedJob"],
+  );
+  assert.equal(f.locked(), false);
+  assert.doesNotMatch(
+    JSON.stringify(f.logs),
+    /Updated alt note|Updated main|Bearer|token/,
+  );
+});
