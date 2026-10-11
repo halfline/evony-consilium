@@ -2261,6 +2261,9 @@ dialog form > label {
   ):not([hidden]) {
     animation: reveal-surface 180ms ease-out both;
   }
+  #formation-screen:not([hidden]) .map-caption {
+    animation: reveal-surface 180ms ease-out both;
+  }
   .collection-heading,
   .dashboard-overview {
     animation: reveal-surface 180ms ease-out;
