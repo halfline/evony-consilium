@@ -1,7 +1,8 @@
 import { isTeamLogo } from "../domain/team.js";
 import { bindTileActions } from "./tile-actions.js";
 import { initialsFor } from "./portrait.js";
-import { icon, labelWithIcon } from "./icons.js";
+import { icon } from "./icons.js";
+import { createRemoveButton } from "./remove-button.js";
 
 export function createTeamList({
   root,
@@ -47,14 +48,11 @@ export function createTeamList({
       caption.append(name, arrow);
       open.append(portrait, caption);
       open.onclick = () => openTeam(file);
-      const forget = document.createElement("button");
-      labelWithIcon(forget, "close");
-      forget.className = "team-forget";
-      forget.title = `Forget ${file.name}`;
-      forget.setAttribute("aria-label", `Forget ${file.name}`);
-      forget.onclick = () => {
-        forgetTeam(file.id);
-      };
+      const forget = createRemoveButton({
+        className: "team-forget",
+        label: `Forget ${file.name}`,
+        remove: () => forgetTeam(file.id),
+      });
       row.append(open, forget);
       list.append(row);
     }
