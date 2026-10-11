@@ -1427,6 +1427,11 @@
   justify-content: flex-start;
   padding: 16px 0;
 }
+#player-subcities > .add-subcity-icon {
+  grid-column: 1 / -1;
+  justify-self: center;
+  margin-top: 8px;
+}
 
 .subcity-owner-choice,
 .player-picker-card {
