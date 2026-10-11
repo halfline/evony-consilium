@@ -24,3 +24,4 @@ export const install = () => runtime().install();
 export const sync = () => runtime().run();
 export const preview = () => runtime().run(true);
 export const uninstall = () => runtime().uninstall();
+export const status = () => runtime().status();
