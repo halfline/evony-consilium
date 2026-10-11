@@ -32,6 +32,7 @@ export function createPlayersScreen({
       : "Profiles for strategy, tactics, and growth",
     label: alts ? "Add alt" : "Add player",
     kind: alts ? "alts" : "players",
+    emptyTitle: $(alts ? "alts-list-empty" : "players-empty"),
   });
   addButton.onclick = add;
   search.oninput = render;
@@ -123,6 +124,7 @@ export function createPlayersScreen({
   }
   function render() {
     const query = search.value.trim().toLowerCase();
+    const hasOwner = getPlan().keeps.some((player) => player.ownerId == null);
     const players = getPlan().keeps.filter((player) => {
       const owner = getPlan().keeps.find((item) => item.id === player.ownerId);
       return (
@@ -131,18 +133,8 @@ export function createPlayersScreen({
       );
     });
     if (alts) {
-      const hasOwner = getPlan().keeps.some((player) => player.ownerId == null);
       addButton.disabled = !hasOwner;
       $("alts-empty").hidden = hasOwner;
-      $("alts-list-empty").hidden = !hasOwner || players.length > 0;
-      $("alts-list-empty").textContent = query
-        ? "No matching alts."
-        : "No alts yet.";
-    } else {
-      $("players-empty").hidden = players.length > 0;
-      $("players-empty").textContent = query
-        ? "No matching players."
-        : "No players yet.";
     }
     const total = getPlan().keeps.filter(
       (player) => (player.ownerId != null) === alts,
@@ -151,6 +143,12 @@ export function createPlayersScreen({
       count: players.length,
       total,
       filtered: !!query,
+      emptyTitle:
+        alts && !hasOwner
+          ? null
+          : query
+            ? `No matching ${alts ? "alts" : "players"}.`
+            : `No ${alts ? "alts" : "players"} yet.`,
       help: query
         ? "Try another name, alliance tag, or account ID."
         : alts
