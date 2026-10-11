@@ -125,5 +125,33 @@ export class ScriptDrive {
     } while (pageToken);
     return files;
   }
-
+  save(file, document) {
+    const current = this.revision(file);
+    if (current.trashed || !current.capabilities?.canEdit)
+      throw Object.assign(new Error("Team editing access is unavailable."), {
+        status: 403,
+      });
+    if (current.version !== file.version || current.etag !== file.etag)
+      throw Object.assign(new Error("Team changed before saving."), {
+        status: 409,
+      });
+    if (typeof current.etag !== "string" || !/^"[^\r\n]+"$/.test(current.etag))
+      throw new Error(
+        "Drive did not provide a strong ETag; refusing an unconditional upload.",
+      );
+    const boundary = `consilium_${this.uuid()}`;
+    const body = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n{}\r\n--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(document)}\r\n--${boundary}--`;
+    return this.request(
+      `https://www.googleapis.com/upload/drive/v2/files/${encodeURIComponent(file.id)}?${query({ uploadType: "multipart", supportsAllDrives: true, fields: "id,version" })}`,
+      file,
+      {
+        method: "put",
+        body,
+        headers: {
+          "Content-Type": `multipart/related; boundary=${boundary}`,
+          "If-Match": current.etag,
+        },
+      },
+    );
+  }
 }
