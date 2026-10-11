@@ -3,6 +3,7 @@ import { routeHash } from "./navigation.js";
 import { OperationCancelled } from "../services/cancellation.js";
 import { icon, labelWithIcon } from "./icons.js";
 import { bindTileActions } from "./tile-actions.js";
+import { createRemoveButton } from "./remove-button.js";
 
 export function createPlayerNotes({
   root,
@@ -483,15 +484,14 @@ export function createPlayerNotes({
       button.onclick = () => open(item.id);
       tile.append(button);
       if (!item.published || workspace().notes.canPublish()) {
-        const removeButton = document.createElement("button");
-        removeButton.type = "button";
-        removeButton.className = "player-remove note-remove";
-        removeButton.dataset.noteRemove = item.id;
-        labelWithIcon(removeButton, "close");
         const label = `Remove ${heading.textContent} from ${item.published ? "the team" : "my notes"}`;
-        removeButton.setAttribute("aria-label", label);
-        removeButton.title = `${label}. The file stays in Drive.`;
-        removeButton.onclick = () => remove(item.id);
+        const removeButton = createRemoveButton({
+          className: "player-remove note-remove",
+          label,
+          title: `${label}. The file stays in Drive.`,
+          remove: () => remove(item.id),
+        });
+        removeButton.dataset.noteRemove = item.id;
         tile.append(removeButton);
       }
       list.append(tile);
