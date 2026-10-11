@@ -1,4 +1,5 @@
 import { GOOGLE_SCOPES, DRIVE_SCOPE } from "./scopes.js";
+import { OperationCancelled } from "../cancellation.js";
 // Google authorization and token lifetime are independent of project UI and drafts.
 export class GoogleSession {
   constructor(config, fetcher = globalThis.fetch.bind(globalThis)) {
@@ -43,8 +44,12 @@ export class GoogleSession {
         client_id: this.config.clientId,
         scope: GOOGLE_SCOPES,
         include_granted_scopes: false,
-        error_callback: () =>
-          reject(new Error("Google sign-in was closed or blocked. Try again.")),
+        error_callback: (error) =>
+          reject(
+            error?.type === "popup_closed"
+              ? new OperationCancelled("Google sign-in cancelled.")
+              : new Error("Google sign-in was closed or blocked. Try again."),
+          ),
         callback: (response) => {
           this.identify(response, oauth).then(resolve, reject);
         },

@@ -6,24 +6,39 @@ export async function signInFeedback({
   base = "http://127.0.0.1:4174",
 }) {
   const context = await browser.newContext();
+  const errors = [];
   try {
     await mockGoogleDrive(context);
     const page = await context.newPage();
+    page.on("pageerror", (error) => errors.push(error.message));
     await page.goto(base);
     await page.locator("#google-login:not([disabled])").waitFor();
-    await page.evaluate(() => {
-      const oauth = window.google.accounts.oauth2;
-      const original = oauth.initTokenClient;
-      oauth.initTokenClient = (options) => ({
-        requestAccessToken() {
-          oauth.initTokenClient = original;
-          options.callback({
-            access_token: "test-token",
-            expires_in: 3600,
-            scope: "openid email profile",
-          });
-        },
-      });
+    const nextResponse = (response) =>
+      page.evaluate((response) => {
+        const oauth = window.google.accounts.oauth2;
+        const original = oauth.initTokenClient;
+        oauth.initTokenClient = (options) => ({
+          requestAccessToken() {
+            oauth.initTokenClient = original;
+            if (response.type) options.error_callback(response);
+            else options.callback(response);
+          },
+        });
+      }, response);
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 1000 });
+      await nextResponse({ type: "popup_closed" });
+      await page.locator("#google-login").click();
+      await page.locator("#entry-progress").waitFor({ state: "hidden" });
+      assert.equal(await page.locator("#login-screen").isVisible(), true);
+      assert.equal(await page.locator("#entry-error").textContent(), "");
+      assert.equal(await page.locator("#toast").isVisible(), false);
+      assert.equal(await page.locator("#google-login").isEnabled(), true);
+    }
+    await nextResponse({
+      access_token: "test-token",
+      expires_in: 3600,
+      scope: "openid email profile",
     });
     await page.locator("#google-login").click();
     await page.locator("#google-grant-access").waitFor({ state: "visible" });
@@ -32,7 +47,26 @@ export async function signInFeedback({
       /Team access wasn’t granted/,
     );
     assert.equal(await page.locator("#toast").isVisible(), false);
-    assert.equal(await page.locator('[role="alert"]:visible').count(), 1);
+    await page.locator("#google-grant-access").click();
+    await page.locator("#projects-screen").waitFor({ state: "visible" });
+    assert.equal(await page.locator("#entry-error").textContent(), "");
+
+    // Cancelling an account switch keeps the current account and team open.
+    await page.locator("#project-tab-create").click();
+    await page.locator("#project-name").fill("Keep this team open");
+    await page.locator("[form=project-create]").click();
+    await page.locator("#planner").waitFor({ state: "visible" });
+    const team = new URL(page.url()).hash;
+    const identity = await page.locator("#account-email").textContent();
+    await page.locator("#account-menu summary").click();
+    await nextResponse({ type: "popup_closed" });
+    await page.locator("#switch-account").click();
+    await page.locator("#entry-progress").waitFor({ state: "hidden" });
+    assert.equal(await page.locator("#planner").isVisible(), true);
+    assert.equal(new URL(page.url()).hash, team);
+    assert.equal(await page.locator("#account-email").textContent(), identity);
+    assert.equal(await page.locator("#toast").isVisible(), false);
+    assert.deepEqual(errors, []);
   } finally {
     await context.close();
   }
