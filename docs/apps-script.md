@@ -34,7 +34,30 @@ Rebuilding preserves an existing local `Config.gs`. The output directory is igno
 
 The build bundles the same profile/note validators and cache transformations used by the browser. It substitutes a JSON-only clone for the browser's `structuredClone`, which is unavailable in Apps Script. Authored sources live in `apps-script/`; change those and rebuild rather than editing generated `Code.gs`.
 
-## Install for a team
+## Upload without copying files
+
+For a team with a working script, future updates can be one command. The repository wraps Google's [clasp command-line tool](https://developers.google.com/apps-script/guides/clasp), fetched on demand at a pinned version; it is not a dependency of the site. This workflow requires Node 20 or newer.
+
+Set up the connection once:
+
+1. Enable **Google Apps Script API** in [Apps Script user settings](https://script.google.com/home/usersettings).
+2. Run `npm run apps-script:login` and sign in as the account that owns or can edit your script.
+3. Open the script's **Project Settings → IDs** and copy its **Script ID**. This is a different ID from your team document and Drive folder.
+4. Run `npm run apps-script:link -- "SCRIPT_ID"`. You can supply the script editor URL instead. This records the target locally in an ignored `.clasp.json`; it does not upload anything. Use `npm run apps-script:link -- --replace "SCRIPT_ID"` to switch teams deliberately.
+
+Then, after pulling updated repository code, run:
+
+```sh
+npm run apps-script:push
+```
+
+The command downloads the current script into a temporary directory, rebuilds `Code.gs` and the manifest, and uploads the resulting project. It preserves the **remote `Config` file** and any extra script or HTML files. Your local `apps-script/build/Config.gs` is not used for updates. Generated code and the manifest come from the repository, so make synchronizer changes in the authored sources. Finish edits in the online editor before uploading.
+
+Existing Script Properties and scheduled triggers remain in place; ordinary code updates do not require running configure or install again. If an update changes required scopes, run a function in the editor to grant Google's authorization again. Google may also prompt in the terminal to confirm a manifest change. No web-app deployment is needed. Temporary downloaded files are removed when the command finishes, including after failures. `clasp` keeps its login credentials in your home directory; those credentials must remain private.
+
+For a new team, create a blank standalone project, link it, and push to upload all three files. Then follow the configuration, authorization, and trigger steps below, starting at step 4. The first upload supplies placeholder settings; edit Config in the Google editor before configuring sync. Teams using the public site without a local checkout can use the copy-and-paste installation instead.
+
+## Install by copying files
 
 1. Sign in as the administrator who will run sync and create a standalone project at [Google Apps Script](https://script.google.com/home). Keep that project private; people who can edit a scheduled script can change what runs under its operator's authorization.
 2. Replace the default `Code.gs` with the generated file. Create a script file named **Config** and paste `Config.gs` into it.
