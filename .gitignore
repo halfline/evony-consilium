@@ -10,6 +10,7 @@ secrets/
 /web/google-config.js
 /apps-script/build/
 /.clasp.json
+/.clasprc.json
 
 # Download-derived resources; maintained branding stays in source control.
 /web/assets/*

@@ -1,12 +1,14 @@
+import { spawn } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-const help = `Apps Script link
+const help = `Apps Script setup
 
+  npm run apps-script:login
   npm run apps-script:link -- SCRIPT_ID_OR_EDITOR_URL
 
-Find the Script ID in Project Settings. Use --replace to switch projects.
+Enable Apps Script API first. Use link --replace to switch projects.
 `;
 
 export function scriptId(value) {
@@ -57,12 +59,36 @@ export async function linkProject(
   return id;
 }
 
+const claspPackage = "@google/clasp@3.4.1";
+
+export function runClasp(args, { cwd = process.cwd() } = {}) {
+  if (Number(process.versions.node.split(".")[0]) < 20) {
+    throw new Error("Apps Script uploads require Node 20 or newer.");
+  }
+  return new Promise((resolveRun, reject) => {
+    const child = spawn(
+      "npx",
+      ["--yes", `--package=${claspPackage}`, "clasp", ...args],
+      { cwd, stdio: "inherit", shell: false },
+    );
+    child.once("error", reject);
+    child.once("exit", (code, signal) => {
+      if (code === 0) resolveRun();
+      else reject(new Error(`clasp failed (${signal || `exit ${code}`}).`));
+    });
+  });
+}
+
 export async function main(args = process.argv.slice(2)) {
   if (!args.length || args.includes("--help") || args.includes("-h")) {
     console.log(help);
     return;
   }
   const [command, ...rest] = args;
+  if (command === "login" && !rest.length) {
+    await runClasp(["login"]);
+    return;
+  }
   if (command !== "link") throw new Error(help);
   const values = rest.filter((arg) => arg !== "--replace");
   if (values.length !== 1) throw new Error(help);
