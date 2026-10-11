@@ -71,25 +71,4 @@ export function renderMarchSettings({
     generate();
     renderMarch();
   };
-  const strategy = element("select");
-  strategy.id = "player-march-strategy";
-  for (const [value, name] of marchType(march) === "siege"
-    ? [
-        ["big-siege", "Big siege"],
-        ["small-siege", "Small siege"],
-      ]
-    : [["balanced", "Balanced"]]) {
-    const option = element("option", name);
-    option.value = value;
-    strategy.append(option);
-  }
-  strategy.value = g.strategy;
-  field("Strategy", strategy);
-  strategy.onchange = () => {
-    g.strategy = strategy.value;
-    g.weights = strategyWeights(marchType(march), g.strategy, g.highestTier);
-    explicit.add(march.id);
-    generate();
-    renderMarch();
-  };
 }

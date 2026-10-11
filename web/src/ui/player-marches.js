@@ -14,6 +14,7 @@ import {
   marchType,
   marchCapacity,
   initialGeneration,
+  strategyWeights,
 } from "../domain/march-generation.js";
 import { renderMarchSettings } from "./player-march-settings.js";
 
@@ -85,16 +86,35 @@ export function createPlayerMarches({ root, getSizes }) {
       option.value = troopType;
       typeSelect.append(option);
     }
-    typeSelect.value = type;
+    const littleSiege = element("option", "Siege (little)");
+    littleSiege.value = "small-siege";
+    typeSelect.append(littleSiege);
+    typeSelect.value =
+      type === "siege" && march.generation.strategy === "small-siege"
+        ? "small-siege"
+        : type;
     typeSelect.onchange = () => {
-      const nextType = typeSelect.value;
+      const nextType =
+        typeSelect.value === "small-siege" ? "siege" : typeSelect.value;
       march.troopType = nextType;
       const fresh = initialGeneration(march, march.generation.highestTier);
+      fresh.strategy =
+        nextType === "siege"
+          ? typeSelect.value === "small-siege"
+            ? "small-siege"
+            : "big-siege"
+          : "balanced";
+      fresh.weights = strategyWeights(
+        nextType,
+        fresh.strategy,
+        fresh.highestTier,
+      );
       march.generation = {
         ...fresh,
         layerSize: march.generation.layerSize,
         manual: march.generation.manual,
       };
+      draft.markEdited();
       generate();
       renderMarch();
     };

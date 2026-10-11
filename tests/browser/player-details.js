@@ -89,6 +89,11 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
     await page.locator("#player-troops thead #player-march-type").count(),
     1,
   );
+  assert.equal(await page.locator("#player-march-strategy").count(), 0);
+  assert.deepEqual(
+    await page.locator("#player-march-type option").allTextContents(),
+    ["Ground", "Archers", "Mounted", "Siege", "Siege (little)"],
+  );
   assert.equal(
     await page
       .locator('[data-tier-row] input[aria-label="Troop tier"]')
@@ -206,7 +211,7 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
   await page.locator('.march-card[aria-label="Siege"]').click();
   await page.locator("#player-march-capacity").fill("7761650");
   await page.locator("#player-march-capacity").blur();
-  await page.locator("#player-march-strategy").selectOption("small-siege");
+  await page.locator("#player-march-type").selectOption("small-siege");
   assert.equal(
     await page
       .locator('[data-tier-row="11"] [data-count="siege"]')
@@ -217,7 +222,7 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
     await page.locator("#player-troop-summary").textContent(),
     /7,761,650 troops · Full/,
   );
-  await page.locator("#player-march-strategy").selectOption("big-siege");
+  await page.locator("#player-march-type").selectOption("siege");
   assert.equal(
     await page
       .locator('[data-tier-row="13"] [data-count="siege"]')
