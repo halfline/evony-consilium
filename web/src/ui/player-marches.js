@@ -1,6 +1,7 @@
 import { MarchDraft } from "../application/march-draft.js";
 import { view } from "./dom.js";
 import { labelWithIcon } from "./icons.js";
+import { createRemoveButton } from "./remove-button.js";
 import { bindTileActions } from "./tile-actions.js";
 import {
   names,
@@ -233,17 +234,16 @@ export function createPlayerMarches({ root, getSizes }) {
         draft.currentIndex = index;
         renderMarch();
       };
-      const remove = element("button", undefined, "player-remove");
-      remove.type = "button";
+      const remove = createRemoveButton({
+        className: "player-remove",
+        label: `Remove ${march.name} march`,
+        remove: () => {
+          draft.currentIndex = index;
+          draft.remove();
+          showList();
+        },
+      });
       remove.dataset.marchRemove = march.id;
-      remove.title = `Remove ${march.name} march`;
-      remove.setAttribute("aria-label", remove.title);
-      labelWithIcon(remove, "close");
-      remove.onclick = () => {
-        draft.currentIndex = index;
-        draft.remove();
-        showList();
-      };
       tile.append(button, remove);
       root.append(tile);
     });
