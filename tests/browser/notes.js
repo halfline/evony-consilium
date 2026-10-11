@@ -51,9 +51,7 @@ export async function playerNotes({ browser, base = "http://127.0.0.1:4174" }) {
     await a.locator("#note-save").click();
     await a.locator("#note-create-options").waitFor({ state: "hidden" });
     await a.waitForFunction(() =>
-      document
-        .getElementById("note-save-status")
-        .textContent.includes("Only you"),
+      document.getElementById("note-save-status").textContent.includes("Saved"),
     );
     const personal = [...files.values()].find(
       (row) => row.data?.format === "evony-consilium-note",
@@ -89,11 +87,12 @@ export async function playerNotes({ browser, base = "http://127.0.0.1:4174" }) {
       document.getElementById("note-save-status").textContent.includes("Saved"),
     );
     assert.equal(personal.data.note.body, "Durable note draft");
+    await a.locator("#note-sharing summary").click();
     await a.locator("#note-email").fill("bob@example.test");
     await a.locator("#note-share").click();
     await a.waitForFunction(() =>
       document
-        .getElementById("note-error")
+        .getElementById("note-message")
         .textContent.includes("Access granted"),
     );
     assert.ok(

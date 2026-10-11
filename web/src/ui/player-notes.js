@@ -25,7 +25,10 @@ export function createPlayerNotes({
   $("note-form").noValidate = true;
   labelWithIcon($("note-new"), "plus", "New note");
   labelWithIcon($("note-attach"), "link", "Attach note");
+  labelWithIcon($("note-close"), "close");
+  labelWithIcon($("note-copy-link"), "link", "Copy note link");
   root.querySelector(".notes-empty-icon").append(icon("note"));
+  dialog.querySelector(".note-heading-icon").append(icon("note"));
   const rows = () =>
     getPlayer() && workspace()?.sync.file
       ? workspace().notes.list(getPlayer())
@@ -56,8 +59,11 @@ export function createPlayerNotes({
     ])
       $(id).value = "";
     $("note-error").textContent = "";
+    $("note-message").textContent = "";
     $("note-link-result").hidden = true;
     $("note-link-result").value = "";
+    $("note-sharing").open = false;
+    $("note-more-actions").open = false;
   }
   $("note-close").onclick = () => dialog.close();
   dialog.addEventListener("close", () => {
@@ -70,6 +76,7 @@ export function createPlayerNotes({
       existing = !!editor.id;
     const editable = !existing || !!item?.canEdit;
     $("note-heading").textContent = existing ? "Note" : "New note";
+    $("note-player-name").textContent = getPlayer()?.name || "";
     $("note-create-options").hidden = existing;
     $("note-title").readOnly = !editable || (busy && !existing);
     $("note-body").readOnly = !editable || (busy && !existing);
@@ -103,8 +110,10 @@ export function createPlayerNotes({
     $("note-remove").hidden =
       !!item?.published && !workspace()?.notes.canPublish();
     $("note-remove").textContent = item?.published
-      ? "Remove from team (keep Drive file)"
-      : "Remove from my list (keep Drive file)";
+      ? "Remove from team"
+      : "Remove from my notes";
+    $("note-more-actions").hidden =
+      $("note-team-copy").hidden && $("note-remove").hidden;
     if (existing) {
       const url = new URL(`https://drive.google.com/file/d/${editor.id}/view`);
       if (item?.resourceKey)
@@ -121,7 +130,9 @@ export function createPlayerNotes({
       $("note-remote-body").value = "";
     }
     $("note-save-status").textContent = !existing
-      ? "Saved separately from player fields."
+      ? $("note-title").value || $("note-body").value
+        ? "Draft kept on this device"
+        : ""
       : item?.entry?.saving
         ? "Saving note…"
         : conflict
@@ -138,11 +149,30 @@ export function createPlayerNotes({
                   ? item.published
                     ? `${item.canEdit ? "Saved" : "Read-only"} · Team copy refreshed ${date(item.syncedAt)}`
                     : "Saved in Drive · awaiting editor publication"
-                  : `${item?.audience || "Personal"} · ${item?.canEdit ? "Saved" : "Read-only"}`;
+                  : item?.canEdit
+                    ? "Saved"
+                    : "Read-only";
+    const audience = existing
+      ? item?.note?.scope === "team"
+        ? "team"
+        : item?.audience
+      : $("note-audience").value;
     $("note-storage").textContent =
-      $("note-audience").value === "team"
-        ? "Stored in the shared team folder. Folder members can read it in Drive; a team editor publishes its contents into Consilium."
-        : "Stored in your personal Drive notes folder. It stays outside the team file.";
+      audience === "team"
+        ? existing && item?.published
+          ? "Shared with the team."
+          : "Team folder members can read this note. An editor publishes it in Consilium."
+        : audience === "personal" || audience === "Only you"
+          ? "Only you can read this note."
+          : audience === "people"
+            ? "Share only with the Google accounts you add."
+            : audience === "Specific people"
+              ? "Shared with specific Google accounts."
+              : "Check who has access in Drive.";
+    $("note-access").hidden = existing && !item?.note;
+    $("note-sharing").classList.toggle("note-sharing-new", !existing);
+    if (!existing) $("note-sharing").open = audience === "people";
+    $("note-save-status").hidden = !$("note-save-status").textContent;
   }
   async function run(task, { picker = false } = {}) {
     if (busy) return;
@@ -150,6 +180,7 @@ export function createPlayerNotes({
       reopen = dialog.open;
     busy = true;
     $("note-error").textContent = "";
+    $("note-message").textContent = "";
     paintEditor();
     if (picker && reopen) dialog.close();
     try {
@@ -314,7 +345,7 @@ export function createPlayerNotes({
         $("note-share-role").value,
       );
       $("note-email").value = "";
-      $("note-error").textContent =
+      $("note-message").textContent =
         "Access granted. Copy the note link for the recipient.";
     });
   $("note-copy-link").onclick = () =>
@@ -335,7 +366,7 @@ export function createPlayerNotes({
       $("note-link-result").value = url.href;
       try {
         await navigator.clipboard.writeText(url.href);
-        $("note-error").textContent =
+        $("note-message").textContent =
           item?.note?.scope === "team" && !item.published
             ? "Link copied. Ask a team editor to unlock and publish this note."
             : "Link copied. Recipients also need access to the file in Drive.";

@@ -1306,34 +1306,32 @@
         aria-labelledby="note-heading"
       >
         <div class="dialog-heading">
-          <h2 id="note-heading">New note</h2>
+          <div class="note-dialog-heading">
+            <span class="note-heading-icon" aria-hidden="true"></span>
+            <div>
+              <p id="note-player-name" class="note-player-name"></p>
+              <h2 id="note-heading">New note</h2>
+            </div>
+          </div>
           <button id="note-close" type="button" aria-label="Close note">
             ×
           </button>
         </div>
         <p id="note-error" class="entry-error" role="alert"></p>
         <form id="note-form">
-          <div id="note-create-options">
-            <label
-              >Who can read this?<select id="note-audience">
-                <option value="personal">Only me</option>
-                <option value="people">Specific people</option>
-                <option value="team">Team</option>
-              </select></label
-            >
-            <p id="note-storage" class="muted"></p>
-          </div>
-          <label
-            ><span>Title <span class="muted">(optional)</span></span
-            ><input id="note-title" maxlength="120"
+          <label class="note-title-field"
+            >Title<input
+              id="note-title"
+              maxlength="120"
+              placeholder="Give this note a title"
           /></label>
-          <label
+          <label class="note-body-field"
             >Note<textarea
               id="note-body"
-              rows="12"
+              rows="9"
               maxlength="50000"
               required
-              placeholder="Write your note…"
+              placeholder="Write an observation, idea, or plan…"
             ></textarea>
           </label>
           <div id="note-review" class="note-review" hidden>
@@ -1356,30 +1354,48 @@
               </button>
             </div>
           </div>
-          <div id="note-sharing" hidden>
-            <p>
-              Stored in personal Drive. Only accounts granted access can read
-              this note.
-            </p>
-            <label
-              >Google account email<input
-                id="note-email"
-                type="email"
-                placeholder="name@example.com"
-            /></label>
-            <label
-              >Permission<select id="note-share-role">
-                <option value="reader">Can view</option>
-                <option value="writer">Can edit</option>
-              </select></label
-            >
-            <button id="note-share" type="button">
-              Share with this account
-            </button>
+          <div id="note-access" class="note-access">
+            <div class="note-access-overview">
+              <div id="note-create-options">
+                <label
+                  >Visibility<select
+                    id="note-audience"
+                    aria-describedby="note-storage"
+                  >
+                    <option value="personal">Only me</option>
+                    <option value="people">Specific people</option>
+                    <option value="team">Team</option>
+                  </select></label
+                >
+              </div>
+              <p id="note-storage" class="muted"></p>
+            </div>
+            <details id="note-sharing" hidden>
+              <summary>Share with someone</summary>
+              <div class="note-recipient-fields">
+                <label
+                  >Google account email<input
+                    id="note-email"
+                    type="email"
+                    placeholder="name@example.com"
+                    autocomplete="off"
+                /></label>
+                <label
+                  >Permission<select id="note-share-role">
+                    <option value="reader">Can view</option>
+                    <option value="writer">Can edit</option>
+                  </select></label
+                >
+                <button id="note-share" type="button">Share note</button>
+              </div>
+            </details>
           </div>
           <div class="note-footer">
             <p id="note-save-status" class="muted" role="status"></p>
             <div class="notes-buttons">
+              <button id="note-publish" type="button" hidden>
+                Publish to team
+              </button>
               <button id="note-unlock" type="button" hidden>Unlock note</button
               ><button id="note-save" class="primary" type="submit">
                 Save note
@@ -1388,25 +1404,35 @@
           </div>
           <div id="note-document-actions" class="note-document-actions" hidden>
             <div class="notes-buttons">
-              <button id="note-publish" type="button" hidden>
-                Publish to team
-              </button>
-              <button id="note-team-copy" type="button" hidden>
-                Create team copy
-              </button>
               <button id="note-copy-link" type="button">Copy note link</button>
-              <input
-                id="note-link-result"
-                aria-label="Note link"
-                readonly
-                hidden
-              />
-              <a id="note-drive-link" target="_blank" rel="noopener noreferrer"
-                >Open in Drive / manage access ↗</a
+              <a
+                id="note-drive-link"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Manage access in Google Drive"
+                >Open in Drive ↗</a
               >
             </div>
-            <button id="note-remove" type="button">Remove from list</button>
+            <details id="note-more-actions" class="note-more-actions">
+              <summary>More options</summary>
+              <div>
+                <button id="note-team-copy" type="button" hidden>
+                  Create team copy
+                </button>
+                <button id="note-remove" type="button">
+                  Remove from my notes
+                </button>
+                <p class="muted">The original file stays in Drive.</p>
+              </div>
+            </details>
+            <input
+              id="note-link-result"
+              aria-label="Note link"
+              readonly
+              hidden
+            />
           </div>
+          <p id="note-message" role="status"></p>
         </form>
       </dialog>
       <dialog id="add-player-dialog">
