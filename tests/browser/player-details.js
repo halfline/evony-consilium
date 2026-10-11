@@ -229,7 +229,16 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
       .inputValue(),
     "4488990",
   );
-  await page.locator("#player-remove-march").click();
+  assert.equal(await page.locator("#player-remove-march").count(), 0);
+  await page.locator("#player-march-back").click();
+  await page.locator('.march-card[aria-label="Siege"]').hover();
+  await page
+    .getByRole("button", { name: "Remove Siege march", exact: true })
+    .click();
+  assert.equal(
+    await page.locator('.march-card[aria-label="Siege"]').count(),
+    0,
+  );
   await page.locator("#player-add-march").click();
   await page.locator("#player-march-name").fill("Ground — Trajan");
   await page.locator("#player-march-capacity").fill("7000000");
@@ -238,7 +247,15 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
     await page.locator("#player-troop-summary").textContent(),
     /7,000,000 troops · Full/,
   );
-  await page.locator("#player-remove-march").click();
+  await page.locator("#player-march-back").click();
+  await page.locator('.march-card[aria-label="Ground — Trajan"]').focus();
+  await page
+    .getByRole("button", { name: "Remove Ground — Trajan march", exact: true })
+    .click();
+  assert.equal(
+    await page.locator('.march-card[aria-label="Ground — Trajan"]').count(),
+    0,
+  );
   await page.locator('.march-card[aria-label="Ground"]').click();
 
   await page

@@ -1,6 +1,7 @@
 import { MarchDraft } from "../application/march-draft.js";
 import { view } from "./dom.js";
 import { labelWithIcon } from "./icons.js";
+import { bindTileActions } from "./tile-actions.js";
 import {
   names,
   columns,
@@ -23,6 +24,11 @@ export function createPlayerMarches({ root, getSizes }) {
   const draft = new MarchDraft(getSizes);
   const addTier = $("player-add-tier");
   let editing = false;
+  bindTileActions($("player-march-list"), {
+    tileSelector: ".march-tile",
+    triggerSelector: ".march-card",
+    className: "player-actions-open",
+  });
   const generate = () => draft.generate();
   function syncSizes() {
     draft.syncSizes();
@@ -208,6 +214,7 @@ export function createPlayerMarches({ root, getSizes }) {
     root.hidden = false;
     root.replaceChildren();
     draft.marches.forEach((march, index) => {
+      const tile = element("div", undefined, "march-tile player-tile");
       const button = element("button", undefined, "march-card");
       button.type = "button";
       button.dataset.march = march.id;
@@ -222,7 +229,19 @@ export function createPlayerMarches({ root, getSizes }) {
         draft.currentIndex = index;
         renderMarch();
       };
-      root.append(button);
+      const remove = element("button", undefined, "player-remove");
+      remove.type = "button";
+      remove.dataset.marchRemove = march.id;
+      remove.title = `Remove ${march.name} march`;
+      remove.setAttribute("aria-label", remove.title);
+      labelWithIcon(remove, "close");
+      remove.onclick = () => {
+        draft.currentIndex = index;
+        draft.remove();
+        showList();
+      };
+      tile.append(button, remove);
+      root.append(tile);
     });
     const add = element("button", "＋", "march-add");
     labelWithIcon(add, "plus");
@@ -252,10 +271,6 @@ export function createPlayerMarches({ root, getSizes }) {
     $("player-march-name").focus();
     $("player-march-name").select();
   }
-  $("player-remove-march").onclick = () => {
-    draft.remove();
-    showList();
-  };
   function render(details, level) {
     draft.load(details, level);
     showList();

@@ -11,7 +11,6 @@ export function bindShellControls(root) {
     ["zoom-out", "minus"],
     ["reset-view", "center"],
     ["player-march-back", "back"],
-    ["player-remove-march", "close"],
     ["player-remove", "close"],
     ["player-add-tier", "plus"],
     ["player-add-subcity", "plus"],

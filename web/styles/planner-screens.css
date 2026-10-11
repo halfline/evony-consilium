@@ -1195,9 +1195,12 @@
 .march-grid[hidden] {
   display: none;
 }
+.march-tile {
+  flex: 0 0 144px;
+}
 .march-card {
   display: flex;
-  flex: 0 0 144px;
+  width: 100%;
   flex-direction: column;
   align-items: center;
   gap: 16px;
