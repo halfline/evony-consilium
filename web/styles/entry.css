@@ -31,6 +31,17 @@
 .entry-card .entry-error {
   color: #ffb6a3;
 }
+.entry-feedback .entry-error:empty {
+  display: none;
+}
+.entry-feedback .entry-error {
+  max-width: 52ch;
+  margin: 12px 0 0;
+  font-size: 13px;
+}
+.entry-feedback > button {
+  margin-top: 12px;
+}
 .project-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));

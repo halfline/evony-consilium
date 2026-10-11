@@ -1,4 +1,42 @@
 import assert from "node:assert/strict";
+import { mockGoogleDrive } from "../drive-mock.js";
+
+export async function signInFeedback({
+  browser,
+  base = "http://127.0.0.1:4174",
+}) {
+  const context = await browser.newContext();
+  try {
+    await mockGoogleDrive(context);
+    const page = await context.newPage();
+    await page.goto(base);
+    await page.locator("#google-login:not([disabled])").waitFor();
+    await page.evaluate(() => {
+      const oauth = window.google.accounts.oauth2;
+      const original = oauth.initTokenClient;
+      oauth.initTokenClient = (options) => ({
+        requestAccessToken() {
+          oauth.initTokenClient = original;
+          options.callback({
+            access_token: "test-token",
+            expires_in: 3600,
+            scope: "openid email profile",
+          });
+        },
+      });
+    });
+    await page.locator("#google-login").click();
+    await page.locator("#google-grant-access").waitFor({ state: "visible" });
+    assert.match(
+      await page.locator("#entry-error").textContent(),
+      /Team access wasn’t granted/,
+    );
+    assert.equal(await page.locator("#toast").isVisible(), false);
+    assert.equal(await page.locator('[role="alert"]:visible').count(), 1);
+  } finally {
+    await context.close();
+  }
+}
 
 export async function entryWorkflow({ page, context }) {
   await page.goto("http://127.0.0.1:4174", { waitUntil: "domcontentloaded" });

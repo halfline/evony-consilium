@@ -89,6 +89,10 @@ export class TeamEntry {
     if (screen === "planner") this.opened();
     this.$("login-screen").hidden = screen !== "login";
     this.$("projects-screen").hidden = screen !== "projects";
+    (screen === "login"
+      ? this.$("google-login")
+      : this.$("entry-progress")
+    ).after(this.$("entry-feedback"));
     this.$("entry-error").textContent = "";
     this.$("google-grant-access").hidden = true;
     if (screen === "projects") {
@@ -132,19 +136,18 @@ export class TeamEntry {
     if (this.busy) return;
     this.busy = true;
     this.accountMenuRoot.open = false;
+    if (!this.root.hidden) this.toast.hidden = true;
     const finish = showEntryProgress(this.root, message);
     try {
       await fn();
     } catch (e) {
       if (e instanceof OperationCancelled) return;
-      this.$("entry-error").textContent = e.message;
-      this.$("google-grant-access").hidden =
-        e.code !== "drive_permission_missing";
-      this.status(e.message, true);
-      if (e.status === 401) {
-        this.show("login");
+      if (e.status === 401) this.show("login");
+      if (this.planner.hidden) {
         this.$("entry-error").textContent = e.message;
-      }
+        this.$("google-grant-access").hidden =
+          e.code !== "drive_permission_missing";
+      } else this.status(e.message, true);
     } finally {
       this.busy = false;
       finish();

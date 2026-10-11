@@ -10,7 +10,7 @@ import { subcityOwnership } from "./browser/subcity-ownership.js";
 import { subcities } from "./browser/subcities.js";
 import { playerSharing } from "./browser/player-sharing.js";
 import { playerDetails } from "./browser/player-details.js";
-import { entryWorkflow } from "./browser/entry.js";
+import { entryWorkflow, signInFeedback } from "./browser/entry.js";
 import { playerCreation } from "./browser/players.js";
 import { mapSelection } from "./browser/maps.js";
 import { playerAppearance } from "./browser/player-appearance.js";
@@ -65,6 +65,7 @@ try {
       badResponses.push(res.url());
   });
   const { projectLogo } = await entryWorkflow({ page, context });
+  await signInFeedback({ browser });
   await teamSharing({ browser });
   await playerCreation({ page, playersScreen });
   await altOwnership({ page, playersScreen });
