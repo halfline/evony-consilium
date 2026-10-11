@@ -101,6 +101,14 @@ export async function visualPolish({ browser }) {
       await page.locator("#players .portrait-monogram").textContent(),
       "AO",
     );
+    await page.locator('[data-screen="alts"]').click();
+    assert.equal(
+      await page.locator("#alts-search-control svg").isVisible(),
+      true,
+    );
+    await page.locator("#alts-search").fill("Alexandra");
+    assert.equal(await page.locator("#alts-search").inputValue(), "Alexandra");
+    await page.locator('[data-screen="players"]').click();
     await page.locator("#add-player").click();
     await page.locator("#new-player-castle").click();
     await page
