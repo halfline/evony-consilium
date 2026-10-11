@@ -361,23 +361,34 @@ h2 {
     0 6px 16px #0002,
     inset 0 1px 0 #ffffff0c;
 }
+.monogram-portrait,
+.roster-preview-portrait.monogram-portrait {
+  display: grid;
+  place-items: center;
+  background: hsl(var(--identity-hue) 18% 22%);
+  border-color: hsl(var(--identity-hue) 20% 40% / 0.6);
+}
+.portrait-monogram {
+  color: hsl(var(--identity-hue) 35% 80%);
+  font-size: 32px;
+  font-weight: 500;
+  letter-spacing: -1px;
+}
+.roster-preview-portrait .portrait-monogram {
+  font-size: 15px;
+  letter-spacing: 0;
+}
+.compact-list .portrait-monogram {
+  font-size: 22px;
+}
+:is(#players, #alts):not(.compact-list) .player-portrait {
+  width: 96px;
+  height: 96px;
+}
 :is(#players, #alts) .player-card.selected .player-portrait,
 .map-row.selected .map-portrait {
   border-color: var(--gold);
   box-shadow: 0 0 0 3px #dbc08720;
-}
-.portrait-initials {
-  position: absolute;
-  left: 6px;
-  bottom: 6px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  padding: 2px 5px;
-  color: var(--text);
-  background: #14241dee;
-  border: 1px solid #ffffff20;
-  border-radius: 5px;
 }
 :is(#players, #alts) .player-portrait .level {
   right: -5px;
@@ -396,7 +407,7 @@ h2 {
 }
 .player-identity {
   width: 100%;
-  min-height: 72px;
+  min-height: 56px;
   align-content: start;
   row-gap: 4px;
 }
@@ -492,9 +503,6 @@ h2 {
 :is(#players, #alts).compact-list .player-portrait .level {
   font-size: 10px;
   padding: 2px 4px;
-}
-.compact-list .portrait-initials {
-  display: none;
 }
 .compact-list .player-identity {
   min-height: 0;
@@ -705,7 +713,8 @@ h2 {
   border: 0;
 }
 .roster-preview-portrait {
-  display: block;
+  display: grid;
+  place-items: center;
   width: 40px;
   height: 40px;
   flex-shrink: 0;

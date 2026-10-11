@@ -97,6 +97,10 @@ export async function visualPolish({ browser }) {
       .click();
     assert.equal(await page.locator("#players-search").inputValue(), "");
     assert.equal(await page.locator("#players .player-card").count(), 1);
+    assert.equal(
+      await page.locator("#players .portrait-monogram").textContent(),
+      "AO",
+    );
     await page.locator("#add-player").click();
     await page.locator("#new-player-castle").click();
     await page

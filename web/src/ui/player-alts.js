@@ -1,5 +1,5 @@
 import { view } from "./dom.js";
-import { renderPortrait } from "./portrait.js";
+import { renderPlayerPortrait } from "./portrait.js";
 import { assignPlayerOwner } from "../domain/players.js";
 import { createSearchablePicker } from "./searchable-picker.js";
 import { playerPickerCard } from "./player-picker-card.js";
@@ -45,11 +45,7 @@ export function createPlayerAlts({
     button.dataset.alt = player.id;
     const portrait = document.createElement("span");
     portrait.className = "player-alt-portrait";
-    const catalog = getAvatars();
-    const avatar =
-      catalog.avatars.find((item) => item.id === player.avatarId) ||
-      catalog.avatars.find((item) => item.id === catalog.defaultId);
-    if (avatar) renderPortrait(portrait, avatar.previewSrc || avatar.src);
+    renderPlayerPortrait(portrait, getAvatars(), player);
     const identity = document.createElement("span");
     identity.className = "player-alt-identity";
     const name = document.createElement("strong");

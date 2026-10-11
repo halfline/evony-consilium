@@ -1,5 +1,5 @@
 import { view } from "./dom.js";
-import { renderPortrait } from "./portrait.js";
+import { renderPlayerPortrait } from "./portrait.js";
 import { icon } from "./icons.js";
 import { project } from "../domain/geometry.js";
 import { MAP_ICONS } from "../domain/maps.js";
@@ -142,11 +142,7 @@ export function createTeamDashboard({
         button.className = "roster-preview-row";
         const portrait = document.createElement("span");
         portrait.className = "roster-preview-portrait";
-        const catalog = getAvatars();
-        const avatar =
-          catalog.avatars.find((item) => item.id === player.avatarId) ||
-          catalog.avatars.find((item) => item.id === catalog.defaultId);
-        renderPortrait(portrait, avatar && (avatar.previewSrc || avatar.src));
+        renderPlayerPortrait(portrait, getAvatars(), player);
         const name = document.createElement("strong");
         name.textContent = player.name;
         name.title = player.name;

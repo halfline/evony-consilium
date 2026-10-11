@@ -1,4 +1,4 @@
-import { renderPortrait, initialsFor } from "./portrait.js";
+import { renderPlayerPortrait } from "./portrait.js";
 import { view } from "./dom.js";
 import { bindTileActions } from "./tile-actions.js";
 import { createCollectionControls } from "./collection-controls.js";
@@ -51,11 +51,7 @@ export function createPlayersScreen({
     button.title = `${player.name} · K${player.level}${player.allianceTag ? ` · [${player.allianceTag}]` : ""}`;
     const portrait = document.createElement("span");
     portrait.className = "player-portrait";
-    const catalog = getAvatars();
-    const avatar =
-      catalog.avatars.find((item) => item.id === player.avatarId) ||
-      catalog.avatars.find((item) => item.id === catalog.defaultId);
-    if (avatar) renderPortrait(portrait, avatar.previewSrc || avatar.src);
+    renderPlayerPortrait(portrait, getAvatars(), player);
     const level = document.createElement("span");
     level.className = "level";
     level.textContent = "K" + player.level;
@@ -72,11 +68,6 @@ export function createPlayersScreen({
     name.className = "name";
     name.textContent = player.name;
     identity.append(name);
-    const initials = document.createElement("span");
-    initials.className = "portrait-initials";
-    initials.textContent = initialsFor(player.name);
-    initials.setAttribute("aria-hidden", "true");
-    portrait.append(initials);
     if (query && player.accountId?.toLowerCase().includes(query)) {
       const account = document.createElement("span");
       account.className = "detail";
