@@ -125,6 +125,23 @@ export function createRuntime({
         return report;
       });
     },
+    install() {
+      return exclusive(() => {
+        const settings = config(),
+          report = execute(settings, true);
+        if (report.state === "quota-paused")
+          throw new Error(
+            "Wait for the daily budget to reset before installing sync.",
+          );
+        uninstallOwnTriggers();
+        triggers.create(HANDLER, settings.intervalMinutes);
+        return {
+          ...report,
+          installed: true,
+          intervalMinutes: settings.intervalMinutes,
+        };
+      });
+    },
     run(dryRun = false) {
       return exclusive(() => execute(config(), dryRun));
     },
