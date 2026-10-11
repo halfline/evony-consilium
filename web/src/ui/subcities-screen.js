@@ -2,10 +2,14 @@ import { createSubcityOwnerPicker } from "./subcity-owner-picker.js";
 import { createSubcityCard } from "./subcity-card.js";
 import { createSubcityBrowser } from "./subcity-browser.js";
 import { createSubcityDialog } from "./subcity-dialog.js";
-import { view, option } from "./dom.js";
+import { view } from "./dom.js";
 import { bindTileActions } from "./tile-actions.js";
-import { removeSubcity, SUBCITY_CULTURES } from "../domain/subcities.js";
+import { removeSubcity } from "../domain/subcities.js";
 import { createCollectionControls } from "./collection-controls.js";
+import {
+  subcityFilterCategory,
+  subcityTypeOptions,
+} from "./subcity-filters.js";
 
 export function createSubcitiesScreen({
   root,
@@ -35,12 +39,7 @@ export function createSubcitiesScreen({
     kind: "subcities",
   });
   const filter = view(root.closest("#planner"));
-  filter("subcities-type").replaceChildren(
-    option("", "All types"),
-    ...SUBCITY_CULTURES.map((culture) => option(culture, culture)),
-    option("historic", "Historic"),
-    option("famous", "Famous"),
-  );
+  filter("subcities-type").replaceChildren(...subcityTypeOptions());
   const types = () => getCatalog().subcityTypes || [];
   const chooser = createSubcityBrowser({ root: browser, types });
   const owners = createSubcityOwnerPicker({
@@ -103,11 +102,7 @@ export function createSubcitiesScreen({
         (player) => player.id === city.ownerId,
       );
       const type = types().find((type) => type.id === city.cityType);
-      const category = city.cityType
-        ? type?.category === "culture"
-          ? city.culture
-          : type?.category
-        : city.culture;
+      const category = subcityFilterCategory(type, city.culture);
       return (
         `${city.name} ${type?.name || ""} ${city.culture} ${city.color} ${owner?.name || ""} ${owner?.allianceTag || ""}`
           .toLowerCase()
