@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+"""Wrap prose in a commit message body to 75 columns."""
+
+import re
+import sys
+import textwrap
+from pathlib import Path
+
+
+WIDTH = 75
+TRAILER = re.compile(r"[A-Za-z][A-Za-z0-9-]*: ")
+LIST_ITEM = re.compile(r"(\s*(?:[-*+] |\d+[.)] ))")
+
+
+def wrap_body(message: str) -> str:
+    lines = message.splitlines(keepends=True)
+    if not lines:
+        return message
+
+    result = [lines[0]]  # The subject has its own length convention.
+    in_fence = False
+    for index, line in enumerate(lines[1:], start=1):
+        content = line.rstrip("\r\n")
+        newline = line[len(content) :]
+        stripped = content.lstrip()
+
+        if stripped.startswith("# ------------------------ >8 ------------------------"):
+            result.append(line)
+            result.extend(lines[index + 1 :])
+            break
+        if stripped.startswith(("```", "~~~")):
+            in_fence = not in_fence
+
+        if (
+            in_fence
+            or not stripped
+            or stripped.startswith(("#", ">"))
+            or content.startswith(("    ", "\t"))
+            or TRAILER.match(content)
+            or len(content) <= WIDTH
+        ):
+            result.append(line)
+            continue
+
+        bullet = LIST_ITEM.match(content)
+        initial_indent = re.match(r"\s*", content).group(0)
+        indent = " " * len(bullet.group(1)) if bullet else initial_indent
+        result.append(
+            textwrap.fill(
+                content.lstrip(),
+                width=WIDTH,
+                initial_indent=initial_indent,
+                subsequent_indent=indent,
+                break_long_words=False,
+                break_on_hyphens=False,
+            )
+            + newline
+        )
+
+    return "".join(result)
+
+
+def main() -> None:
+    path = Path(sys.argv[1])
+    with path.open("r", encoding="utf-8", newline="") as file:
+        original = file.read()
+    wrapped = wrap_body(original)
+    if wrapped != original:
+        with path.open("w", encoding="utf-8", newline="") as file:
+            file.write(wrapped)
+
+
+if __name__ == "__main__":
+    main()
