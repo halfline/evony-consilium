@@ -5,7 +5,13 @@ import {
   validatePlayerSource,
 } from "../web/src/domain/player-document.js";
 import { applyProfileCaches } from "../web/src/domain/team-collaboration.js";
-import { fileId } from "../web/src/domain/note-document.js";
+import {
+  applyNoteCaches,
+  fileId,
+  noteMatchesPlayer,
+  readNoteDocument,
+  validateTeamNotes,
+} from "../web/src/domain/note-document.js";
 import { MAX_ENTITIES } from "../web/src/domain/entities.js";
 
 const revision = (value) => {
@@ -43,6 +49,7 @@ function teamPlan(loaded, config) {
       revision(player.playerSource.version);
     }
   }
+  validateTeamNotes(plan.teamNotes);
   return plan;
 }
 
@@ -79,8 +86,8 @@ export function validateConfig(input) {
   return config;
 }
 
-// Read only explicitly linked profiles. Folder listing supplies inexpensive
-// revision checks, never automatic roster membership.
+// Read only explicitly linked profiles and already-published notes. Folder
+// listing supplies inexpensive revision checks, never automatic attachment.
 export function syncTeam({
   drive,
   config: input,
@@ -96,6 +103,7 @@ export function syncTeam({
     dryRun,
     inspected: 0,
     players: 0,
+    notes: 0,
     written: false,
     deferred: false,
     warnings: [],
@@ -114,14 +122,22 @@ export function syncTeam({
   const children = new Map(
     drive.children(folder).map((file) => [file.id, file]),
   );
-  const sources = plan.keeps
-    .filter((player) => player.playerSource)
-    .map((player) => ({
-      kind: "player",
-      id: player.playerSource.fileId,
-      player,
-    }));
-  const players = [];
+  const sources = [
+    ...plan.keeps
+      .filter((player) => player.playerSource)
+      .map((player) => ({
+        kind: "player",
+        id: player.playerSource.fileId,
+        player,
+      })),
+    ...(plan.teamNotes || []).map((note) => ({
+      kind: "note",
+      id: note.id,
+      record: note,
+    })),
+  ];
+  const players = [],
+    notes = [];
   const start =
     Number.isSafeInteger(cursor) && cursor >= 0 && sources.length
       ? cursor % sources.length
@@ -139,7 +155,10 @@ export function syncTeam({
     }
     const source = sources[(start + i) % sources.length],
       file = children.get(source.id),
-      cached = source.player.playerSource;
+      cached =
+        source.kind === "player"
+          ? source.player.playerSource
+          : source.record.noteCache;
     report.inspected++;
     if (!file || !inside(file, config.folderId)) {
       warn(
@@ -154,7 +173,12 @@ export function syncTeam({
       if (BigInt(file.version) <= BigInt(cached.version)) continue;
       const resource = {
         id: file.id,
-        resourceKey: file.resourceKey || cached.resourceKey || "",
+        resourceKey:
+          file.resourceKey ||
+          (source.kind === "player"
+            ? cached.resourceKey
+            : source.record.resourceKey) ||
+          "",
       };
       const current = drive.load(resource);
       revision(current.file.version);
@@ -167,16 +191,36 @@ export function syncTeam({
         );
       if (BigInt(current.file.version) <= BigInt(cached.version)) continue;
       const syncedAt = new Date(now()).toISOString();
-      const profile = readPlayerDocument(current.document),
-        player = applyPlayerProfile(source.player, profile);
-      player.playerSource = {
-        fileId: file.id,
-        resourceKey: resource.resourceKey,
-        version: current.file.version,
-        baseline: profile,
-        syncedAt,
-      };
-      players.push(player);
+      if (source.kind === "player") {
+        const profile = readPlayerDocument(current.document),
+          player = applyPlayerProfile(source.player, profile);
+        player.playerSource = {
+          fileId: file.id,
+          resourceKey: resource.resourceKey,
+          version: current.file.version,
+          baseline: profile,
+          syncedAt,
+        };
+        players.push(player);
+      } else {
+        const note = readNoteDocument(current.document),
+          player = plan.keeps.find((row) => row.id === source.record.playerId);
+        if (
+          !player ||
+          note.scope !== "team" ||
+          note.teamFileId !== team.id ||
+          note.id !== cached.note.id ||
+          !noteMatchesPlayer(note.subject, player, team.id)
+        )
+          throw new Error(
+            "Note identity, player, or team audience changed; cached copy retained.",
+          );
+        notes.push({
+          ...source.record,
+          resourceKey: resource.resourceKey,
+          noteCache: { note, version: current.file.version, syncedAt },
+        });
+      }
     } catch (error) {
       // Authorization and quota failures abort the pass rather than probing
       // every remaining source with the same unusable credentials.
@@ -204,14 +248,27 @@ export function syncTeam({
     ? (start + report.inspected) % sources.length
     : 0;
   report.deferred ||= report.inspected < sources.length;
-  // Each retry starts from the latest shared document. Removed players
-  // and changed source links are never restored by collected cache updates.
+  // Each retry starts from the latest shared document. Removed attachments
+  // and changed player links are never restored by collected cache updates.
   for (let attempt = 0; attempt < 3; attempt++) {
-    const next = applyProfileCaches(plan, players);
+    const eligibleNotes = notes.filter((update) => {
+      const existing = plan.teamNotes?.find((row) => row.id === update.id);
+      return (
+        existing?.playerId === update.playerId &&
+        existing.noteCache.note.id === update.noteCache.note.id
+      );
+    });
+    const next = applyNoteCaches(
+      applyProfileCaches(plan, players),
+      eligibleNotes,
+    );
     report.players = next.keeps.filter(
       (player, i) => JSON.stringify(player) !== JSON.stringify(plan.keeps[i]),
     ).length;
-    if (!report.players) return report;
+    report.notes = (next.teamNotes || []).filter(
+      (note, i) => JSON.stringify(note) !== JSON.stringify(plan.teamNotes[i]),
+    ).length;
+    if (!report.players && !report.notes) return report;
     if (dryRun) return report;
     if (now() >= deadline) {
       report.deferred = true;
