@@ -1,6 +1,6 @@
 import { renderSubcityArt } from "./subcity-browser.js";
 import { SUBCITY_COLORS } from "../domain/subcities.js";
-import { labelWithIcon } from "./icons.js";
+import { createRemoveButton } from "./remove-button.js";
 
 // Shared presentation for the team registry, player ownership, and assignment picker.
 export function createSubcityCard({
@@ -53,13 +53,11 @@ export function createSubcityCard({
   button.onclick = open;
   tile.append(button);
   if (remove) {
-    const action = document.createElement("button");
-    action.type = "button";
-    action.className = "player-remove subcity-remove";
-    labelWithIcon(action, "close");
-    action.title = removeLabel || `Remove ${customName || cityName} subcity`;
-    action.setAttribute("aria-label", action.title);
-    action.onclick = remove;
+    const action = createRemoveButton({
+      className: "player-remove subcity-remove",
+      label: removeLabel || `Remove ${customName || cityName} subcity`,
+      remove,
+    });
     tile.append(action);
   }
   return tile;
