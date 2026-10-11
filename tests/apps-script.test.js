@@ -757,3 +757,45 @@ test("script locks and daily budgets skip work and resume after 24 hours", () =>
   assert.match(f.runtime.run().skipped, /Another sync/);
   assert.equal(f.locked(), false);
 });
+
+test("the generated bundle runs in Apps Script's globals without browser, Node, or structuredClone APIs", async () => {
+  const f = environment();
+  const context = createContext({
+    console: { log: f.services.log },
+    consiliumConfig_: () => config,
+    PropertiesService: { getScriptProperties: () => f.properties },
+    LockService: { getScriptLock: () => f.lock },
+    UrlFetchApp: { fetch: f.fetch },
+    Utilities: { getUuid: () => "uuid" },
+    ScriptApp: {
+      getOAuthToken: () => "token",
+      getProjectTriggers: f.triggers.list,
+      deleteTrigger: f.triggers.remove,
+      newTrigger: (handler) => ({
+        timeBased() {
+          return this;
+        },
+        everyMinutes(minutes) {
+          this.minutes = minutes;
+          return this;
+        },
+        create() {
+          f.triggers.create(handler, this.minutes);
+        },
+      }),
+    },
+  });
+  runInContext(await appsScriptBundle(), context);
+  runInContext(
+    "configureConsiliumSync(); installConsiliumSync(); syncConsiliumTeam();",
+    context,
+  );
+  assert.equal(f.writes.length, 1);
+  assert.equal(f.writes[0].plan.keeps[1].name, "Updated alt");
+  assert.equal(
+    f.writes[0].plan.teamNotes[0].noteCache.note.body,
+    "Updated alt note",
+  );
+  runInContext("uninstallConsiliumSync()", context);
+  assert.equal(f.scheduled.length, 0);
+});
