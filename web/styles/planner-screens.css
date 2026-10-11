@@ -1623,6 +1623,9 @@
   flex-wrap: wrap;
   gap: 16px;
 }
+#entity-form .player-appearance[hidden] {
+  display: none;
+}
 #entity-form .entity-fields label:first-child {
   flex: 1 0 100%;
 }

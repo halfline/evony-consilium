@@ -103,6 +103,7 @@ export function createPlacementInspector({
       $("entity-" + key).value = entity[key] ?? "";
     $("entity-locked").checked = entity.locked;
     $("choose-building-skin").hidden = obstacle || keep;
+    $("choose-building-skin").parentElement.hidden = obstacle || keep;
     $("entity-w").closest("label").hidden = !obstacle;
     $("entity-h").closest("label").hidden = !obstacle;
     $("entity-w").readOnly = !obstacle || !canEdit();
