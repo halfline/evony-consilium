@@ -176,8 +176,10 @@ export function createPlayerScreen({
       !button ||
       button.type === "submit" ||
       button.hasAttribute("data-player-tab") ||
+      button.hasAttribute("data-march-tab") ||
       button.hasAttribute("data-buff-context") ||
       button.id === "player-march-back" ||
+      button.id === "player-reinforcement-back" ||
       button.id === "player-discard-draft" ||
       teamAction(event)
     )
