@@ -446,3 +446,197 @@ test("configuration and team folder boundaries fail before any upload", () => {
     assert.deepEqual(f.writes, []);
   }
 });
+
+function transport(f) {
+  const calls = [];
+  const fetch = (url, options) => {
+    calls.push({ url, options });
+    const parsed = new URL(url),
+      id = parsed.pathname.split("/").at(-1);
+    const response = (value, status = 200) => ({
+      getResponseCode: () => status,
+      getContentText: () => JSON.stringify(value),
+    });
+    if (id === "folder")
+      return response({ id, mimeType: "application/vnd.google-apps.folder" });
+    if (id === "files")
+      return response({ files: [...f.files.values()].map((row) => row.file) });
+    const row = f.files.get(id);
+    if (!row) return response({ error: { message: "Missing" } }, 404);
+    if (options.method === "put") {
+      if (options.headers["If-Match"] !== row.file.etag)
+        return response({ error: { message: "Race" } }, 412);
+      const blocks = options.payload
+        .split("\r\n")
+        .filter((line) => line.startsWith("{"))
+        .map(JSON.parse);
+      row.document = blocks[1];
+      row.file.version = String(BigInt(row.file.version) + 1n);
+      row.file.etag = `"${id}-${row.file.version}"`;
+      f.writes.push(structuredClone(row.document));
+      return response({ id, version: row.file.version });
+    }
+    if (parsed.searchParams.get("alt") === "media")
+      return response(row.document);
+    if (parsed.pathname.includes("/v2/"))
+      return response({
+        ...row.file,
+        title: row.file.name,
+        parents: row.file.parents.map((id) => ({ id })),
+      });
+    return response(row.file);
+  };
+  return { fetch, calls };
+}
+
+test("Apps Script transport pairs stable content/revisions and refuses weak or absent write preconditions", () => {
+  const f = fixture(),
+    t = transport(f),
+    drive = new ScriptDrive({
+      fetch: t.fetch,
+      token: () => "token",
+      uuid: () => "boundary",
+    });
+  const loaded = drive.load({ id: "team", resourceKey: "team-key" });
+  drive.save(loaded.file, loaded.document);
+  const upload = t.calls.find((call) => call.options.method === "put");
+  assert.equal(upload.options.headers["If-Match"], '"team-1"');
+  assert.equal(upload.options.headers.Authorization, "Bearer token");
+  assert.equal(upload.options.followRedirects, false);
+  assert.equal(
+    upload.options.headers["X-Goog-Drive-Resource-Keys"],
+    "team/team-key",
+  );
+  assert.match(upload.url, /upload\/drive\/v2/);
+  for (const etag of [undefined, 'W/"weak"', "guess", '"bad\r\nheader"']) {
+    const g = fixture(),
+      tr = transport(g);
+    g.files.get("team").file.etag = etag;
+    const d = new ScriptDrive({
+      fetch: tr.fetch,
+      token: () => "token",
+      uuid: () => "boundary",
+    });
+    assert.throws(
+      () => d.save(g.files.get("team").file, g.files.get("team").document),
+      /strong ETag/,
+    );
+    assert.equal(
+      tr.calls.some((call) => call.options.method === "put"),
+      false,
+    );
+  }
+});
+
+test("folder pagination includes Shared drives and rejects incomplete listings", () => {
+  const calls = [];
+  const drive = new ScriptDrive({
+    token: () => "token",
+    uuid: () => "uuid",
+    fetch: (url, options) => {
+      calls.push({ url, options });
+      return {
+        getResponseCode: () => 200,
+        getContentText: () =>
+          JSON.stringify({
+            files: [{ id: String(calls.length) }],
+            ...(calls.length === 1 ? { nextPageToken: "page two" } : {}),
+          }),
+      };
+    },
+  });
+  assert.deepEqual(
+    drive
+      .children({ id: "folder", resourceKey: "folder-key" })
+      .map((file) => file.id),
+    ["1", "2"],
+  );
+  const url = new URL(calls[1].url);
+  assert.equal(url.searchParams.get("pageToken"), "page two");
+  assert.equal(url.searchParams.get("includeItemsFromAllDrives"), "true");
+  assert.equal(
+    calls[0].options.headers["X-Goog-Drive-Resource-Keys"],
+    "folder/folder-key",
+  );
+  drive.fetch = () => ({
+    getResponseCode: () => 200,
+    getContentText: () => '{"files":[],"incompleteSearch":true}',
+  });
+  assert.throws(() => drive.children({ id: "folder" }), /completely list/);
+});
+
+test("unstable source reads retry the entire content and metadata pair", () => {
+  let reads = 0,
+    downloads = 0;
+  const drive = new ScriptDrive({
+    token: () => "token",
+    uuid: () => "uuid",
+    fetch: (url) => ({
+      getResponseCode: () => 200,
+      getContentText: () =>
+        JSON.stringify(
+          url.includes("alt=media")
+            ? { snapshot: ++downloads === 1 ? "settling" : "stable" }
+            : {
+                id: "source",
+                version: ++reads === 1 ? "1" : "2",
+                etag: `"${reads === 1 ? "1" : "2"}"`,
+                parents: [{ id: "folder" }],
+              },
+        ),
+    }),
+  });
+  const loaded = drive.load({ id: "source", resourceKey: "source-key" });
+  assert.equal(downloads, 2);
+  assert.equal(loaded.document.snapshot, "stable");
+  assert.equal(loaded.file.version, "2");
+  assert.equal(loaded.file.resourceKey, "source-key");
+  assert.deepEqual(loaded.file.parents, ["folder"]);
+  drive.fetch = () => ({
+    getResponseCode: () => 200,
+    getContentText: () =>
+      JSON.stringify({
+        id: "source",
+        version: String(++reads),
+        etag: `"${reads}"`,
+      }),
+  });
+  assert.throws(() => drive.load({ id: "source" }), { status: 409 });
+});
+
+test("transport failures never echo malformed document text, tokens, or Google response bodies", () => {
+  const drive = new ScriptDrive({
+    token: () => "secret-token",
+    uuid: () => "uuid",
+    fetch: () => ({
+      getResponseCode: () => 200,
+      getContentText: () => "Private note text that is invalid JSON",
+    }),
+  });
+  assert.throws(() => drive.metadata({ id: "source" }), {
+    message: "Google Drive returned invalid JSON.",
+  });
+  drive.fetch = () => ({
+    getResponseCode: () => 403,
+    getContentText: () =>
+      JSON.stringify({
+        error: {
+          message: "Private content secret-token",
+          errors: [{ reason: "insufficientFilePermissions" }],
+        },
+      }),
+  });
+  assert.throws(() => drive.metadata({ id: "source" }), {
+    message: "Google Drive request failed (403).",
+    reason: "insufficientFilePermissions",
+  });
+  drive.fetch = () => {
+    throw new Error("Fetch failed with payload secret-token Private content");
+  };
+  assert.throws(
+    () => drive.metadata({ id: "source" }),
+    (error) =>
+      error.status === 503 &&
+      !/secret-token|Private content/.test(error.message),
+  );
+});
