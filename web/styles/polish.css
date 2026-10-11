@@ -790,6 +790,24 @@ h2 {
   background: radial-gradient(ellipse, #36534050, transparent 65%);
   border-radius: var(--radius-panel);
 }
+#player-screen [data-player-panel="overview"] {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 24px;
+  align-items: center;
+}
+#player-main {
+  grid-column: 1 / -1;
+}
+#player-screen .player-appearance {
+  margin: 0;
+  padding: 24px 0;
+  min-height: 220px;
+}
+#player-screen .castle-choice {
+  width: 200px;
+  height: 200px;
+}
 .player-footer {
   margin-top: 28px;
   padding-top: 20px;
@@ -1707,7 +1725,17 @@ dialog form > label {
     padding: 28px 18px;
   }
   .project-settings {
+  #player-screen [data-player-panel="overview"] {
+    grid-template-columns: 1fr;
     gap: 16px;
+  }
+  #player-screen .player-appearance {
+    min-height: 0;
+    padding: 0;
+  }
+  #player-screen .castle-choice {
+    width: 160px;
+    height: 160px;
   }
   .team-stat {
     padding: 16px 8px;
