@@ -151,5 +151,18 @@ export function createRuntime({
         return { installed: false };
       });
     },
+    status() {
+      const report = JSON.parse(properties.getProperty(REPORT) || "null");
+      const result = {
+        installed: triggers
+          .list()
+          .some((trigger) => trigger.getHandlerFunction() === HANDLER),
+        config: properties.getProperty(CONFIG) ? config() : null,
+        lastRun: report,
+        usage: JSON.parse(properties.getProperty(USAGE) || "null"),
+      };
+      log(JSON.stringify(result));
+      return result;
+    },
   };
 }
