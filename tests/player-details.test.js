@@ -45,6 +45,45 @@ test("base counts apply to every lower tier and overlapping explicit layers are 
     /overlap/,
   );
 });
+test("manual reinforcement marches persist separately from generated attack marches", () => {
+  const plan = createDemoPlan(catalog);
+  const id = plan.keeps[0].id;
+  const reinforcementMarches = [
+    {
+      id: "rein-ground",
+      name: "Building ground",
+      capacityOverride: 2000000,
+      layers: [
+        { tier: 15, ground: 1200000 },
+        { tier: 1, siege: 10000 },
+      ],
+    },
+  ];
+  const next = editPlayerDetails(plan, id, { reinforcementMarches });
+  assert.deepEqual(
+    next.keeps[0].details.reinforcementMarches,
+    reinforcementMarches,
+  );
+  assert.equal(next.keeps[0].details.marches, undefined);
+  assert.throws(
+    () =>
+      validatePlayerDetails({
+        reinforcementMarches: [
+          { ...reinforcementMarches[0], capacityOverride: -1 },
+        ],
+      }),
+    /march capacity/,
+  );
+  assert.throws(
+    () =>
+      validatePlayerDetails({
+        reinforcementMarches: [
+          { ...reinforcementMarches[0], generation: { manual: false } },
+        ],
+      }),
+    /manually/,
+  );
+});
 test("invalid counts, repeated tiers, and incomplete subcity coordinates cannot enter shared data", () => {
   for (const details of [
     { troops: [{ tier: 1, ground: 1.5 }] },
