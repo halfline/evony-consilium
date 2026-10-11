@@ -190,6 +190,8 @@ export async function autosave({ browser, base = "http://127.0.0.1:4174" }) {
     await page.locator("#player-save").click();
     await page.waitForFunction(
       () =>
+        document.getElementById("player-save-status").textContent ===
+          "Player · Saved" &&
         document.getElementById("player-save").disabled &&
         document.getElementById("player-screen").getAttribute("aria-busy") ===
           "false",
