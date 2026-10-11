@@ -49,10 +49,7 @@ export async function playerNotes({ browser, base = "http://127.0.0.1:4174" }) {
       .locator("#note-body")
       .fill("Only my draft\n\n<script>literal text, not HTML</script>");
     await a.locator("#note-save").click();
-    await a.locator("#note-create-options").waitFor({ state: "hidden" });
-    await a.waitForFunction(() =>
-      document.getElementById("note-save-status").textContent.includes("Saved"),
-    );
+    await a.locator("#note-dialog").waitFor({ state: "hidden" });
     const personal = [...files.values()].find(
       (row) => row.data?.format === "evony-consilium-note",
     );
@@ -68,6 +65,7 @@ export async function playerNotes({ browser, base = "http://127.0.0.1:4174" }) {
       await a.locator("#player-save-status").getAttribute("data-status"),
       "saved",
     );
+    await a.locator(`[data-note-id="${personal.file.id}"]`).click();
     await a.locator("#note-body").fill("Durable note draft");
     await a.locator("#note-close").click();
     await a.reload();
@@ -83,10 +81,9 @@ export async function playerNotes({ browser, base = "http://127.0.0.1:4174" }) {
       () => document.getElementById("note-body").value === "Durable note draft",
     );
     await a.locator("#note-save").click();
-    await a.waitForFunction(() =>
-      document.getElementById("note-save-status").textContent.includes("Saved"),
-    );
+    await a.locator("#note-dialog").waitFor({ state: "hidden" });
     assert.equal(personal.data.note.body, "Durable note draft");
+    await a.locator(`[data-note-id="${personal.file.id}"]`).click();
     await a.locator("#note-sharing summary").click();
     await a.locator("#note-email").fill("bob@example.test");
     await a.locator("#note-share").click();
@@ -137,15 +134,17 @@ export async function playerNotes({ browser, base = "http://127.0.0.1:4174" }) {
     await m.locator("#note-body").fill("Pending contribution");
     await m.locator("#note-save").click();
     await m.waitForFunction(() =>
-      document
-        .getElementById("note-save-status")
-        .textContent.includes("awaiting editor publication"),
+      [...document.querySelectorAll("[data-note-id]")].some((card) =>
+        card.textContent.includes("Team growth plan"),
+      ),
     );
+    await m.locator("#note-dialog").waitFor({ state: "hidden" });
     const contribution = [...files.values()].find(
       (row) => row.data?.note?.title === "Team growth plan",
     );
     assert.equal(contribution.file.parents[0], team.file.parents[0]);
     assert.equal(team.data.plan.teamNotes, undefined);
+    await m.locator(`[data-note-id="${contribution.file.id}"]`).click();
     await m.locator("#note-copy-link").click();
     const editorLink = await m.locator("#note-link-result").inputValue();
     assert.equal(
@@ -187,17 +186,12 @@ export async function playerNotes({ browser, base = "http://127.0.0.1:4174" }) {
     await m.locator(`[data-note-id="${contribution.file.id}"]`).click();
     await m.locator("#note-body").fill("Author updated this later");
     await m.locator("#note-save").click();
-    await m.waitForFunction(() =>
-      document
-        .getElementById("note-save-status")
-        .textContent.startsWith("Saved"),
-    );
+    await m.locator("#note-dialog").waitFor({ state: "hidden" });
     assert.equal(contribution.data.note.body, "Author updated this later");
     assert.equal(
       team.data.plan.teamNotes[0].noteCache.note.body,
       "Pending contribution",
     );
-    await m.locator("#note-close").click();
     await a.evaluate(() => window.__notesTick());
     assert.equal(
       team.data.plan.teamNotes[0].noteCache.note.body,
@@ -247,7 +241,7 @@ export async function playerNotes({ browser, base = "http://127.0.0.1:4174" }) {
     await a.locator("#note-new").click();
     await a.locator("#note-body").fill("Notes belong to the alt itself");
     await a.locator("#note-save").click();
-    await a.locator("#note-create-options").waitFor({ state: "hidden" });
+    await a.locator("#note-dialog").waitFor({ state: "hidden" });
     const altNote = [...files.values()].find(
       (row) => row.data?.note?.body === "Notes belong to the alt itself",
     );

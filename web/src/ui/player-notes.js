@@ -174,7 +174,7 @@ export function createPlayerNotes({
     if (!existing) $("note-sharing").open = audience === "people";
     $("note-save-status").hidden = !$("note-save-status").textContent;
   }
-  async function run(task, { picker = false } = {}) {
+  async function run(task, { picker = false, closeOnSuccess = false } = {}) {
     if (busy) return;
     const activeContext = context(),
       reopen = dialog.open;
@@ -183,8 +183,10 @@ export function createPlayerNotes({
     $("note-message").textContent = "";
     paintEditor();
     if (picker && reopen) dialog.close();
+    let saved = false;
     try {
       await task();
+      saved = closeOnSuccess && !!editor && !row()?.draft;
     } catch (error) {
       if (activeContext !== context() || error instanceof OperationCancelled)
         return;
@@ -193,9 +195,12 @@ export function createPlayerNotes({
     } finally {
       busy = false;
       if (activeContext === context()) {
-        if (picker && reopen && editor && !dialog.open) dialog.showModal();
+        if (picker && reopen && editor && !dialog.open && !saved)
+          dialog.showModal();
         paintEditor();
         render();
+        if (saved && dialog.open) dialog.close();
+        if (saved) clearEditor();
       } else {
         if (dialog.open) dialog.close();
         clearEditor();
@@ -292,6 +297,7 @@ export function createPlayerNotes({
     event.preventDefault();
     run(() => save(), {
       picker: !editor?.id && $("note-audience").value === "team",
+      closeOnSuccess: true,
     });
   };
   $("note-keep-mine").onclick = () => run(() => save("local"));
