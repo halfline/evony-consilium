@@ -58,6 +58,14 @@ export async function signInFeedback({
       await page.locator("#entry-progress").waitFor({ state: "hidden" });
       assert.equal(await page.locator("#entry-error").isVisible(), false);
     }
+    await nextResponse({ type: "unknown" });
+    await page.locator("#google-login").click();
+    await page
+      .locator("#entry-error")
+      .filter({ hasText: /couldn’t complete/ })
+      .waitFor();
+    assert.equal(await page.locator('[role="alert"]:visible').count(), 1);
+
     await nextResponse({
       access_token: "test-token",
       expires_in: 3600,

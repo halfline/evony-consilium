@@ -51,7 +51,7 @@ export class GoogleSession {
               : new Error(
                   error?.type === "popup_failed_to_open"
                     ? "Google sign-in couldn’t open. Allow pop-ups for this site, then try again."
-                    : "Google sign-in was closed or blocked. Try again.",
+                    : "Google sign-in couldn’t complete. Try again.",
                 ),
           ),
         callback: (response) => {
