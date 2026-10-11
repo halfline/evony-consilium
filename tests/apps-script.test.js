@@ -736,3 +736,24 @@ test("installation, configuration, preview, status, and removal manage only the 
     /Updated alt note|Updated main|Bearer|token/,
   );
 });
+
+test("script locks and daily budgets skip work and resume after 24 hours", () => {
+  const f = environment();
+  f.runtime.configure(config);
+  f.state.set(
+    "CONSILIUM_DAILY_USAGE",
+    JSON.stringify({
+      windowStartedAt: Date.parse(stamp),
+      calls: 15000,
+      milliseconds: 1000,
+    }),
+  );
+  const requests = f.calls.length;
+  assert.equal(f.runtime.run().state, "quota-paused");
+  assert.equal(f.calls.length, requests);
+  f.nextDay();
+  assert.equal(f.runtime.run().written, true);
+  f.block();
+  assert.match(f.runtime.run().skipped, /Another sync/);
+  assert.equal(f.locked(), false);
+});
