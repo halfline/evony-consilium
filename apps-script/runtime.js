@@ -106,7 +106,25 @@ export function createRuntime({
       properties.setProperty(USAGE, JSON.stringify(usage));
     }
   }
+  function uninstallOwnTriggers() {
+    for (const trigger of triggers.list())
+      if (trigger.getHandlerFunction() === HANDLER) triggers.remove(trigger);
+  }
   return {
+    configure(input) {
+      return exclusive(() => {
+        const settings = validateConfig(input),
+          report = execute(settings, true, true);
+        if (report.state === "quota-paused")
+          throw new Error(
+            "Wait for the daily budget to reset before configuring sync.",
+          );
+        uninstallOwnTriggers();
+        properties.setProperty(CONFIG, JSON.stringify(settings));
+        properties.deleteProperty(CURSOR);
+        return report;
+      });
+    },
     run(dryRun = false) {
       return exclusive(() => execute(config(), dryRun));
     },
