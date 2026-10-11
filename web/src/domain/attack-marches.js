@@ -17,6 +17,13 @@ export function validateMarches(marches) {
     if (march.troopType !== undefined && !TROOP_TYPES.includes(march.troopType))
       throw new Error("Choose a march troop type.");
     if (!march.name.trim()) throw new Error("Enter a march name.");
+    if (march.capacityOverride != null)
+      number(
+        march.capacityOverride,
+        0,
+        Number.MAX_SAFE_INTEGER,
+        "march capacity",
+      );
     validateGeneration(march);
     if (march.layers !== undefined) validateTroops(march.layers);
     if (march.baseThrough != null)
