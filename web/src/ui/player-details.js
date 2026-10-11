@@ -156,7 +156,10 @@ export function createPlayerDetails({ root }) {
     snapshot: () => read({ sync: false }),
     reveal: (input) => buffs.reveal(input),
     render,
-    closeEditors: () => marches.close(),
+    closeEditors: () => {
+      marches.close();
+      reinforcements.close();
+    },
     reset: () => {
       signature = null;
     },
