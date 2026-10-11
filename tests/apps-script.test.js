@@ -799,3 +799,34 @@ test("the generated bundle runs in Apps Script's globals without browser, Node, 
   runInContext("uninstallConsiliumSync()", context);
   assert.equal(f.scheduled.length, 0);
 });
+
+test("rebuilding deployable files preserves local configuration and includes explicit permission scopes", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "consilium-script-"));
+  try {
+    await buildAppsScript(dir);
+    await writeFile(join(dir, "Config.gs"), "// My team's configuration\n");
+    await buildAppsScript(dir);
+    assert.equal(
+      await readFile(join(dir, "Config.gs"), "utf8"),
+      "// My team's configuration\n",
+    );
+    const manifest = JSON.parse(
+      await readFile(join(dir, "appsscript.json"), "utf8"),
+    );
+    assert.equal(manifest.runtimeVersion, "V8");
+    assert.deepEqual(manifest.dependencies.enabledAdvancedServices, [
+      { userSymbol: "Drive", serviceId: "drive", version: "v3" },
+    ]);
+    assert.deepEqual(manifest.oauthScopes, [
+      "https://www.googleapis.com/auth/drive",
+      "https://www.googleapis.com/auth/script.external_request",
+      "https://www.googleapis.com/auth/script.scriptapp",
+    ]);
+    assert.doesNotMatch(
+      await readFile(join(dir, "Code.gs"), "utf8"),
+      /^import |^export /m,
+    );
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
