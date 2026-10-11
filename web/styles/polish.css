@@ -30,6 +30,9 @@ button:active:not(:disabled) {
 input,
 select {
   min-height: 42px;
+  /* Ordinary forms read from the label's left edge. Numeric comparisons below
+     use a separate rule; numeric IDs and single values remain form entries. */
+  text-align: left;
 }
 input::placeholder {
   color: #a1b09f;
@@ -43,6 +46,9 @@ input[type="search"]:not(.tab-search input) {
   padding-left: 38px;
 }
 input[type="number"] {
+  font-variant-numeric: tabular-nums;
+}
+input[inputmode="numeric"] {
   font-variant-numeric: tabular-nums;
 }
 input[aria-invalid="true"] {
@@ -948,6 +954,10 @@ h2 {
   font-size: 13px;
   font-weight: 600;
   padding: 12px 10px;
+}
+.player-data-table thead th:not(:first-child),
+#player-buffs .player-data-table thead th:not(:first-child) {
+  text-align: right;
 }
 .player-data-table thead {
   background: var(--panel-raised);
