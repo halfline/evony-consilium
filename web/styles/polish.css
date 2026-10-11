@@ -1791,7 +1791,7 @@ dialog form > label {
     height: 118px;
   }
   .player-identity {
-    min-height: 80px;
+    min-height: 60px;
   }
   :is(#players, #alts) .player-identity .name {
     font-size: 14px;
