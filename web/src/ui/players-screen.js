@@ -3,7 +3,7 @@ import { view } from "./dom.js";
 import { bindTileActions } from "./tile-actions.js";
 import { createCollectionControls } from "./collection-controls.js";
 import { paintStatusBadge } from "./status-badge.js";
-import { matchesPlayerSearch } from "./player-search.js";
+import { matchesPlayerSearch, comparePlayerSearch } from "./player-search.js";
 import { createRemoveButton } from "./remove-button.js";
 
 export function createPlayersScreen({
@@ -132,6 +132,15 @@ export function createPlayersScreen({
         matchesPlayerSearch(player, query, owner?.name)
       );
     });
+    players.sort((a, b) =>
+      comparePlayerSearch(
+        a,
+        b,
+        query,
+        getPlan().keeps.find((player) => player.id === a.ownerId)?.name,
+        getPlan().keeps.find((player) => player.id === b.ownerId)?.name,
+      ),
+    );
     if (alts) {
       addButton.disabled = !hasOwner;
       $("alts-empty").hidden = hasOwner;
