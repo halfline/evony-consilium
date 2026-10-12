@@ -43,6 +43,20 @@ export async function autosave({ browser, base = "http://127.0.0.1:4174" }) {
     const sources = team.data.plan.keeps.map((player) =>
       files.get(player.playerSource.fileId),
     );
+    await page.locator('[data-screen="players"]').click();
+    await page.evaluate(() => {
+      window.__hoveredPlayer = document.querySelector("#players .player-card");
+    });
+    await tick();
+    assert.equal(
+      await page.evaluate(
+        () =>
+          window.__hoveredPlayer ===
+          document.querySelector("#players .player-card"),
+      ),
+      true,
+      "An unchanged background refresh should preserve player cards",
+    );
     const open = async (index) => {
       await page.locator('[data-screen="players"]').click();
       await page.locator("#players .player-card").nth(index).click();
