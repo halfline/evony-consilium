@@ -171,7 +171,11 @@ export async function subcityOwnership({ browser }) {
     await page.locator('[data-screen="subcities"]').click();
     assert.equal(await page.locator("#subcities .subcity-card").count(), 2);
     assert.match(
-      await page.locator("#subcities .subcity-card").first().textContent(),
+      await page
+        .locator("#subcities .subcity-card")
+        .filter({ hasText: "Unowned" })
+        .first()
+        .textContent(),
       /Unowned/,
     );
     await openPlayer(0);
