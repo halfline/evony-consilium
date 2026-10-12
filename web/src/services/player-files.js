@@ -88,7 +88,7 @@ export class PlayerFiles {
       throw new Error("Player file is unavailable.");
     return linkedPlayer(player, entry.profile, entry.file);
   }
-  async run(id, task) {
+  async run(id, task, { notifyBusy = true } = {}) {
     const generation = this.generation;
     while (this.pending.has(id)) {
       await this.pending.get(id);
@@ -104,7 +104,7 @@ export class PlayerFiles {
     };
     this.operations.set(id, (this.operations.get(id) || 0) + 1);
     this.busy.add(id);
-    this.changed();
+    if (notifyBusy) this.changed();
     try {
       return await task(current);
     } catch (error) {
@@ -116,7 +116,7 @@ export class PlayerFiles {
       if (this.pending.get(id) === pending) this.pending.delete(id);
       if (generation === this.generation) {
         this.busy.delete(id);
-        this.changed();
+        if (notifyBusy) this.changed();
       }
     }
   }
