@@ -1765,6 +1765,9 @@
   width: max-content;
   background: var(--panel);
 }
+.player-alt-menu:not([open]) > button {
+  display: none;
+}
 #assign-alt-dialog {
   width: min(560px, calc(100vw - 32px));
 }
