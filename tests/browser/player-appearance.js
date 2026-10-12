@@ -21,6 +21,10 @@ export async function playerAppearance({
   });
   assert.equal(await page.locator("#players .player-card").count(), 12);
   await playersScreen();
+  const chosenPlayerId = await page
+    .locator("#players .player-card")
+    .first()
+    .getAttribute("data-entity");
   await page.locator("#players .player-card").first().click();
   await page.locator("#player-unlock").click();
   await page.waitForFunction(
@@ -212,7 +216,7 @@ export async function playerAppearance({
   await page.locator("#google-login").click();
   await page.locator("#planner").waitFor({ state: "visible" });
   await playersScreen();
-  await page.locator("#players .player-card").first().click();
+  await page.locator(`#players [data-entity="${chosenPlayerId}"]`).click();
   assert.equal(
     await page.locator("#player-account").inputValue(),
     "001234567890123456789",
