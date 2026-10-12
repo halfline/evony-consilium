@@ -23,11 +23,11 @@ export function renderPortrait(root, src, { lazy = false } = {}) {
   root.replaceChildren(content);
 }
 
-// Roster identities use a monogram until a player chooses a distinct portrait.
+// Roster identities use a monogram until a player has an assigned portrait.
 // The same name keeps its color in every collection and dashboard preview.
 export function renderPlayerPortrait(root, catalog, player) {
   const avatar = catalog.avatars.find((item) => item.id === player.avatarId);
-  const custom = avatar && avatar.id !== catalog.defaultId;
+  const custom = Boolean(avatar);
   root.classList.toggle("monogram-portrait", !custom);
   if (custom) {
     root.style.removeProperty("--identity-hue");
