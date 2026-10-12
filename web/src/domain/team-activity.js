@@ -1,7 +1,16 @@
 import { teamFingerprint } from "./team-collaboration.js";
+import { profileFingerprint } from "./player-document.js";
 
 const byId = (items = []) => new Map(items.map((item) => [item.id, item]));
 const changed = (a, b) => JSON.stringify(a) !== JSON.stringify(b);
+const playerContent = (player) => {
+  const { playerSource, ...content } = player;
+  return playerSource
+    ? { ...content, playerFileId: playerSource.fileId }
+    : content;
+};
+const playerChanged = (a, b) =>
+  profileFingerprint(playerContent(a)) !== profileFingerprint(playerContent(b));
 
 export function teamCreationActivity(account) {
   return {
@@ -33,7 +42,11 @@ export function teamChanges(before, after) {
     for (const [id, item] of next) {
       const previous = old.get(id);
       if (!previous) changes.push(`Added ${label} ${item.name}`);
-      else if (changed(previous, item))
+      else if (
+        label === "player"
+          ? playerChanged(previous, item)
+          : changed(previous, item)
+      )
         changes.push(`Updated ${label} ${item.name}`);
     }
     for (const [id, item] of old)
