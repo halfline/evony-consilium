@@ -104,7 +104,9 @@ export async function altOwnership({ page, playersScreen }) {
   );
   assert.match(await page.locator("#player-alts").textContent(), /Test alt/);
   const ownerSaveDisabled = await page.locator("#player-save").isDisabled();
+  assert.equal(await page.locator("[data-alt-unlink]").isVisible(), false);
   await page.locator("#player-alts summary").click();
+  assert.equal(await page.locator("[data-alt-unlink]").isVisible(), true);
   await page.locator("[data-alt-unlink]").click();
   assert.equal(await page.locator("#player-alts .player-alt-row").count(), 0);
   assert.equal(await page.locator("#player-alts-empty").count(), 0);
