@@ -230,6 +230,9 @@
   flex-direction: column;
   gap: 12px;
 }
+.account-menu:not([open]) .account-popover {
+  display: none;
+}
 .account-popover span {
   color: var(--muted);
   overflow-wrap: anywhere;
