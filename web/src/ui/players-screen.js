@@ -5,6 +5,7 @@ import { createCollectionControls } from "./collection-controls.js";
 import { paintStatusBadge } from "./status-badge.js";
 import { matchesPlayerSearch, comparePlayerSearch } from "./player-search.js";
 import { createRemoveButton } from "./remove-button.js";
+import { orderByPlayerOwner } from "./owner-group-order.js";
 
 export function createPlayersScreen({
   root,
@@ -141,7 +142,9 @@ export function createPlayersScreen({
         getPlan().keeps.find((player) => player.id === b.ownerId)?.name,
       ),
     );
-    if (!alts && !query) players.sort((a, b) => b.level - a.level);
+    if (alts)
+      orderByPlayerOwner(getPlan(), players, (player) => player.ownerId);
+    else if (!query) players.sort((a, b) => b.level - a.level);
     if (alts) {
       addButton.disabled = !hasOwner;
       $("alts-empty").hidden = hasOwner;
