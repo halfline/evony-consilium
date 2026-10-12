@@ -6,6 +6,7 @@ export function createSearchablePicker({
   empty,
   items,
   matches,
+  compare,
   renderCard,
   closeOnSelect = true,
   prepare = () => {},
@@ -15,6 +16,7 @@ export function createSearchablePicker({
   function render() {
     const query = search.value.trim().toLowerCase();
     const choices = items().filter((item) => matches(item, query));
+    if (compare) choices.sort((a, b) => compare(a, b, query));
     grid.replaceChildren(
       ...choices.map((item) => {
         const button = renderCard(item, query);
