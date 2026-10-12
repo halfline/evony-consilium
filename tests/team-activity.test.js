@@ -4,6 +4,7 @@ import { createEmptyPlan } from "../web/src/domain/plan.js";
 import {
   appendTeamActivity,
   teamCreationActivity,
+  teamChanges,
 } from "../web/src/domain/team-activity.js";
 import {
   mergeTeamPlans,
@@ -15,6 +16,36 @@ test("team creation records the signed-in account", () => {
   const entry = teamCreationActivity({ email: "founder@example.com" });
   assert.equal(entry.account, "founder@example.com");
   assert.deepEqual(entry.changes, ["Created team"]);
+});
+
+test("profile cache refreshes do not report unchanged players", () => {
+  const base = createEmptyPlan();
+  const source = (fileId, version) => ({
+    fileId,
+    version,
+    syncedAt: "2026-01-01T00:00:00.000Z",
+    baseline: { name: fileId },
+  });
+  const before = {
+    ...base,
+    keeps: [
+      { id: "one", name: "One", playerSource: source("one-file", "1") },
+      { id: "two", name: "Two", playerSource: source("two-file", "1") },
+    ],
+  };
+  const cacheOnly = {
+    ...before,
+    keeps: [
+      { ...before.keeps[0], playerSource: source("one-file", "2") },
+      { ...before.keeps[1], playerSource: source("two-file", "2") },
+    ],
+  };
+  const after = {
+    ...cacheOnly,
+    keeps: [{ ...cacheOnly.keeps[0], name: "One edited" }, cacheOnly.keeps[1]],
+  };
+  assert.deepEqual(teamChanges(before, cacheOnly), []);
+  assert.deepEqual(teamChanges(before, after), ["Updated player One edited"]);
 });
 
 test("an activity entry records the saving account and survives team merge", () => {
