@@ -184,7 +184,7 @@ export async function mapEditing({
   await loadTeamFixture(page, driveFiles, zeroPlan);
   assert.equal(await page.locator("#players .player-card").count(), 4);
   await playersScreen();
-  await page.locator("#players .player-card").nth(2).click();
+  await page.locator('#players [data-entity="zero"]').click();
   assert.equal(await page.locator("#entity-x").inputValue(), "0");
   assert.equal(await page.locator("#player-account").inputValue(), "0001");
   await formationScreen();
@@ -193,7 +193,7 @@ export async function mapEditing({
   await page.locator("#entity-form [type=submit]").click();
   await page.locator("#close-inspector").click();
   await playersScreen();
-  await page.locator("#players .player-card").last().click();
+  await page.locator('#players [data-entity="new"]').click();
   await formationScreen();
   const rect = await page.locator("#map").boundingBox();
   await page.mouse.click(
