@@ -141,6 +141,7 @@ export function createPlayersScreen({
         getPlan().keeps.find((player) => player.id === b.ownerId)?.name,
       ),
     );
+    if (!alts && !query) players.sort((a, b) => b.level - a.level);
     if (alts) {
       addButton.disabled = !hasOwner;
       $("alts-empty").hidden = hasOwner;
