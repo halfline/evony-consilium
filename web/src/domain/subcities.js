@@ -17,7 +17,7 @@ export const SUBCITY_COLORS = Object.freeze([
   { id: "gold", name: "Gold", color: "#cbb477" },
   { id: "red", name: "Red", color: "#e17b75" },
 ]);
-export const MAX_SUBCITIES = 500;
+export const MAX_SUBCITIES = 1000;
 export const SUBCITY_COORDINATE_MAX = 1199;
 
 export function validateSubcities(cities, types = null, players = null) {
