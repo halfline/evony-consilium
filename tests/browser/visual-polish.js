@@ -98,8 +98,8 @@ export async function visualPolish({ browser }) {
     assert.equal(await page.locator("#players-search").inputValue(), "");
     assert.equal(await page.locator("#players .player-card").count(), 1);
     assert.equal(
-      await page.locator("#players .portrait-monogram").textContent(),
-      "AO",
+      await page.locator("#players .player-portrait img").count(),
+      1,
     );
     await page.locator('[data-screen="alts"]').click();
     assert.equal(
