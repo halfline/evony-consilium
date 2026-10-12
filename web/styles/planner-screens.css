@@ -642,10 +642,6 @@
   margin-bottom: 0;
   color: var(--muted);
 }
-#undo span {
-  font-size: 24px;
-  line-height: 1;
-}
 .activity-dialog {
   width: min(560px, calc(100vw - 32px));
   max-height: min(75vh, 720px);
