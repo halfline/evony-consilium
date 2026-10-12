@@ -6,6 +6,7 @@ import { view } from "./dom.js";
 import { bindTileActions } from "./tile-actions.js";
 import { removeSubcity } from "../domain/subcities.js";
 import { createCollectionControls } from "./collection-controls.js";
+import { orderByPlayerOwner } from "./owner-group-order.js";
 import {
   subcityFilterCategory,
   subcityTypeOptions,
@@ -119,6 +120,7 @@ export function createSubcitiesScreen({
       filter("subcities-type").value ||
       filter("subcities-color").value
     );
+    orderByPlayerOwner(getPlan(), cities, (city) => city.ownerId);
     collection.render({
       count: cities.length,
       total: getPlan().subcities?.length || 0,
