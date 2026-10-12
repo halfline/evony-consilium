@@ -9,7 +9,7 @@ import { renderPortrait } from "./portrait.js";
 import { createSearchablePicker } from "./searchable-picker.js";
 import { playerPickerCard } from "./player-picker-card.js";
 import { uppercaseInput } from "./player-fields.js";
-import { matchesPlayerSearch } from "./player-search.js";
+import { matchesPlayerSearch, comparePlayerSearch } from "./player-search.js";
 export function createAddPlayerDialog({
   root,
   ownerDialog,
@@ -59,6 +59,7 @@ export function createAddPlayerDialog({
     empty: $("new-player-owner-empty"),
     items: owners,
     matches: matchesPlayerSearch,
+    compare: comparePlayerSearch,
     renderCard: (player, query) =>
       playerPickerCard(player, getAvatars, { query }),
   });
