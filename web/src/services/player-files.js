@@ -275,34 +275,38 @@ export class PlayerFiles {
     const source = player.playerSource;
     if (!source || !this.state(player).connected)
       throw new Error("Player file access is needed to refresh its cache.");
-    return this.run(source.fileId, async (current) => {
-      const file = await this.drive.metadata({
-        id: source.fileId,
-        resourceKey: source.resourceKey,
-      });
-      current();
-      file.resourceKey ||= source.resourceKey || "";
-      const entry = this.#files.get(source.fileId);
-      const loaded =
-        entry?.profile && !entry.error && entry.file.version === file.version
-          ? { file, profile: entry.profile }
-          : await this.drive.loadPlayer(file);
-      current();
-      const profile = validateProfile(loaded.profile);
-      validate(profile);
-      const previous = this.#files.get(source.fileId);
-      this.#files.set(source.fileId, {
-        ...loaded,
-        profile,
-        draft: previous?.draft,
-      });
-      if (
-        source.version === loaded.file.version &&
-        profileFingerprint(playerProfile(player)) ===
-          profileFingerprint(profile)
-      )
-        return player;
-      return linkedPlayer(player, profile, loaded.file);
-    });
+    return this.run(
+      source.fileId,
+      async (current) => {
+        const file = await this.drive.metadata({
+          id: source.fileId,
+          resourceKey: source.resourceKey,
+        });
+        current();
+        file.resourceKey ||= source.resourceKey || "";
+        const entry = this.#files.get(source.fileId);
+        const loaded =
+          entry?.profile && !entry.error && entry.file.version === file.version
+            ? { file, profile: entry.profile }
+            : await this.drive.loadPlayer(file);
+        current();
+        const profile = validateProfile(loaded.profile);
+        validate(profile);
+        const previous = this.#files.get(source.fileId);
+        this.#files.set(source.fileId, {
+          ...loaded,
+          profile,
+          draft: previous?.draft,
+        });
+        if (
+          source.version === loaded.file.version &&
+          profileFingerprint(playerProfile(player)) ===
+            profileFingerprint(profile)
+        )
+          return player;
+        return linkedPlayer(player, profile, loaded.file);
+      },
+      { notifyBusy: false },
+    );
   }
 }
