@@ -54,10 +54,11 @@ export class TeamEntry {
       root: this.$("project-list"),
       files: () => this.workspace.list(),
       open: (file) => this.run(() => this.open(file), "Opening team…"),
-      forget: (id) => {
-        this.workspace.forget(id);
-        this.list();
-      },
+      forget: (id) =>
+        this.run(async () => {
+          await this.workspace.forget(id);
+          this.list();
+        }, "Forgetting team…"),
     });
     this.accountMenuRoot = this.$("account-menu");
     this.entryAccountHost = root.querySelector(".entry-header");

@@ -217,8 +217,9 @@ export class TeamWorkspace {
   list() {
     return this.repository.list(this.account.sub);
   }
-  forget(id) {
-    this.repository.forget(this.account.sub, id);
+  async forget(id) {
+    await this.flush();
+    await this.repository.forget(this.account.sub, id);
   }
   clear() {
     this.#generation++;

@@ -1,4 +1,5 @@
-import { readSaved, writeSaved } from "./indexed-db.js";
+import { readSaved, writeSaved, deleteSaved } from "./indexed-db.js";
+import { teamDraftKey } from "./team-draft.js";
 import {
   rememberedProjects,
   rememberProject,
@@ -6,8 +7,11 @@ import {
 } from "./remembered-projects.js";
 
 export class TeamRepository {
-  constructor(storage, { read = readSaved, write = writeSaved } = {}) {
-    Object.assign(this, { storage, read, write });
+  constructor(
+    storage,
+    { read = readSaved, write = writeSaved, remove = deleteSaved } = {},
+  ) {
+    Object.assign(this, { storage, read, write, remove });
   }
   openedPlayers(account) {
     try {
@@ -37,7 +41,10 @@ export class TeamRepository {
   remember(account, team) {
     rememberProject(this.storage, account, team);
   }
-  forget(account, id) {
+  async forget(account, id) {
+    const team = this.list(account).find((entry) => entry.id === id);
+    if (team?.teamFileId)
+      await this.remove(teamDraftKey(account, id, team.teamFileId));
     forgetProject(this.storage, account, id);
   }
 }
