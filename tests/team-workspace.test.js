@@ -68,7 +68,7 @@ test("team access keeps authorization, draft recovery, and remembering independe
   assert.equal(f.getPlan().title, "Shared");
   assert.equal(f.workspace.list()[0].teamFileId, "file");
   assert.deepEqual(f.events, ["open", "edit", "edit"]);
-  f.workspace.forget("folder");
+  await f.workspace.forget("folder");
   assert.equal(f.workspace.list().length, 0);
 });
 
