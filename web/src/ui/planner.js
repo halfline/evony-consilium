@@ -467,6 +467,7 @@ export function createPlanner(
         ? getPlan().keeps.find((player) => player.id === placement.id)
         : null,
     setReadOnly: (value) => {
+      if (store.readOnly === value) return;
       store.readOnly = value;
       readOnlyView.render();
       teamScreen.render();
