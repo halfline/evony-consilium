@@ -1693,7 +1693,7 @@ dialog form > label {
     right: 0;
     z-index: 20;
     padding: 10px;
-    min-width: 160px;
+    min-width: 180px;
     border: 1px solid var(--line);
     border-radius: 14px;
     background: var(--panel-raised);
@@ -1715,6 +1715,7 @@ dialog form > label {
   .header-more-menu .overflow-action-label {
     display: inline;
     font-size: 13px;
+    white-space: nowrap;
   }
   .workflow-nav {
     padding: 0 12px;
