@@ -33,3 +33,14 @@ export async function writeSaved(plan, key = "current") {
     tx.onabort = () => reject(tx.error);
   });
 }
+
+export async function deleteSaved(key) {
+  const db = await database();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("projects", "readwrite");
+    tx.objectStore("projects").delete(key);
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
+}
