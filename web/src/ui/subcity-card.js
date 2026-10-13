@@ -30,6 +30,7 @@ export function createSubcityCard({
   const portrait = document.createElement("span");
   portrait.className = "map-portrait subcity-portrait";
   renderSubcityArt(portrait, asset);
+  portrait.style.setProperty("--subcity-color", color.color);
   const caption = document.createElement("strong");
   caption.textContent = customName || cityName;
   caption.title = caption.textContent;
