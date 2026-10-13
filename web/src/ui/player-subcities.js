@@ -80,8 +80,11 @@ export function createPlayerSubcities({
     openedContext = context();
     selectedId = null;
     if (!getPlan().keeps.some((player) => player.id === assigningTo)) return;
-    const available = (getPlan().subcities || []).filter(
-      (city) => city.ownerId !== assigningTo,
+    const available = orderSubcities(
+      getPlan(),
+      (getPlan().subcities || []).filter(
+        (city) => city.ownerId !== assigningTo,
+      ),
     );
     if (!available.length) {
       addSubcity(assigningTo);
