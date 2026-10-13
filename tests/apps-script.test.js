@@ -786,10 +786,7 @@ test("the generated bundle runs in Apps Script's globals without browser, Node, 
     },
   });
   runInContext(await appsScriptBundle(), context);
-  runInContext(
-    "configureConsiliumSync(); installConsiliumSync(); syncConsiliumTeam();",
-    context,
-  );
+  runInContext("setupConsiliumSync(); syncConsiliumTeam();", context);
   assert.equal(f.writes.length, 1);
   assert.equal(f.writes[0].plan.keeps[1].name, "Updated alt");
   assert.equal(

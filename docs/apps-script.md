@@ -26,7 +26,7 @@ The output is:
 
 | File                                | Purpose                                                                            |
 | ----------------------------------- | ---------------------------------------------------------------------------------- |
-| `apps-script/build/Code.gs`         | Generated synchronizer and six runnable entry points.                              |
+| `apps-script/build/Code.gs`         | Generated synchronizer and seven runnable entry points.                            |
 | `apps-script/build/Config.gs`       | Editable team IDs and scheduling settings.                                         |
 | `apps-script/build/appsscript.json` | V8 runtime, Drive service, explicit scopes, and fixed Google request destinations. |
 
@@ -35,6 +35,33 @@ Rebuilding preserves an existing local `Config.gs`. The output directory is igno
 The build bundles the same profile/note validators and cache transformations used by the browser. It substitutes a JSON-only clone for the browser's `structuredClone`, which is unavailable in Apps Script. Authored sources live in `apps-script/`; change those and rebuild rather than editing generated `Code.gs`.
 
 ## Upload without copying files
+
+For a new team, the repository can create and configure the script without
+copying source files into Google's editor. Install Node dependencies, enable
+the **Google Apps Script API** in [Apps Script user
+settings](https://script.google.com/home/usersettings), and sign in with
+`npm run apps-script:login` as the administrator who will own the trigger.
+Then run:
+
+```sh
+npm run apps-script:setup -- "TEAM_FILE_DRIVE_URL" "PARENT_FOLDER_DRIVE_URL"
+```
+
+Use the Team screen's Drive links, including any `resourcekey` values. The
+command creates a private standalone script, fills in Config, uploads the
+bundle, and prints its editor URL. It keeps a local setup checkpoint in the
+ignored `apps-script/setup/` directory; rerun the same command if an upload
+fails. It refuses a different team or an already-linked script rather than
+replacing either one.
+
+Open the printed editor URL and run **setupConsiliumSync** once. Google asks
+the administrator to grant the script's Drive and trigger permissions. That
+function previews access, saves the configuration, and installs the scheduled
+trigger. Check its execution log for unavailable sources. No API executable
+or web-app deployment is needed. Google requires this interactive
+authorization; `clasp run` would require a separate standard Cloud project,
+API-executable deployment, and extra OAuth setup. See [Google's Apps Script
+execution requirements](https://developers.google.com/apps-script/api/how-tos/execute).
 
 For a team with a working script, future updates can be one command. The repository wraps Google's [clasp command-line tool](https://developers.google.com/apps-script/guides/clasp), fetched on demand at a pinned version; it is not a dependency of the site. This workflow requires Node 20 or newer.
 
@@ -55,7 +82,7 @@ The command downloads the current script into a temporary directory, rebuilds `C
 
 Existing Script Properties and scheduled triggers remain in place; ordinary code updates do not require running configure or install again. If an update changes required scopes, run a function in the editor to grant Google's authorization again. Google may also prompt in the terminal to confirm a manifest change. No web-app deployment is needed. Temporary downloaded files are removed when the command finishes, including after failures. `clasp` keeps its login credentials in your home directory; those credentials must remain private.
 
-For a new team, create a blank standalone project, link it, and push to upload all three files. Then follow the configuration, authorization, and trigger steps below, starting at step 4. The first upload supplies placeholder settings; edit Config in the Google editor before configuring sync. Teams using the public site without a local checkout can use the copy-and-paste installation instead.
+Teams using the public site without a local checkout can use the copy-and-paste installation instead.
 
 ## Install by copying files
 
@@ -63,10 +90,9 @@ For a new team, create a blank standalone project, link it, and push to upload a
 2. Replace the default `Code.gs` with the generated file. Create a script file named **Config** and paste `Config.gs` into it.
 3. In **Project Settings**, enable **Show "appsscript.json" manifest file in editor**. Replace that manifest with the generated JSON and save. The **Drive** service should appear under Services.
 4. Edit `consiliumConfig_()` in Config. Set `teamFileId` to the ID in the team document's Drive URL and `folderId` to its parent folder ID. The Team screen's Drive links identify both. If either URL has a `resourcekey` query parameter, copy it into the corresponding resource-key setting. Use IDs, not full URLs. Leave the five-minute interval and 100-source limit initially.
-5. Select **configureConsiliumSync** and run it. Review Google's authorization prompt. This performs a preview without uploading anything, then saves the configuration and removes any old sync trigger installed by that account. Review the execution log for unavailable sources.
-6. Select **syncConsiliumTeam** and run it to verify an actual conditional upload. If all caches are current, `written: false` is expected.
-7. Select **installConsiliumSync** and run it. It checks access with another preview and installs one time-driven trigger. Running it again replaces that account's existing sync trigger rather than adding duplicates. No **Deploy** operation or web-app URL is needed.
-8. Close Consilium, edit an existing source from another account, wait for a scheduled pass, then reopen Consilium and inspect its shared cache. Confirm both a player/alt profile and a published note.
+5. Select **setupConsiliumSync** and run it. Review Google's authorization prompt. It previews access, saves the configuration, and installs one time-driven trigger. Review the execution log for unavailable sources. Running it again replaces that account's existing sync trigger rather than adding duplicates. No **Deploy** operation or web-app URL is needed.
+6. Optionally select **syncConsiliumTeam** and run it to verify an actual conditional upload. If all caches are current, `written: false` is expected.
+7. Close Consilium, edit an existing source from another account, wait for a scheduled pass, then reopen Consilium and inspect its shared cache. Confirm both a player/alt profile and a published note.
 
 Install from one account only. [Google's triggers run as their creator](https://developers.google.com/apps-script/guides/triggers/installable), and one account cannot enumerate or remove another account's triggers. If the administrator leaves, remove their trigger or revoke its authorization, then have the replacement administrator authorize and install a new private copy.
 
@@ -93,6 +119,7 @@ Conservative local accounting pauses at 15,000 fetch calls or 60 minutes of work
 | Function                  | Behavior                                                                                                                                   |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `configureConsiliumSync`  | Validate Config, preview sources, save settings, reset the cursor, and remove the operator's previous sync trigger. Run install afterward. |
+| `setupConsiliumSync`      | Configure the project and install its scheduled trigger in one authorized run.                                                             |
 | `previewConsiliumSync`    | Report candidate changes without uploading or advancing the persisted cursor.                                                              |
 | `syncConsiliumTeam`       | Run a sync immediately; also the scheduled handler.                                                                                        |
 | `installConsiliumSync`    | Preflight access and install/replace the operator's trigger.                                                                               |

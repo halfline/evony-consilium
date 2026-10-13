@@ -7,6 +7,8 @@ import {
   linkProject,
   scriptId,
   uploadProject,
+  setupConfig,
+  setupProject,
 } from "../scripts/upload-apps-script.js";
 
 async function fixture(t) {
@@ -37,6 +39,71 @@ test("script linking accepts IDs and Google editor URLs, rejecting other targets
   ]) {
     assert.throws(() => scriptId(value));
   }
+});
+
+test("first-time setup validates Drive links and resumes an interrupted upload", async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), "consilium-setup-test-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const options = {
+    directory: join(directory, "setup"),
+    projectPath: join(directory, ".clasp.json"),
+  };
+  const team =
+    "https://drive.google.com/file/d/team-file/view?resourcekey=team-key";
+  const folder =
+    "https://drive.google.com/drive/folders/team-folder?resourcekey=folder-key";
+  assert.deepEqual(setupConfig(team, folder), {
+    teamFileId: "team-file",
+    folderId: "team-folder",
+    teamResourceKey: "team-key",
+    folderResourceKey: "folder-key",
+    intervalMinutes: 5,
+    maxSourcesPerRun: 100,
+  });
+  assert.throws(() => setupConfig(folder, team), /team file URL/);
+  const calls = [];
+  let failPush = true;
+  const run = async (args, { cwd }) => {
+    calls.push(args[0]);
+    if (args[0] === "create")
+      await writeFile(join(cwd, ".clasp.json"), '{"scriptId":"new-script"}');
+    else {
+      const config = await readFile(join(cwd, "Config.gs"), "utf8");
+      assert.match(config, /team-file/);
+      assert.match(config, /folder-key/);
+      assert.match(
+        await readFile(join(cwd, "Code.gs"), "utf8"),
+        /setupConsiliumSync/,
+      );
+      if (failPush) throw new Error("Push failed");
+    }
+  };
+  await assert.rejects(
+    setupProject(team, folder, { ...options, run }),
+    /Push failed/,
+  );
+  assert.equal(
+    JSON.parse(await readFile(options.projectPath)).scriptId,
+    "new-script",
+  );
+  assert.equal(
+    JSON.parse(await readFile(join(options.directory, "setup.json")))
+      .teamFileId,
+    "team-file",
+  );
+  failPush = false;
+  assert.equal(
+    await setupProject(team, folder, { ...options, run }),
+    "new-script",
+  );
+  assert.deepEqual(calls, ["create", "push", "push"]);
+  await assert.rejects(
+    setupProject(team.replace("team-file", "other-file"), folder, {
+      ...options,
+      run,
+    }),
+    /another team/,
+  );
 });
 
 test("linking is local and requires an explicit replacement to switch projects", async (t) => {

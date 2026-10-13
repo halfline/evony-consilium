@@ -1,15 +1,25 @@
 import { spawn } from "node:child_process";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import {
+  chmod,
+  mkdir,
+  mkdtemp,
+  readFile,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { buildAppsScript } from "./build-apps-script.js";
+import { parseDriveLink } from "../web/src/domain/drive-links.js";
+import { validateConfig } from "../apps-script/sync.js";
 
 const claspPackage = "@google/clasp@3.4.1";
 const help = `Apps Script uploads (Node 20 or newer)
 
   npm run apps-script:login
   npm run apps-script:link -- SCRIPT_ID_OR_EDITOR_URL
+  npm run apps-script:setup -- TEAM_FILE_URL FOLDER_URL
   npm run apps-script:push
 
 Enable Apps Script API at https://script.google.com/home/usersettings first.
@@ -136,6 +146,87 @@ export async function uploadProject({
   }
 }
 
+export function setupConfig(teamUrl, folderUrl) {
+  const team = parseDriveLink(teamUrl);
+  const folder = parseDriveLink(folderUrl);
+  if (team.kind !== "file" || folder.kind === "file")
+    throw new Error("Provide the team file URL, then its parent folder URL.");
+  return validateConfig({
+    teamFileId: team.id,
+    folderId: folder.id,
+    teamResourceKey: team.resourceKey,
+    folderResourceKey: folder.resourceKey,
+  });
+}
+
+export async function setupProject(
+  teamUrl,
+  folderUrl,
+  {
+    directory = resolve("apps-script/setup"),
+    projectPath = resolve(".clasp.json"),
+    run = runClasp,
+    build = buildAppsScript,
+  } = {},
+) {
+  const config = setupConfig(teamUrl, folderUrl);
+  const checkpoint = join(directory, "setup.json");
+  const localProject = join(directory, ".clasp.json");
+  await mkdir(directory, { recursive: true });
+  let saved;
+  try {
+    saved = JSON.parse(await readFile(checkpoint, "utf8"));
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  if (saved && JSON.stringify(saved) !== JSON.stringify(config))
+    throw new Error("This setup directory belongs to another team.");
+  let linked;
+  try {
+    linked = JSON.parse(await readFile(projectPath, "utf8"));
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  if (linked && !saved)
+    throw new Error(
+      "A script is already linked. Use apps-script:push to update it.",
+    );
+  if (!saved)
+    await writeFile(checkpoint, JSON.stringify(config, null, 2) + "\n", {
+      mode: 0o600,
+    });
+  let project;
+  try {
+    project = JSON.parse(await readFile(localProject, "utf8"));
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  if (!project) {
+    if (linked)
+      throw new Error("The linked script has no matching setup checkpoint.");
+    await run(["create", "--type", "standalone", "--title", "Consilium sync"], {
+      cwd: directory,
+    });
+    project = JSON.parse(await readFile(localProject, "utf8"));
+  }
+  const id = scriptId(project.scriptId);
+  if (linked?.scriptId && linked.scriptId !== id)
+    throw new Error("The linked script differs from this setup checkpoint.");
+  if (!linked) await linkProject(id, { projectPath });
+  await build(directory);
+  await writeFile(
+    join(directory, "Config.gs"),
+    `function consiliumConfig_() {\n  return ${JSON.stringify(config, null, 2)};\n}\n`,
+  );
+  await chmod(join(directory, "Config.gs"), 0o600);
+  await writeFile(
+    join(directory, ".claspignore"),
+    "**/**\n!Code.gs\n!Config.gs\n!appsscript.json\n.clasp.json\n",
+  );
+  await run(["push"], { cwd: directory });
+  return id;
+}
+
 export async function main(args = process.argv.slice(2)) {
   if (!args.length || args.includes("--help") || args.includes("-h")) {
     console.log(help);
@@ -155,6 +246,11 @@ export async function main(args = process.argv.slice(2)) {
     const id = await uploadProject();
     console.log(
       `clasp finished for ${id}; remote Config and extra files retained.`,
+    );
+  } else if (command === "setup" && rest.length === 2) {
+    const id = await setupProject(rest[0], rest[1]);
+    console.log(
+      `Script uploaded: https://script.google.com/d/${id}/edit\nOpen it and run setupConsiliumSync once to authorize and install the trigger.`,
     );
   } else {
     throw new Error(help);

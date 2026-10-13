@@ -21,6 +21,11 @@ function runtime() {
 
 export const configure = () => runtime().configure(consiliumConfig_());
 export const install = () => runtime().install();
+export const setup = () => {
+  const job = runtime();
+  job.configure(consiliumConfig_());
+  return job.install();
+};
 export const sync = () => runtime().run();
 export const preview = () => runtime().run(true);
 export const uninstall = () => runtime().uninstall();

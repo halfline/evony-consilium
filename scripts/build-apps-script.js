@@ -16,6 +16,7 @@ export async function appsScriptBundle() {
     footer: {
       js: `
 function configureConsiliumSync() { return ConsiliumSync.configure(); }
+function setupConsiliumSync() { return ConsiliumSync.setup(); }
 function installConsiliumSync() { return ConsiliumSync.install(); }
 function syncConsiliumTeam() { return ConsiliumSync.sync(); }
 function previewConsiliumSync() { return ConsiliumSync.preview(); }

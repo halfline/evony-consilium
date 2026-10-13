@@ -9,6 +9,7 @@ __pycache__/
 secrets/
 /web/google-config.js
 /apps-script/build/
+/apps-script/setup/
 /.clasp.json
 /.clasprc.json
 
