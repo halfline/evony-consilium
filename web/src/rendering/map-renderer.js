@@ -299,7 +299,10 @@ export class MapRenderer {
     this.onDraw({ zoom: z });
   }
   entity(e, p, z, fixed = false, deferLabel = false) {
-    return drawEntity(this, e, p, z, fixed, { deferLabel });
+    const hitCount = this.hits.length;
+    const result = drawEntity(this, e, p, z, fixed, { deferLabel });
+    for (const hit of this.hits.slice(hitCount)) hit.entity = e;
+    return result;
   }
   drawHiveBoundaries(plan) {
     const c = this.ctx;
@@ -327,11 +330,32 @@ export class MapRenderer {
     );
   }
   hit(x, y) {
+    const point = this.world(x, y);
+    const tile = [...this.hits]
+      .reverse()
+      .find(
+        ({ entity }) =>
+          entity &&
+          point.x >= entity.x &&
+          point.x < entity.x + entity.w &&
+          point.y >= entity.y &&
+          point.y < entity.y + entity.h,
+      );
+    if (tile) return tile.id;
+    const sprites = this.hits.filter(
+      (h) => x >= h.left && x <= h.right && y >= h.top && y <= h.bottom,
+    );
     return (
-      [...this.hits]
-        .reverse()
-        .find((h) => x >= h.left && x <= h.right && y >= h.top && y <= h.bottom)
-        ?.id || null
+      sprites.sort((a, b) => {
+        const distance = (hit) => {
+          const center = this.screen(
+            hit.entity.x + hit.entity.w / 2,
+            hit.entity.y + hit.entity.h / 2,
+          );
+          return Math.hypot(center.x - x, center.y - y);
+        };
+        return distance(a) - distance(b);
+      })[0]?.id || null
     );
   }
 }
