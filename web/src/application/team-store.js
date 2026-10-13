@@ -18,6 +18,19 @@ function readonly(value) {
   return value;
 }
 
+function refreshContent(plan) {
+  return JSON.stringify({
+    ...plan,
+    activityLog: undefined,
+    keeps: plan.keeps.map((player) => ({
+      ...player,
+      playerSource: player.playerSource
+        ? { ...player.playerSource, activityVersion: undefined }
+        : undefined,
+    })),
+  });
+}
+
 // Shared editable data and Undo history; navigation does not alter edit snapshots.
 export class TeamStore {
   #plan;
@@ -95,6 +108,8 @@ export class TeamStore {
     return this.commit(next);
   }
   refresh(input, rebaseHistory = (plan) => plan) {
+    const before = refreshContent(this.#plan),
+      historyLength = this.#history.length;
     const repairs = [];
     const next = this.prepare(
       validatePlan(structuredClone(input), this.catalog, true, repairs),
@@ -111,7 +126,12 @@ export class TeamStore {
     });
     this.#plan = next;
     this.refreshAssets();
-    this.emit("refresh", repairs);
+    if (
+      before !== refreshContent(next) ||
+      repairs.length ||
+      historyLength !== this.#history.length
+    )
+      this.emit("refresh", repairs);
   }
   openMap(id) {
     this.#plan = this.prepare(ensureRallySetter(selectMapPlan(this.#plan, id)));
