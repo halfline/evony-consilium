@@ -152,6 +152,10 @@ export async function uploadProject({
       // clasp treats even whitespace-only manifest changes as requiring an
       // interactive confirmation, which silently skips noninteractive pushes.
       await writeFile(manifestPath, remoteManifest);
+    } else {
+      throw new Error(
+        "The Apps Script manifest changed. Review its scopes and upload it interactively before retrying.",
+      );
     }
     await run([...options, "push"], { cwd: staging });
     return id;
