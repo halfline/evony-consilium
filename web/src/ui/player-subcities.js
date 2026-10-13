@@ -2,6 +2,7 @@ import { view } from "./dom.js";
 import { bindTileActions } from "./tile-actions.js";
 import { createSubcityCard } from "./subcity-card.js";
 import { assignSubcityOwner } from "../domain/subcities.js";
+import { orderSubcities } from "./subcity-order.js";
 
 function cityLabel(city, types) {
   if (city.color === "red")
@@ -138,7 +139,10 @@ export function createPlayerSubcities({
       (openedContext !== context() || !canEdit() || id !== assigningTo)
     )
       dialog.close();
-    const cities = (plan.subcities || []).filter((city) => city.ownerId === id);
+    const cities = orderSubcities(
+      plan,
+      (plan.subcities || []).filter((city) => city.ownerId === id),
+    );
     add.hidden = !canEdit() || !id;
     $("player-subcities-empty").hidden = cities.length > 0;
     grid.replaceChildren(
