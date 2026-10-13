@@ -101,7 +101,8 @@ export function bindMapInteraction({
     }
     if (ev.shiftKey) {
       group.clear();
-      select(null);
+      // Closing the inspector resizes the canvas. Keep it stable until the
+      // selection rectangle has been measured against the current map view.
       drag = { pt, band: true, pointerId: ev.pointerId };
       canvas.setPointerCapture(ev.pointerId);
       return;
@@ -211,6 +212,7 @@ export function bindMapInteraction({
       renderer.selectionBox = null;
       if (canvas.hasPointerCapture(ev.pointerId))
         canvas.releasePointerCapture(ev.pointerId);
+      select(null);
       renderer.draw();
       return;
     }

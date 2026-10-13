@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { bindMapInteraction } from "../web/src/ui/map-interaction.js";
 
-function setup(kind = "keeps", locked = false) {
+function setup(kind = "keeps", locked = false, select = () => {}) {
   let plan = {
     map: "blank",
     extent: 1000,
@@ -45,7 +45,7 @@ function setup(kind = "keeps", locked = false) {
     getPending: () => null,
     entities: () => [...plan.keeps, ...plan.structures, ...plan.obstacles],
     selected: () => null,
-    select() {},
+    select,
     resetPending() {},
     toast() {},
     undo() {},
@@ -123,6 +123,30 @@ test("rubber band selects multiple objects and Delete removes them together", ()
   assert.equal(s.plan().keeps[0].x, null);
   assert.equal(s.plan().keeps[1].x, null);
   assert.equal(s.plan().keeps[2].x, 110);
+});
+
+test("box selection finishes before closing an inspector that resizes the map", () => {
+  let resized = false;
+  const s = setup("keeps", false, () => {
+    resized = true;
+  });
+  s.plan().keeps.push({
+    id: "second",
+    x: 120,
+    y: 120,
+    w: 2,
+    h: 2,
+    locked: false,
+  });
+  s.renderer.screen = (x, y) => ({
+    x: x - 90,
+    y: y - 90 + (resized ? 100 : 0),
+  });
+  s.canvas.onpointerdown({ ...s.event(0), clientY: 0, shiftKey: true });
+  s.canvas.onpointermove({ ...s.event(50), clientY: 50 });
+  s.canvas.onpointerup({ ...s.event(50), clientY: 50 });
+  assert.equal(resized, true);
+  assert.deepEqual([...s.group], ["object", "second"]);
 });
 
 test("Ctrl/Command-click toggles individual objects in a rubber-band selection", () => {
