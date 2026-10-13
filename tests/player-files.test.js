@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { PlayerFiles } from "../web/src/services/player-files.js";
+import { groupActivityEntries } from "../web/src/domain/activity.js";
 import {
   linkedPlayer,
   playerProfile,
@@ -12,6 +13,7 @@ const folder = { id: "central", capabilities: { canAddChildren: true } };
 function fixture({ writable = true } = {}) {
   const player = createDemoPlan(catalog).keeps[0];
   let profile = validateProfile(player);
+  let activityLog = [];
   const file = {
     id: "source",
     parents: [folder.id],
@@ -23,22 +25,28 @@ function fixture({ writable = true } = {}) {
     drafts = new Map();
   const drive = {
     metadata: async () => structuredClone(file),
-    createPlayer: async (data, location) => {
+    createPlayer: async (data, location, activity) => {
       calls.push(["create", location]);
       profile = structuredClone(data);
+      activityLog = structuredClone(activity);
       return structuredClone(file);
     },
     loadPlayer: async () => {
       calls.push(["load"]);
-      return { file: structuredClone(file), profile: structuredClone(profile) };
+      return {
+        file: structuredClone(file),
+        profile: structuredClone(profile),
+        activityLog: structuredClone(activityLog),
+      };
     },
-    savePlayer: async (expected, data) => {
+    savePlayer: async (expected, data, activity) => {
       calls.push(["save"]);
       if (!file.capabilities.canEdit)
         throw Object.assign(new Error("Read only"), { status: 403 });
       if (expected.version !== file.version)
         throw Object.assign(new Error("Changed"), { status: 409 });
       profile = structuredClone(data);
+      activityLog = structuredClone(activity);
       file.version = String(Number(file.version) + 1);
       return structuredClone(file);
     },
@@ -49,6 +57,8 @@ function fixture({ writable = true } = {}) {
     remember: (id) => remembered.push(id),
     readDraft: async (id) => drafts.get(id),
     writeDraft: async (id, data) => drafts.set(id, structuredClone(data)),
+    actor: () => ({ email: "editor@example.test" }),
+    activitySession: () => "session-one",
   };
   return {
     player,
@@ -60,6 +70,7 @@ function fixture({ writable = true } = {}) {
     files: new PlayerFiles(options),
     linked: () => linkedPlayer(player, profile, file),
     remote: () => profile,
+    activity: () => activityLog,
     editRemote: (change) => {
       change(profile);
       file.version = String(Number(file.version) + 1);
@@ -168,6 +179,85 @@ test("personal edits merge concurrent independent changes without updating the t
   assert.equal(f.remote().accountId, "00123");
   assert.equal(cached.name, f.player.name);
   assert.equal(f.drafts.get("source"), null);
+});
+
+test("player history groups saves into one entry per sign-in session", async () => {
+  const f = fixture();
+  const linked = await f.files.create(f.player, folder);
+  assert.deepEqual(f.activity()[0].changes, ["Created player file"]);
+  await f.files.saveOwn({ ...linked, name: "New name" });
+  await f.files.saveOwn({
+    ...linked,
+    name: "New name",
+    level: linked.level + 1,
+  });
+  const grouped = groupActivityEntries(f.activity());
+  assert.equal(grouped.length, 1);
+  assert.deepEqual(grouped[0].changes, [
+    "Created player file",
+    "Updated name",
+    "Updated keep level",
+  ]);
+  assert.equal(f.activity()[0].account, "editor@example.test");
+  assert.deepEqual(f.files.activitySnapshots()[0].activityLog, f.activity());
+  await f.files.refreshCache(f.linked());
+  assert.deepEqual(f.files.activitySnapshots()[0].activityLog, f.activity());
+  f.options.activitySession = () => "session-two";
+  f.files = new PlayerFiles(f.options);
+  await f.files.open(linked);
+  await f.files.saveOwn({ ...linked, name: "Another name" });
+  assert.equal(groupActivityEntries(f.activity()).length, 2);
+});
+
+test("another user's player edit starts a new history segment", async () => {
+  const f = fixture();
+  const linked = await f.files.create(f.player, folder);
+  await f.files.saveOwn({ ...linked, name: "First edit" });
+  f.activity().push({
+    id: "other-entry",
+    sessionId: "other-session",
+    at: new Date().toISOString(),
+    account: "other@example.test",
+    changes: ["Updated castle"],
+  });
+  f.file.version = String(Number(f.file.version) + 1);
+  await f.files.saveOwn({ ...linked, name: "Second edit" });
+  assert.deepEqual(
+    groupActivityEntries(f.activity()).map((entry) => entry.account),
+    ["editor@example.test", "other@example.test", "editor@example.test"],
+  );
+  assert.notEqual(f.activity()[0].id, f.activity()[2].id);
+});
+
+test("a conflicting player write preserves the intervening user's audit entry", async () => {
+  const f = fixture();
+  const linked = await f.files.create(f.player, folder);
+  const save = f.options.drive.savePlayer;
+  let attempts = 0;
+  f.options.drive.savePlayer = async (...args) => {
+    if (!attempts++) {
+      f.editRemote((profile) => {
+        profile.accountId = "00123";
+      });
+      f.activity().push({
+        id: "other-entry",
+        sessionId: "other-session",
+        revision: 1,
+        at: new Date().toISOString(),
+        account: "other@example.test",
+        changes: ["Updated account ID"],
+      });
+      throw Object.assign(new Error("Changed"), { status: 412 });
+    }
+    return save(...args);
+  };
+  await f.files.saveOwn({ ...linked, name: "Local edit" });
+  assert.equal(f.remote().accountId, "00123");
+  assert.deepEqual(
+    f.activity().map((entry) => entry.account),
+    ["editor@example.test", "other@example.test", "editor@example.test"],
+  );
+  assert.equal(f.activity().length, 3);
 });
 
 test("native Drive access can enable editing without Picker or a remembered grant", async () => {
