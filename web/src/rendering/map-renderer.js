@@ -43,11 +43,6 @@ export class MapRenderer {
   }
   resize() {
     const box = this.canvas.getBoundingClientRect();
-    if (box.width > 0 && box.height > 0 && this.width > 0 && this.height > 0) {
-      const ratio = Math.min(box.width / this.width, box.height / this.height);
-      if (ratio < 0.8)
-        this.camera.zoom = Math.max(0.002, this.camera.zoom * ratio);
-    }
     this.width = box.width;
     this.height = box.height;
     const dpr = devicePixelRatio || 1;
