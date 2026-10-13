@@ -2,9 +2,11 @@ import { readTeamDocument } from "../web/src/domain/document-migrations.js";
 import {
   applyPlayerProfile,
   readPlayerDocument,
+  readPlayerActivity,
   validatePlayerSource,
 } from "../web/src/domain/player-document.js";
 import { applyProfileCaches } from "../web/src/domain/team-collaboration.js";
+import { mirrorPlayerActivity } from "../web/src/domain/team-activity.js";
 import {
   applyNoteCaches,
   fileId,
@@ -104,6 +106,7 @@ export function syncTeam({
     inspected: 0,
     players: 0,
     notes: 0,
+    activity: 0,
     written: false,
     deferred: false,
     warnings: [],
@@ -137,7 +140,8 @@ export function syncTeam({
     })),
   ];
   const players = [],
-    notes = [];
+    notes = [],
+    activity = [];
   const start =
     Number.isSafeInteger(cursor) && cursor >= 0 && sources.length
       ? cursor % sources.length
@@ -170,7 +174,12 @@ export function syncTeam({
     }
     try {
       revision(file.version);
-      if (BigInt(file.version) <= BigInt(cached.version)) continue;
+      if (
+        BigInt(file.version) < BigInt(cached.version) ||
+        (file.version === cached.version &&
+          (source.kind !== "player" || cached.activityVersion === file.version))
+      )
+        continue;
       const resource = {
         id: file.id,
         resourceKey:
@@ -189,11 +198,18 @@ export function syncTeam({
         throw new Error(
           "Source moved out of the team folder; cached copy retained.",
         );
-      if (BigInt(current.file.version) <= BigInt(cached.version)) continue;
+      if (
+        BigInt(current.file.version) < BigInt(cached.version) ||
+        (current.file.version === cached.version &&
+          (source.kind !== "player" ||
+            cached.activityVersion === current.file.version))
+      )
+        continue;
       const syncedAt = new Date(now()).toISOString();
       if (source.kind === "player") {
         const profile = readPlayerDocument(current.document),
           player = applyPlayerProfile(source.player, profile);
+        const activityLog = readPlayerActivity(current.document);
         player.playerSource = {
           fileId: file.id,
           resourceKey: resource.resourceKey,
@@ -202,6 +218,11 @@ export function syncTeam({
           syncedAt,
         };
         players.push(player);
+        activity.push({
+          fileId: file.id,
+          version: current.file.version,
+          activityLog,
+        });
       } else {
         const note = readNoteDocument(current.document),
           player = plan.keeps.find((row) => row.id === source.record.playerId);
@@ -258,9 +279,9 @@ export function syncTeam({
         existing.noteCache.note.id === update.noteCache.note.id
       );
     });
-    const next = applyNoteCaches(
-      applyProfileCaches(plan, players),
-      eligibleNotes,
+    const next = mirrorPlayerActivity(
+      applyNoteCaches(applyProfileCaches(plan, players), eligibleNotes),
+      activity,
     );
     report.players = next.keeps.filter(
       (player, i) => JSON.stringify(player) !== JSON.stringify(plan.keeps[i]),
@@ -268,7 +289,15 @@ export function syncTeam({
     report.notes = (next.teamNotes || []).filter(
       (note, i) => JSON.stringify(note) !== JSON.stringify(plan.teamNotes[i]),
     ).length;
-    if (!report.players && !report.notes) return report;
+    const previousActivity = new Map(
+      (plan.activityLog || []).map((entry) => [entry.id, entry]),
+    );
+    report.activity = next.activityLog.filter(
+      (entry) =>
+        JSON.stringify(entry) !==
+        JSON.stringify(previousActivity.get(entry.id)),
+    ).length;
+    if (!report.players && !report.notes && !report.activity) return report;
     if (dryRun) return report;
     if (now() >= deadline) {
       report.deferred = true;
