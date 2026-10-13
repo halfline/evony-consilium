@@ -183,7 +183,12 @@ export class TeamWorkspace {
       : null;
   }
   publishPlayers(updates) {
-    return this.sync.publish((plan) => applyProfileCaches(plan, updates));
+    const snapshots = this.players.activitySnapshots();
+    return this.sync.publish(
+      (plan) =>
+        mirrorPlayerActivity(applyProfileCaches(plan, updates), snapshots),
+      { silent: true },
+    );
   }
   flush() {
     return Promise.all([this.drafts.flush(), this.editorDrafts.flush()]);
