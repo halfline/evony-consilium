@@ -1,5 +1,6 @@
 import { teamFingerprint } from "./team-collaboration.js";
 import { profileFingerprint } from "./player-document.js";
+import { recordActivity, mergeActivityLogs } from "./activity.js";
 
 const byId = (items = []) => new Map(items.map((item) => [item.id, item]));
 const changed = (a, b) => JSON.stringify(a) !== JSON.stringify(b);
@@ -13,12 +14,37 @@ const playerContent = (player) => {
 const playerChanged = (a, b) =>
   profileFingerprint(playerContent(a)) !== profileFingerprint(playerContent(b));
 
-export function teamCreationActivity(account) {
+export function teamCreationActivity(account, sessionId = null) {
+  return recordActivity([], account, sessionId, ["Created team"])[0];
+}
+
+export function teamLoginActivity(account, sessionId = null) {
+  return recordActivity([], account, sessionId, ["Logged in"])[0];
+}
+
+export function mirrorPlayerActivity(plan, snapshots) {
+  const next = structuredClone(plan);
+  const entries = [];
+  for (const { fileId, version, activityLog } of snapshots) {
+    const player = next.keeps.find(
+      (item) => item.playerSource?.fileId === fileId,
+    );
+    if (!player) continue;
+    if (
+      version !== undefined &&
+      BigInt(version) <= BigInt(player.playerSource.version) &&
+      BigInt(version) > BigInt(player.playerSource.activityVersion || "0")
+    )
+      player.playerSource.activityVersion = version;
+    for (const entry of activityLog) {
+      const source = { kind: "player", fileId, name: player.name };
+      if (version !== undefined) source.version = version;
+      entries.push({ ...entry, source });
+    }
+  }
   return {
-    id: crypto.randomUUID(),
-    at: new Date().toISOString(),
-    account: account?.email || account?.sub || "Unknown Google account",
-    changes: ["Created team"],
+    ...next,
+    activityLog: mergeActivityLogs(plan.activityLog, entries),
   };
 }
 
@@ -62,7 +88,7 @@ export function appendTeamActivity(
   before,
   after,
   account,
-  { sync = false } = {},
+  { sync = false, sessionId = null } = {},
 ) {
   const changes = sync
     ? [
@@ -74,14 +100,11 @@ export function appendTeamActivity(
   if (!changes.length) return after;
   return {
     ...after,
-    activityLog: [
-      ...(after.activityLog || []),
-      {
-        id: crypto.randomUUID(),
-        at: new Date().toISOString(),
-        account: account?.email || account?.sub || "Unknown Google account",
-        changes,
-      },
-    ],
+    activityLog: recordActivity(
+      after.activityLog || [],
+      account,
+      sessionId,
+      changes,
+    ),
   };
 }
