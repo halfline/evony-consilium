@@ -4,7 +4,8 @@ import { profileFingerprint } from "./player-document.js";
 const byId = (items = []) => new Map(items.map((item) => [item.id, item]));
 const changed = (a, b) => JSON.stringify(a) !== JSON.stringify(b);
 const playerContent = (player) => {
-  const { playerSource, ...content } = player;
+  const { playerSource, x, y, w, h, locked, castleOverride, ...content } =
+    player;
   return playerSource
     ? { ...content, playerFileId: playerSource.fileId }
     : content;

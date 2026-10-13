@@ -55,6 +55,7 @@ export function removeMapPlan(plan, id) {
     next.keeps.forEach((player) => {
       player.x = player.y = null;
       player.locked = false;
+      delete player.castleOverride;
     });
     next.structures = [];
     next.obstacles = [];
@@ -81,13 +82,18 @@ export function projectFingerprint(plan) {
     for (const key of [...LAYOUT_FIELDS, "activeMapId"]) delete next[key];
     next.keeps = next.keeps.map((player) => {
       const result = { ...player };
-      for (const key of ["x", "y", "w", "h", "locked"]) delete result[key];
+      for (const key of ["x", "y", "w", "h", "locked", "castleOverride"])
+        delete result[key];
       return result;
     });
-    // Unplaced, unlocked positions are equivalent to missing positions.
+    // Unplaced, unlocked positions without a castle override are equivalent
+    // to missing positions.
     for (const map of next.maps)
       map.layout.positions = map.layout.positions.filter(
-        (position) => position.x !== null || position.locked,
+        (position) =>
+          position.x !== null ||
+          position.locked ||
+          position.castleOverride !== undefined,
       );
   }
   // JSON property order is not a content change (for example, a teammate’s formatter).

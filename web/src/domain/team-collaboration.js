@@ -180,7 +180,7 @@ export function mergeTeamPlans(
   plan.activityLog = [...activity.values()].sort((a, b) =>
     a.at.localeCompare(b.at),
   );
-  // The fingerprint omits unplaced map positions, including their footprints.
+  // The fingerprint omits unplaced default map positions and their footprints.
   // Restore those dimensions from the source player before applying a layout.
   const sourcePlayers = new Map(
     [...local.keeps, ...remote.keeps].map((player) => [player.id, player]),

@@ -13,7 +13,8 @@ export function changeAppearance(plan, id, asset, terrain = null) {
   );
   if (!entity) return plan;
   entity.skin = asset.id;
-  entity.w = entity.h = footprint(asset);
+  if (!player || entity.castleOverride === undefined)
+    entity.w = entity.h = footprint(asset);
   if (
     entity.x !== null &&
     !canPlace(entity, entity.x, entity.y, next, [], terrain)
@@ -23,3 +24,28 @@ export function changeAppearance(plan, id, asset, terrain = null) {
     );
   return next;
 }
+
+// A tactical castle choice belongs to the active layout, never the profile file.
+function mapCastle(plan, id, asset, terrain, override) {
+  if (!plan.maps?.some((map) => map.id === plan.activeMapId))
+    throw new Error("Open a map before choosing its castle.");
+  if (asset?.kind !== "keep") throw new Error("Choose a valid castle.");
+  const next = structuredClone(plan);
+  const player = next.keeps.find((player) => player.id === id);
+  if (!player) throw new Error("Player not found.");
+  if (override) player.castleOverride = asset.id;
+  else delete player.castleOverride;
+  player.w = player.h = footprint(asset);
+  if (
+    player.x !== null &&
+    !canPlace(player, player.x, player.y, next, [], terrain)
+  )
+    throw new Error(
+      "This castle overlaps another tile or the map edge. Move the player before changing the map castle.",
+    );
+  return next;
+}
+export const changeMapCastle = (plan, id, asset, terrain = null) =>
+  mapCastle(plan, id, asset, terrain, true);
+export const useProfileCastle = (plan, id, asset, terrain = null) =>
+  mapCastle(plan, id, asset, terrain, false);

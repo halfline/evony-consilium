@@ -40,13 +40,14 @@ export function createLayout(type = "server", terrain = null) {
 export function captureLayout(plan) {
   return {
     ...Object.fromEntries(LAYOUT_FIELDS.map((key) => [key, copy(plan[key])])),
-    positions: plan.keeps.map(({ id, x, y, w, h, locked }) => ({
+    positions: plan.keeps.map(({ id, x, y, w, h, locked, castleOverride }) => ({
       id,
       x,
       y,
       w,
       h,
       locked,
+      ...(castleOverride === undefined ? {} : { castleOverride }),
     })),
   };
 }
@@ -57,8 +58,9 @@ export function applyLayout(plan, layout) {
   );
   plan.keeps = plan.keeps.map((player) => {
     const position = positions.get(player.id);
+    const { castleOverride, ...profile } = player;
     return {
-      ...player,
+      ...profile,
       ...(position
         ? {
             x: position.x,
@@ -66,6 +68,9 @@ export function applyLayout(plan, layout) {
             w: position.w,
             h: position.h,
             locked: position.locked,
+            ...(position.castleOverride === undefined
+              ? {}
+              : { castleOverride: position.castleOverride }),
           }
         : { x: null, y: null, locked: false }),
     };

@@ -1,4 +1,6 @@
 // Growth ranges come from the client's WorldMapArtResource configuration.
+export const mapSkin = (entity) => entity?.castleOverride ?? entity?.skin;
+
 export function castleForLevel(variants, level) {
   const growth = variants
     .filter((a) => a.minKeepLevel !== undefined)
