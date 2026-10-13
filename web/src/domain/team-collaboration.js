@@ -4,6 +4,7 @@ import { playerProfile } from "./player-document.js";
 import { newerNoteCache } from "./note-document.js";
 import { ensureMapRallySetters } from "./rally.js";
 import { overlap } from "./geometry.js";
+import { mergeActivityLogs } from "./activity.js";
 
 const copy = (value) => structuredClone(value);
 const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -171,15 +172,7 @@ export function mergeTeamPlans(
     ours = canonical(local),
     shared = canonical(remote);
   const plan = merge(original, ours, shared);
-  const activity = new Map();
-  for (const entry of [
-    ...(local.activityLog || []),
-    ...(remote.activityLog || []),
-  ])
-    activity.set(entry.id, entry);
-  plan.activityLog = [...activity.values()].sort((a, b) =>
-    a.at.localeCompare(b.at),
-  );
+  plan.activityLog = mergeActivityLogs(local.activityLog, remote.activityLog);
   // The fingerprint omits unplaced default map positions and their footprints.
   // Restore those dimensions from the source player before applying a layout.
   const sourcePlayers = new Map(
