@@ -116,6 +116,8 @@ export class TeamWorkspace {
         repository.read(`consilium-player:${this.account?.sub}:${id}`),
       writeDraft: (id, draft) =>
         repository.write(draft, `consilium-player:${this.account?.sub}:${id}`),
+      actor: () => this.account,
+      activitySession: () => this.activitySessionId,
     });
     this.drafts = new DraftQueue((data, key) => repository.write(data, key), {
       onError: () => status("Local backup unavailable.", true),
