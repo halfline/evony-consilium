@@ -100,7 +100,11 @@ export async function subcities({ browser }) {
     await page.locator("#subcity-dialog").waitFor({ state: "hidden" });
     assert.match(
       await page.locator("#subcities .subcity-card").first().textContent(),
-      /Japan.*Gold.*321.*654/,
+      /Japan.*321.*654/,
+    );
+    assert.doesNotMatch(
+      await page.locator("#subcities .subcity-card").first().textContent(),
+      /Gold/,
     );
     for (const id of ["famouscity-1001", "famouscity-10001"]) {
       await page.locator("#add-subcity").click();
@@ -151,7 +155,7 @@ export async function subcities({ browser }) {
       (await cards.nth(0).textContent()) + (await cards.nth(1).textContent());
     assert.match(redCards, /Rostock/);
     assert.match(redCards, /Germany Famous City/);
-    assert.match(await cards.nth(2).textContent(), /Japan.*Gold/);
+    assert.match(await cards.nth(2).textContent(), /Japan/);
     assert.notEqual(
       await cards.nth(0).locator("img").getAttribute("src"),
       await cards.nth(1).locator("img").getAttribute("src"),
@@ -168,13 +172,13 @@ export async function subcities({ browser }) {
     await page.locator("#subcities-type").selectOption("Europe");
     assert.equal(await cards.count(), 0);
     await page.locator("#subcities-type").selectOption("");
-    await cards.filter({ hasText: /Japan.*Gold/ }).click();
+    await cards.filter({ hasText: /Japan/ }).click();
     await page.locator("#subcity-castle").click();
     await page.locator("#subcity-search").fill("Japan");
     await page.locator("#subcity-filter-color").selectOption("purple");
     await page.locator('[data-subcity-type="subcity-japan-purple"]').click();
     await page.locator("#subcity-save").click();
-    assert.match(await cards.last().textContent(), /Purple/);
+    assert.doesNotMatch(await cards.last().textContent(), /Purple/);
     await page.locator("#drive-save").click();
     await page.waitForFunction(
       () =>
