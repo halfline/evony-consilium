@@ -133,7 +133,7 @@ def _write_map(key, name, root, sprites, exported, output):
     binary.extend(blocked.tobytes())
     (output / (key + ".bin")).write_bytes(binary)
     Image.fromarray(overview).save(
-        output / (key + "-overview.webp"), "WEBP", quality=90
+        output / (key + "-overview.webp"), "WEBP", lossless=True
     )
     print(key, width, height, "blocked", int(blocked.sum()), flush=True)
     return {
