@@ -4,8 +4,10 @@ import {
   mergePlayerProfiles,
   playerProfile,
   profileFingerprint,
+  playerProfileChanges,
   validateProfile,
 } from "../domain/player-document.js";
+import { recordActivity } from "../domain/activity.js";
 import { OperationCancelled } from "./cancellation.js";
 import { isFileAccessError } from "./google/drive.js";
 
@@ -19,6 +21,8 @@ export class PlayerFiles {
     changed = () => {},
     readDraft = async () => null,
     writeDraft = async () => {},
+    actor = () => null,
+    activitySession = () => null,
   }) {
     Object.assign(this, {
       drive,
@@ -27,6 +31,8 @@ export class PlayerFiles {
       changed,
       readDraft,
       writeDraft,
+      actor,
+      activitySession,
     });
     this.reset();
   }
@@ -87,6 +93,15 @@ export class PlayerFiles {
     if (!entry?.profile || entry.error)
       throw new Error("Player file is unavailable.");
     return linkedPlayer(player, entry.profile, entry.file);
+  }
+  activitySnapshots() {
+    return [...this.#files.entries()]
+      .filter(([, entry]) => !entry.error && Array.isArray(entry.activityLog))
+      .map(([fileId, entry]) => ({
+        fileId,
+        version: entry.file.version,
+        activityLog: structuredClone(entry.activityLog),
+      }));
   }
   async run(id, task, { notifyBusy = true } = {}) {
     const generation = this.generation;
@@ -214,9 +229,15 @@ export class PlayerFiles {
       if (existing)
         return linkedPlayer(player, existing.profile, existing.file);
       const profile = validateProfile(player);
-      const file = await this.drive.createPlayer(profile, folder);
+      const activityLog = recordActivity(
+        [],
+        this.actor(),
+        this.activitySession(),
+        ["Created player file"],
+      );
+      const file = await this.drive.createPlayer(profile, folder, activityLog);
       current();
-      this.#files.set(file.id, { file, profile });
+      this.#files.set(file.id, { file, profile, activityLog });
       this.remember(file.id);
       this.created.set(player.id, { file, profile });
       return linkedPlayer(player, profile, file);
@@ -225,6 +246,8 @@ export class PlayerFiles {
   async saveOwn(player, resolveConflicts = async () => null, baseline = null) {
     const id = player.playerSource?.fileId;
     return this.run(id, async (current) => {
+      const actor = this.actor(),
+        sessionId = this.activitySession();
       const entry = this.#files.get(id);
       if (!entry || entry.error)
         throw new Error("Open player before saving its file.");
@@ -255,16 +278,23 @@ export class PlayerFiles {
           );
         }
         const profile = validateProfile(result.profile);
+        const changes = playerProfileChanges(loaded.profile, profile);
+        const activityLog = recordActivity(
+          loaded.activityLog || [],
+          actor,
+          sessionId,
+          changes,
+        );
         let file;
         try {
-          file = await this.drive.savePlayer(loaded.file, profile);
+          file = await this.drive.savePlayer(loaded.file, profile, activityLog);
         } catch (error) {
           current();
           if (![409, 412].includes(error.status) || attempt === 3) throw error;
           continue;
         }
         current();
-        this.#files.set(id, { file, profile });
+        this.#files.set(id, { file, profile, activityLog });
         await this.writeDraft(id, null);
         current();
         return profile;
@@ -287,7 +317,7 @@ export class PlayerFiles {
         const entry = this.#files.get(source.fileId);
         const loaded =
           entry?.profile && !entry.error && entry.file.version === file.version
-            ? { file, profile: entry.profile }
+            ? { file, profile: entry.profile, activityLog: entry.activityLog }
             : await this.drive.loadPlayer(file);
         current();
         const profile = validateProfile(loaded.profile);
