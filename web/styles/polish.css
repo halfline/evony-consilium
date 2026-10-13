@@ -488,7 +488,8 @@ h2 {
   min-height: 42px;
   font-size: 15px;
 }
-.subcity-card .subcity-portrait {
+.subcity-card .subcity-portrait,
+.subcity-choice .subcity-portrait {
   margin-bottom: 8px;
   border-width: 2px;
   border-color: var(--subcity-color);
