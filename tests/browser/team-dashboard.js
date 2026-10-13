@@ -43,11 +43,60 @@ export async function teamDashboard({ page, driveFiles, projectLogo }) {
   assert.equal(await page.locator("#project-reload").isVisible(), false);
   await page.locator('[data-screen="project"]').click();
   assert.equal(await page.locator("#project-screen").isVisible(), true);
+  watchedFormation.data.plan.activityLog.push(
+    {
+      id: "audit-first",
+      at: "2030-01-01T12:00:00.000Z",
+      account: "audit-a@example.test",
+      sessionId: "audit-a",
+      changes: ["Updated name"],
+      source: {
+        kind: "player",
+        fileId: "audit-player-one",
+        name: "First player",
+      },
+    },
+    {
+      id: "audit-barrier",
+      at: "2030-01-01T12:00:01.000Z",
+      account: "audit-b@example.test",
+      sessionId: "audit-b",
+      changes: ["Updated castle"],
+      source: {
+        kind: "player",
+        fileId: "audit-player-two",
+        name: "Second player",
+      },
+    },
+    {
+      id: "audit-resumed",
+      at: "2030-01-01T12:00:02.000Z",
+      account: "audit-a@example.test",
+      sessionId: "audit-a",
+      changes: ["Updated keep level"],
+      source: {
+        kind: "player",
+        fileId: "audit-player-one",
+        name: "First player",
+      },
+    },
+  );
   await page.locator("#team-activity").click();
   await page.locator("#team-activity-content li").first().waitFor();
   assert.match(
     await page.locator("#team-activity-content").textContent(),
     /team@example\.test/,
+  );
+  assert.equal(
+    await page
+      .locator("#team-activity-content strong")
+      .filter({ hasText: "audit-a@example.test" })
+      .count(),
+    2,
+  );
+  assert.match(
+    await page.locator("#team-activity-content").textContent(),
+    /First player: Updated keep level/,
   );
   await page.getByRole("button", { name: "Close activity log" }).click();
   assert.equal(
