@@ -5,6 +5,7 @@ import {
   validateProfile,
   playerDocument,
   readPlayerDocument,
+  readPlayerActivity,
   linkedPlayer,
   mergePlayerProfiles,
 } from "../web/src/domain/player-document.js";
@@ -26,6 +27,11 @@ test("player documents contain profiles without roster identity or map data", ()
   };
   const document = playerDocument(input);
   assert.deepEqual(readPlayerDocument(document), validateProfile(input));
+  assert.deepEqual(readPlayerActivity(document), []);
+  assert.deepEqual(
+    readPlayerActivity({ ...document, activityLog: undefined }),
+    [],
+  );
   for (const field of [
     "id",
     "x",
@@ -42,6 +48,20 @@ test("player documents contain profiles without roster identity or map data", ()
     /not.*player/,
   );
   assert.throws(() => playerDocument({ ...input, level: 0 }), /keep level/);
+});
+
+test("malformed player audit entries are rejected before saving or syncing", () => {
+  const document = playerDocument(player());
+  for (const activityLog of [
+    null,
+    {},
+    [null],
+    [{ id: "bad", at: "yesterday", account: "a", changes: "text" }],
+  ])
+    assert.throws(
+      () => readPlayerActivity({ ...document, activityLog }),
+      /Invalid activity/,
+    );
 });
 test("linking keeps placements and caches the entire profile with a baseline", () => {
   const input = player();
