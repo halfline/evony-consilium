@@ -1,5 +1,6 @@
 import { editPlayerProfile } from "./players.js";
 import { canPlace } from "./placement.js";
+import { footprint } from "./entities.js";
 
 export function changeAppearance(plan, id, asset, terrain = null) {
   if (!asset) throw new Error("That appearance is unavailable.");
@@ -12,13 +13,13 @@ export function changeAppearance(plan, id, asset, terrain = null) {
   );
   if (!entity) return plan;
   entity.skin = asset.id;
-  if (asset.footprint) entity.w = entity.h = asset.footprint;
+  entity.w = entity.h = footprint(asset);
   if (
     entity.x !== null &&
     !canPlace(entity, entity.x, entity.y, next, [], terrain)
   )
     throw new Error(
-      "The game footprint overlaps another tile or the map edge. Move this building before applying its game size.",
+      "This appearance overlaps another tile or the map edge. Move the building before changing its appearance.",
     );
   return next;
 }

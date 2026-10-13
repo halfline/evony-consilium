@@ -29,6 +29,12 @@ function fixture(collection) {
   };
 }
 for (const collection of ["keeps", "structures"]) {
+  test(`${collection} appearance changes reset an old footprint when the asset uses the default size`, () => {
+    const plan = fixture(collection);
+    plan[collection][0].w = plan[collection][0].h = 5;
+    const next = changeAppearance(plan, "a", { id: "default" });
+    assert.deepEqual([next[collection][0].w, next[collection][0].h], [2, 2]);
+  });
   test(`${collection} appearance changes share footprint checks and preserve the input`, () => {
     const plan = fixture(collection);
     const snapshot = structuredClone(plan);
