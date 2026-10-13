@@ -19,8 +19,8 @@ export function drawEntity(view, e, p, z, fixed, { deferLabel = false } = {}) {
   if (z < 0.16 && !major) {
     if (fixed) return;
     c.beginPath();
-    c.arc(center.x, center.y, selected ? 6 : rally ? 5 : 3, 0, Math.PI * 2);
-    c.fillStyle = obstacle ? "#e5a887" : rally ? "#f4d386" : "#e0e9ce";
+    c.arc(center.x, center.y, selected ? 6 : 3, 0, Math.PI * 2);
+    c.fillStyle = obstacle ? "#e5a887" : "#e0e9ce";
     c.fill();
     c.strokeStyle = "#233529";
     c.lineWidth = 1;
@@ -52,10 +52,10 @@ export function drawEntity(view, e, p, z, fixed, { deferLabel = false } = {}) {
     c.strokeStyle = "#e6b19788";
     c.lineWidth = 1;
     c.stroke();
-  } else if (!fixed && (selected || rally || e.locked)) {
+  } else if (!fixed && (selected || e.locked)) {
     c.fillStyle = selected ? "#e7d59728" : "#22372620";
     c.fill();
-    c.strokeStyle = selected ? "#fff0b4" : rally ? "#e1c678" : "#b1d0ba";
+    c.strokeStyle = selected ? "#fff0b4" : "#b1d0ba";
     c.lineWidth = selected ? 2 : 1.2;
     c.stroke();
   }
@@ -104,22 +104,6 @@ export function drawEntity(view, e, p, z, fixed, { deferLabel = false } = {}) {
       c.fillText("♜", center.x, center.y);
     }
   }
-  if (rally) {
-    c.strokeStyle = "#e6cf86";
-    c.lineWidth = 1.3;
-    const radius = Math.max(5, 18 * z);
-    c.beginPath();
-    c.ellipse(
-      center.x,
-      center.y + 7 * z,
-      Math.max(10, 75 * z),
-      radius,
-      0,
-      0,
-      Math.PI * 2,
-    );
-    c.stroke();
-  }
   if (!fixed)
     view.hits.push({
       id: e.id,
@@ -154,11 +138,11 @@ export function drawEntityLabel(
       (rally ? "★ " : "") +
       (e.allianceTag ? "[" + e.allianceTag + "] " : "") +
       e.name;
-    const font = selected || rally ? 13 : 11;
+    const font = selected ? 13 : 11;
     c.font = `500 ${font}px "DM Sans", sans-serif`;
     c.textAlign = "center";
     c.textBaseline = "middle";
-    const limit = selected || rally ? 40 : 26;
+    const limit = selected ? 40 : 26;
     const text = label.length > limit ? label.slice(0, limit - 1) + "…" : label;
     const tw = c.measureText(text).width;
     const ly = center.y + Math.max(14, 24 * spriteZoom);
@@ -179,9 +163,9 @@ export function drawEntityLabel(
     )
       return;
     occupied?.push(bounds);
-    c.fillStyle = selected || rally ? "#e2c68e" : "#101e17ee";
+    c.fillStyle = selected ? "#e2c68e" : "#101e17ee";
     c.fillRect(bounds.left, bounds.top, tw + 14, 22);
-    c.fillStyle = selected || rally ? "#14251b" : "#f0eee2";
+    c.fillStyle = selected ? "#14251b" : "#f0eee2";
     c.fillText(text, center.x, ly + 0.5);
     if ("level" in e && z >= 0.16) {
       c.font = `600 ${Math.max(8, 10 * z)}px "DM Sans", sans-serif`;

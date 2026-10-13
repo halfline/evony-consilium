@@ -478,12 +478,10 @@ canvas:focus-visible {
   color: #ccd5bd;
   border-top: 1px solid #64725a;
 }
-.legend-ring {
+.legend-star {
   display: inline-block;
-  width: 9px;
-  height: 9px;
-  border: 1px solid var(--gold);
-  border-radius: 50%;
+  color: var(--gold);
+  font-style: normal;
   margin: 0 6px 0 12px;
 }
 .legend-square {
