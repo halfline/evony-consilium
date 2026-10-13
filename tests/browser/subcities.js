@@ -106,6 +106,13 @@ export async function subcities({ browser }) {
       await page.locator("#subcities .subcity-card").first().textContent(),
       /Gold/,
     );
+    assert.equal(
+      await page
+        .locator("#subcities .subcity-portrait")
+        .first()
+        .evaluate((portrait) => getComputedStyle(portrait).borderColor),
+      "rgb(203, 180, 119)",
+    );
     for (const id of ["famouscity-1001", "famouscity-10001"]) {
       await page.locator("#add-subcity").click();
       await page.locator("#subcity-castle").click();
@@ -179,6 +186,13 @@ export async function subcities({ browser }) {
     await page.locator('[data-subcity-type="subcity-japan-purple"]').click();
     await page.locator("#subcity-save").click();
     assert.doesNotMatch(await cards.last().textContent(), /Purple/);
+    assert.equal(
+      await cards
+        .last()
+        .locator(".subcity-portrait")
+        .evaluate((portrait) => getComputedStyle(portrait).borderColor),
+      "rgb(181, 138, 221)",
+    );
     await page.locator("#drive-save").click();
     await page.waitForFunction(
       () =>
