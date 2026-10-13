@@ -1,7 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { TeamWorkspace } from "../web/src/services/team-workspace.js";
-import { createEmptyPlan } from "../web/src/domain/plan.js";
+import { createEmptyPlan, createDemoPlan } from "../web/src/domain/plan.js";
+import { linkedPlayer } from "../web/src/domain/player-document.js";
+import { catalog } from "./fixtures/catalog.js";
 
 function fixture({ canEdit = true, cached = null } = {}) {
   let plan = createEmptyPlan();
@@ -31,6 +33,13 @@ function fixture({ canEdit = true, cached = null } = {}) {
     children: async () => [],
     project: async () => ({ folder: { ...folder }, file: { ...file } }),
     load: async () => ({ file: { ...file }, plan: structuredClone(shared) }),
+    save: async (source, data) => {
+      if (source.version !== file.version)
+        throw Object.assign(new Error("Changed"), { status: 412 });
+      Object.assign(shared, structuredClone(data));
+      file.version = String(Number(file.version) + 1);
+      return { ...source, version: file.version };
+    },
     createFolder: async (name) => ({ ...folder, name }),
     initializeProject: async (folder, data) => Object.assign(shared, data),
   };
@@ -43,6 +52,9 @@ function fixture({ canEdit = true, cached = null } = {}) {
     openPlan: (data) => {
       plan = data;
       events.push("open");
+    },
+    applyPlan: (data) => {
+      plan = data;
     },
     setReadOnly: (value) => events.push(value ? "view" : "edit"),
     status: () => {},
@@ -67,9 +79,127 @@ test("team access keeps authorization, draft recovery, and remembering independe
   await f.workspace.open({ id: "folder" });
   assert.equal(f.getPlan().title, "Shared");
   assert.equal(f.workspace.list()[0].teamFileId, "file");
-  assert.deepEqual(f.events, ["open", "edit", "edit"]);
+  assert.equal(f.events[0], "open");
+  assert.ok(f.events.slice(1).every((event) => event === "edit"));
   await f.workspace.forget("folder");
   assert.equal(f.workspace.list().length, 0);
+});
+
+test("opening a team records one login per sign-in session", async () => {
+  const f = fixture();
+  await f.workspace.signIn();
+  await f.workspace.open({ id: "folder" });
+  assert.deepEqual(
+    f.shared.activityLog?.map((entry) => entry.changes),
+    [["Logged in"]],
+  );
+  assert.equal(f.shared.activityLog[0].account, "account");
+  await f.workspace.open({ id: "folder" });
+  assert.equal(f.shared.activityLog.length, 1);
+  await f.workspace.signIn();
+  await f.workspace.open({ id: "folder" });
+  assert.equal(f.shared.activityLog.length, 2);
+});
+
+for (const knownBase of [true, false])
+  test(`login publishes without changing a stale draft with ${knownBase ? "a known" : "an unknown"} baseline`, async () => {
+    const cached = {
+      plan: { ...createEmptyPlan(), title: "Unfinished edits" },
+      baseVersion: "2",
+      dirty: true,
+      ...(knownBase
+        ? { basePlan: { ...createEmptyPlan(), title: "Original team" } }
+        : {}),
+    };
+    const f = fixture({ cached });
+    await f.workspace.signIn();
+    await f.workspace.open({ id: "folder" });
+    assert.equal(f.shared.title, "Shared");
+    assert.deepEqual(
+      f.shared.activityLog.map((entry) => entry.changes),
+      [["Logged in"]],
+    );
+    assert.equal(f.getPlan().title, "Unfinished edits");
+    assert.equal(f.workspace.sync.file.version, "2");
+    assert.equal(f.workspace.sync.remoteChanged, true);
+    assert.equal(f.workspace.sync.baselineKnown, knownBase);
+    if (knownBase)
+      assert.equal(f.workspace.sync.basePlan.title, "Original team");
+    assert.equal(f.workspace.sync.dirty, true);
+  });
+
+test("a failed login write retries the same event without duplication", async () => {
+  const f = fixture();
+  const save = f.drive.save;
+  let calls = 0;
+  f.drive.save = async (...args) => {
+    if (!calls++) throw new Error("Offline");
+    return save(...args);
+  };
+  await f.workspace.signIn();
+  await f.workspace.open({ id: "folder" });
+  assert.equal(f.shared.activityLog, undefined);
+  await f.workspace.recordLogin();
+  await f.workspace.recordLogin();
+  assert.equal(f.shared.activityLog.length, 1);
+});
+
+test("the first team save includes newly linked players' audit entries", async () => {
+  const f = fixture();
+  await f.workspace.signIn();
+  await f.workspace.open({ id: "folder" });
+  const player = linkedPlayer(
+    createDemoPlan(catalog).keeps[0],
+    createDemoPlan(catalog).keeps[0],
+    { id: "player-file", version: "1" },
+  );
+  f.getPlan().keeps.push(player);
+  f.workspace.players.activitySnapshots = () => [
+    {
+      fileId: "player-file",
+      version: "1",
+      activityLog: [
+        {
+          id: "created-player",
+          at: "2026-01-01T12:00:00.000Z",
+          account: "founder",
+          changes: ["Created player file"],
+        },
+      ],
+    },
+  ];
+  f.workspace.sync.changed();
+  await f.workspace.save();
+  assert.equal(f.shared.keeps[0].playerSource.activityVersion, "1");
+  assert.equal(
+    f.shared.activityLog.find((entry) => entry.id === "created-player").source
+      .fileId,
+    "player-file",
+  );
+});
+
+test("activity reads the team document's global log without sync notices", async () => {
+  const f = fixture();
+  await f.workspace.signIn();
+  await f.workspace.open({ id: "folder" });
+  f.shared.activityLog.push(
+    {
+      id: "player-edit",
+      at: "2026-01-01T00:00:00.000Z",
+      account: "member@example.test",
+      source: { kind: "player", fileId: "player-file", name: "Matti" },
+      changes: ["Updated name"],
+    },
+    {
+      id: "old-sync",
+      at: "2026-01-01T00:00:01.000Z",
+      account: "member@example.test",
+      changes: ["Synced player files into the team"],
+    },
+  );
+  const entries = await f.workspace.activity();
+  assert.equal(entries.length, 2);
+  assert.deepEqual(entries[0].changes, ["Matti: Updated name"]);
 });
 
 test("viewers read shared content without destroying an editor's unsaved local draft", async () => {
@@ -86,6 +216,7 @@ test("viewers read shared content without destroying an editor's unsaved local d
   assert.equal(f.writes.length, 0);
   assert.equal(cached.plan.title, "Local edits");
   assert.equal(f.workspace.sync.state().disabled, true);
+  assert.equal(f.shared.activityLog, undefined);
 });
 
 test("navigation flushes the outgoing team's latest edits under its original key", async () => {
