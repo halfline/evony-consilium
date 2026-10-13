@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { TeamStore } from "../web/src/application/team-store.js";
 import { createDemoPlan } from "../web/src/domain/plan.js";
+import { linkedPlayer } from "../web/src/domain/player-document.js";
 import {
   createMapPlan,
   projectFingerprint,
@@ -65,6 +66,34 @@ test("no-op edits do not enable Undo or schedule an edit notification", () => {
   );
   assert.equal(store.canUndo, false);
   assert.deepEqual(changes, []);
+});
+
+test("audit-only refreshes retain history without rebuilding unchanged views", () => {
+  const store = fixture();
+  const initial = structuredClone(store.plan);
+  initial.keeps[0] = linkedPlayer(initial.keeps[0], initial.keeps[0], {
+    id: "player-file",
+    version: "1",
+  });
+  store.replace(initial);
+  const events = [];
+  store.subscribe(({ kind }) => events.push(kind));
+  const next = structuredClone(store.plan);
+  next.activityLog = [
+    {
+      id: "entry",
+      at: "2026-01-01T12:00:00.000Z",
+      account: "alice",
+      changes: ["Logged in"],
+    },
+  ];
+  next.keeps[0].playerSource.activityVersion = "1";
+  store.refresh(next);
+  assert.deepEqual(events, []);
+  assert.deepEqual(store.plan.activityLog, next.activityLog);
+  assert.equal(store.plan.keeps[0].playerSource.activityVersion, "1");
+  store.refresh({ ...next, title: "Visible update" });
+  assert.deepEqual(events, ["refresh"]);
 });
 test("undo is bounded and listeners can be removed", () => {
   const store = fixture({ historyLimit: 2 });
