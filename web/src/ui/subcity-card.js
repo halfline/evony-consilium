@@ -35,14 +35,18 @@ export function createSubcityCard({
   caption.textContent = customName || cityName;
   caption.title = caption.textContent;
   button.title = `${caption.textContent} · ${city.culture} · ${color.name}`;
-  const details = document.createElement("span");
-  details.className = "subcity-details";
-  details.textContent = `${customName ? cityName + " · " : ""}${color.name}`;
   const coordinates = document.createElement("span");
   coordinates.className = "subcity-coordinates";
   coordinates.textContent =
     city.x === null ? "Coordinates not set" : `X: ${city.x} · Y: ${city.y}`;
-  button.append(portrait, caption, details, coordinates);
+  button.append(portrait, caption);
+  if (customName) {
+    const details = document.createElement("span");
+    details.className = "subcity-details";
+    details.textContent = cityName;
+    button.append(details);
+  }
+  button.append(coordinates);
   if (owner !== undefined) {
     const name = document.createElement("span");
     name.className = "subcity-owner";
