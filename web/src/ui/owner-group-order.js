@@ -1,4 +1,9 @@
-export function orderByPlayerOwner(plan, items, ownerId) {
+export function orderByPlayerOwner(
+  plan,
+  items,
+  ownerId,
+  withinGroup = () => 0,
+) {
   const players = plan.keeps.filter((player) => player.ownerId == null);
   players.sort((a, b) => b.level - a.level);
   const rank = new Map(players.map((player, index) => [player.id, index]));
@@ -7,5 +12,5 @@ export function orderByPlayerOwner(plan, items, ownerId) {
     const id = ownerId(item);
     return rank.get(byId.get(id)?.ownerId || id) ?? Infinity;
   };
-  return items.sort((a, b) => group(a) - group(b));
+  return items.sort((a, b) => group(a) - group(b) || withinGroup(a, b));
 }
