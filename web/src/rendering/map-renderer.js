@@ -2,7 +2,7 @@ import { drawSubcities } from "./subcity-painter.js";
 import { drawTerrain, drawMoatOverlay } from "./terrain-painter.js";
 import { drawEntity, paintEntityLabels } from "./entity-painter.js";
 import { ImageCache } from "./image-cache.js";
-import { project, unproject } from "../domain/geometry.js";
+import { overlap, project, unproject } from "../domain/geometry.js";
 import { hiveBoundaries } from "../domain/hive-boundary.js";
 export class MapRenderer {
   constructor(
@@ -94,12 +94,20 @@ export class MapRenderer {
   fit(whole = false) {
     const p = this.getPlan();
     const extent = this.terrainFor(p.map)?.extent ?? p.extent;
-    const list = [
+    const boundaries = hiveBoundaries(p, this.assets);
+    let list = [
       ...p.keeps,
       ...p.structures,
       ...p.obstacles,
-      ...hiveBoundaries(p, this.assets),
+      ...boundaries,
     ].filter((e) => e.x !== null);
+    if (!whole && p.map === "server" && boundaries.length) {
+      list = list.filter(
+        (entity) =>
+          boundaries.includes(entity) ||
+          boundaries.some((boundary) => overlap(entity, boundary)),
+      );
+    }
     let points = [];
     if (whole)
       points = [
