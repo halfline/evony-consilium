@@ -15,6 +15,7 @@ import {
 import { createEmptyPlan } from "../domain/plan.js";
 import { parseTeamLink } from "../domain/drive-links.js";
 import { isFileAccessError } from "./google/drive.js";
+import { groupActivityEntries } from "../domain/activity.js";
 import {
   teamCreationActivity,
   teamLoginActivity,
@@ -64,7 +65,14 @@ export class TeamWorkspace {
   async activity() {
     if (!this.sync.file) return [];
     const loaded = await this.drive.load(this.sync.file);
-    return loaded.plan.activityLog || [];
+    const entries = (loaded.plan.activityLog || [])
+      .filter(
+        (entry) =>
+          entry.changes?.length !== 1 ||
+          entry.changes[0] !== "Synced player files into the team",
+      )
+      .sort((a, b) => a.at.localeCompare(b.at));
+    return groupActivityEntries(entries);
   }
   reload() {
     return this.open(this.project.folder, true, true);
