@@ -18,6 +18,7 @@ import { isFileAccessError } from "./google/drive.js";
 import {
   teamCreationActivity,
   teamLoginActivity,
+  mirrorPlayerActivity,
 } from "../domain/team-activity.js";
 
 // Account and shared-document lifetime; callers supply presentation callbacks.
@@ -147,6 +148,8 @@ export class TeamWorkspace {
       resolve: resolveTeamConflicts,
       activityActor: () => this.account,
       activitySession: () => this.activitySessionId,
+      prepareSave: (plan) =>
+        mirrorPlayerActivity(plan, this.players.activitySnapshots()),
       status,
       expired,
       canCheck: () => canCheck() && !!session.token(),
