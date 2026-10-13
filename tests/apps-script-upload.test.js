@@ -126,6 +126,8 @@ test("linking is local and requires an explicit replacement to switch projects",
 
 test("upload rebuilds code while preserving downloaded Config and extra project files", async (t) => {
   const options = await fixture(t);
+  const remoteManifest =
+    (await readFile("apps-script/appsscript.json", "utf8")) + "\n";
   const remoteConfig =
     'function consiliumConfig_() { return { teamFileId: "live-team", folderId: "live-folder" }; }\n';
   const calls = [];
@@ -143,7 +145,7 @@ test("upload rebuilds code while preserving downloaded Config and extra project 
         writeFile(join(cwd, "Code.gs"), "old sync code"),
         writeFile(join(cwd, "Custom.gs"), "function custom() {}"),
         writeFile(join(cwd, "Template.html"), "<p>Extra project file</p>"),
-        writeFile(join(cwd, "appsscript.json"), '{"runtimeVersion":"V8"}'),
+        writeFile(join(cwd, "appsscript.json"), remoteManifest),
       ]);
     } else {
       assert.equal(args.includes("--force"), false);
@@ -165,6 +167,10 @@ test("upload rebuilds code while preserving downloaded Config and extra project 
       );
       const manifest = JSON.parse(
         await readFile(join(cwd, "appsscript.json"), "utf8"),
+      );
+      assert.equal(
+        await readFile(join(cwd, "appsscript.json"), "utf8"),
+        remoteManifest,
       );
       assert.ok(
         manifest.oauthScopes.includes("https://www.googleapis.com/auth/drive"),
@@ -191,7 +197,10 @@ test("a new project receives a Config template during its first upload", async (
     ...options,
     run: async (args, { cwd }) => {
       if (args.at(-1) === "pull") {
-        await writeFile(join(cwd, "appsscript.json"), "{}");
+        await writeFile(
+          join(cwd, "appsscript.json"),
+          await readFile("apps-script/appsscript.json", "utf8"),
+        );
       } else {
         assert.match(
           await readFile(join(cwd, "Config.gs"), "utf8"),
