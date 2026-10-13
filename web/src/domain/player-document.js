@@ -1,4 +1,5 @@
 import { validatePlayerProfile } from "./players.js";
+import { readActivityLog } from "./activity.js";
 
 const FIELDS = [
   "name",
@@ -31,17 +32,41 @@ export function validateProfile(input) {
     throw new Error("Invalid player name or castle.");
   return profile;
 }
-export function playerDocument(profile) {
+export function playerDocument(profile, activityLog = []) {
   return {
     format: "evony-consilium-player",
     schema: 1,
     profile: validateProfile(profile),
+    activityLog: readActivityLog(activityLog),
   };
 }
 export function readPlayerDocument(input) {
   if (input?.format !== "evony-consilium-player" || input.schema !== 1)
     throw new Error("This file is not an Evony Consilium player.");
   return validateProfile(input.profile);
+}
+export function readPlayerActivity(input) {
+  if (input?.format !== "evony-consilium-player" || input.schema !== 1)
+    throw new Error("This file is not an Evony Consilium player.");
+  return readActivityLog(input.activityLog);
+}
+export function playerProfileChanges(before, after) {
+  const labels = {
+    name: "name",
+    accountId: "account ID",
+    allianceTag: "alliance tag",
+    level: "keep level",
+    skin: "castle",
+    avatarId: "avatar",
+    details: "profile details",
+  };
+  return Object.entries(labels)
+    .filter(
+      ([field]) =>
+        profileFingerprint(before?.[field]) !==
+        profileFingerprint(after?.[field]),
+    )
+    .map(([, label]) => `Updated ${label}`);
 }
 export function validatePlayerSource(source) {
   if (
@@ -58,6 +83,12 @@ export function validatePlayerSource(source) {
     !Number.isFinite(Date.parse(source.syncedAt))
   )
     throw new Error("Invalid player file link.");
+  if (
+    source.activityVersion !== undefined &&
+    (typeof source.activityVersion !== "string" ||
+      !/^\d{1,100}$/.test(source.activityVersion))
+  )
+    throw new Error("Invalid player activity revision.");
   source.baseline = validateProfile(source.baseline);
 }
 export function applyPlayerProfile(player, profile) {
