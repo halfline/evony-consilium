@@ -42,6 +42,7 @@ function fixture() {
         resourceKey: "source-key",
       }),
     );
+    player.playerSource.activityVersion = "1";
   }
   plan.keeps[1].ownerId = "main";
   plan.rallyId = "main";
@@ -201,6 +202,34 @@ test("unchanged revisions need no source downloads, timestamps, or uploads", () 
   assert.equal(report.written, false);
   assert.deepEqual(f.loads, ["team"]);
   assert.deepEqual(f.writes, []);
+});
+
+test("unattended sync mirrors player history and backfills an already-current cache", () => {
+  const f = fixture();
+  const entry = {
+    id: "audit-main",
+    sessionId: "session-main",
+    revision: 1,
+    at: stamp,
+    account: "member@example.test",
+    changes: ["Updated profile details"],
+  };
+  const source = f.files.get("profile-main");
+  source.document.activityLog = [entry];
+  f.plan.keeps[0].playerSource.version = source.file.version;
+  delete f.plan.keeps[0].playerSource.activityVersion;
+  const report = f.run();
+  assert.equal(report.activity, 1);
+  assert.equal(report.written, true);
+  const saved = f.writes[0].plan;
+  assert.equal(saved.activityLog[0].account, "member@example.test");
+  assert.equal(saved.activityLog[0].source.fileId, "profile-main");
+  assert.equal(saved.activityLog[0].source.version, source.file.version);
+  assert.equal(
+    saved.keeps[0].playerSource.activityVersion,
+    source.file.version,
+  );
+  assert.equal(f.run().written, false);
 });
 
 test("dry runs inspect changed sources but never publish them", () => {
