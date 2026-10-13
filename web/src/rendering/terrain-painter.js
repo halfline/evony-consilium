@@ -6,6 +6,7 @@ export function drawTerrain(view, terrain, minX, minY, maxX, maxY, grid) {
   const overview = view.image(terrain.overview);
   if (overview) {
     c.save();
+    c.imageSmoothingEnabled = false;
     c.transform(grid.ax, grid.ay, grid.bx, grid.by, 0, 0);
     c.drawImage(overview, 0, 0, terrain.width, terrain.height);
     c.restore();
