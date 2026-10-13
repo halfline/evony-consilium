@@ -2,6 +2,7 @@
 // conditional writes, but a background publication never includes local edits.
 import { isFileAccessError } from "./google/drive.js";
 import { appendTeamActivity } from "../domain/team-activity.js";
+import { mergeActivityLogs } from "../domain/activity.js";
 export class ProjectSync {
   constructor({
     drive,
@@ -21,6 +22,8 @@ export class ProjectSync {
     validate = () => {},
     resolve = async () => null,
     activityActor = null,
+    activitySession = () => null,
+    prepareSave = (plan) => plan,
   }) {
     Object.assign(this, {
       drive,
@@ -40,6 +43,8 @@ export class ProjectSync {
       validate,
       resolve,
       activityActor,
+      activitySession,
+      prepareSave,
     });
     this.reset();
   }
@@ -245,24 +250,31 @@ export class ProjectSync {
       // A later interval retries network failures; conflicts require review.
     }
   }
-  async publish(transform) {
+  async publish(transform, { activity = null, silent = false } = {}) {
     if (
       !this.file?.capabilities?.canEdit ||
       this.saving ||
-      this.remoteChanged ||
-      !this.baselineKnown
+      (!activity && (this.remoteChanged || !this.baselineKnown))
     )
       return;
     const next = transform(structuredClone(this.basePlan));
-    if (JSON.stringify(next) === JSON.stringify(this.basePlan)) return;
-    return this.upload(transform);
+    if (!activity && JSON.stringify(next) === JSON.stringify(this.basePlan))
+      return;
+    return this.upload(transform, { activity, silent });
   }
-  async upload(transform, { interactive = true } = {}) {
+  async upload(
+    transform,
+    { interactive = true, activity = null, silent = false } = {},
+  ) {
     const generation = this.generation,
       current = () => this.generation === generation;
     const key = this.key(),
       originalBase = this.basePlan,
       originalVersion = this.file.version;
+    const preserveBaseline =
+      !!activity && (this.remoteChanged || !this.baselineKnown);
+    const actor = this.activityActor?.(),
+      sessionId = this.activitySession();
     let source = this.file,
       remote = originalBase;
     this.saving = true;
@@ -272,17 +284,29 @@ export class ProjectSync {
     try {
       await this.flush();
       if (!current()) return;
-      const snapshot = structuredClone(this.getPlan());
+      const snapshot = transform
+        ? structuredClone(this.getPlan())
+        : this.prepareSave(structuredClone(this.getPlan()));
       let candidate = transform ? transform(structuredClone(remote)) : snapshot;
       this.validate(candidate);
       let file;
       for (let attempt = 0; attempt < 4; attempt++) {
         try {
-          const saving = this.activityActor
-            ? appendTeamActivity(remote, candidate, this.activityActor(), {
-                sync: !!transform,
-              })
-            : candidate;
+          const saving = activity
+            ? {
+                ...candidate,
+                activityLog: mergeActivityLogs(candidate.activityLog, [
+                  activity,
+                ]),
+              }
+            : silent
+              ? candidate
+              : this.activityActor
+                ? appendTeamActivity(remote, candidate, actor, {
+                    sync: !!transform,
+                    sessionId,
+                  })
+                : candidate;
           file = await this.drive.save(source, saving);
           candidate = saving;
           break;
@@ -320,7 +344,15 @@ export class ProjectSync {
       if (!current()) return;
       let plan = this.getPlan();
       let pendingConflicts = false;
-      if (this.merge && this.applyPlan) {
+      if (preserveBaseline) {
+        plan = {
+          ...plan,
+          activityLog: mergeActivityLogs(
+            plan.activityLog,
+            candidate.activityLog,
+          ),
+        };
+      } else if (this.merge && this.applyPlan) {
         // Edits made during an upload stay local. Cache publications include
         // only the source updates; they cannot accidentally save a formation.
         const result = this.merge(
@@ -333,7 +365,15 @@ export class ProjectSync {
         pendingConflicts = !!transform && result.conflicts.length > 0;
         this.validate(plan);
       }
-      if (pendingConflicts) {
+      if (preserveBaseline) {
+        this.file = { ...file, version: originalVersion };
+        this.remoteChanged = true;
+        this.applyPlan?.(plan, {
+          base: originalBase,
+          remote: { ...originalBase, activityLog: plan.activityLog },
+        });
+        this.changed();
+      } else if (pendingConflicts) {
         // Publishing caches must not bless an overlapping local planning edit.
         // Retain its original baseline so Save still reviews that conflict.
         this.file = { ...file, version: originalVersion };
@@ -351,6 +391,7 @@ export class ProjectSync {
       }
       await this.writeDraft(this.draft(this.getPlan()), key);
       if (current()) this.saved();
+      return candidate;
     } catch (error) {
       if (!current()) return;
       if ([409, 412].includes(error.status)) this.remoteChanged = true;
