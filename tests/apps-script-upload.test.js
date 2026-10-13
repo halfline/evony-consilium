@@ -211,6 +211,23 @@ test("a new project receives a Config template during its first upload", async (
   });
 });
 
+test("a real manifest change stops before a noninteractive push", async (t) => {
+  const options = await fixture(t);
+  const calls = [];
+  await assert.rejects(
+    uploadProject({
+      ...options,
+      run: async (args, { cwd }) => {
+        calls.push(args.at(-1));
+        if (args.at(-1) === "pull")
+          await writeFile(join(cwd, "appsscript.json"), "{}");
+      },
+    }),
+    /manifest changed/,
+  );
+  assert.deepEqual(calls, ["pull"]);
+});
+
 test("failed download never builds or uploads and removes staging files", async (t) => {
   const options = await fixture(t);
   let calls = 0;
