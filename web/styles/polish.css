@@ -491,6 +491,7 @@ h2 {
 .subcity-card .subcity-portrait {
   margin-bottom: 8px;
   border-width: 2px;
+  border-color: var(--subcity-color);
 }
 .subcity-owner {
   font-size: 12px;
