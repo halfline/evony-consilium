@@ -15,6 +15,7 @@ import { playerCreation } from "./browser/players.js";
 import { mapSelection } from "./browser/maps.js";
 import { playerAppearance } from "./browser/player-appearance.js";
 import { mapEditing } from "./browser/map-editing.js";
+import { mapCastles } from "./browser/map-castles.js";
 import { teamDashboard } from "./browser/team-dashboard.js";
 import { teamSharing } from "./browser/team-sharing.js";
 import { terrainAndMobile } from "./browser/terrain.js";
@@ -92,6 +93,7 @@ try {
   await playerImport({ browser });
   await playerNotes({ browser });
   await unattendedSync({ browser });
+  await mapCastles({ browser });
   await autosave({ browser });
   await teamCollaboration({ browser });
   await subcities({ browser });

@@ -1,4 +1,9 @@
-import { changeAppearance } from "../domain/appearance-commands.js";
+import {
+  changeAppearance,
+  changeMapCastle,
+  useProfileCastle,
+} from "../domain/appearance-commands.js";
+import { mapSkin } from "../domain/castles.js";
 import { canPlace } from "../domain/placement.js";
 import { validatePlan } from "../domain/validation.js";
 import { renderCastleButton } from "./castle-button.js";
@@ -22,12 +27,10 @@ export function createPlacementInspector({
   const $ = view(root);
   function applyAsset(id, asset) {
     try {
-      const next = changeAppearance(
-        getPlan(),
-        id,
-        asset,
-        terrainFor(getPlan().map),
-      );
+      const command = getPlan().keeps.some((player) => player.id === id)
+        ? changeMapCastle
+        : changeAppearance;
+      const next = command(getPlan(), id, asset, terrainFor(getPlan().map));
       validatePlan(next, catalog);
       commit(next);
     } catch (error) {
@@ -35,13 +38,36 @@ export function createPlacementInspector({
     }
   }
   $("choose-building-skin").onclick = () => {
+    if (!canEdit()) return;
     const entity = selected();
-    const asset = assets.get(entity?.skin);
-    if (asset) browse(asset.kind, (chosen) => applyAsset(entity.id, chosen));
+    const asset = assets.get(mapSkin(entity));
+    const mapId = getPlan().activeMapId;
+    if (asset)
+      browse(
+        asset.kind,
+        (chosen) => {
+          if (canEdit() && getPlan().activeMapId === mapId)
+            applyAsset(entity.id, chosen);
+        },
+        { showFootprints: "level" in entity },
+      );
   };
-  $("game-footprint").onclick = () => {
+  $("use-player-castle").onclick = () => {
+    if (!canEdit()) return;
     const entity = selected();
-    if (entity) applyAsset(entity.id, assets.get(entity.skin));
+    if (!entity) return;
+    try {
+      const next = useProfileCastle(
+        getPlan(),
+        entity.id,
+        assets.get(entity.skin),
+        terrainFor(getPlan().map),
+      );
+      validatePlan(next, catalog);
+      commit(next);
+    } catch (error) {
+      status(error.message, true);
+    }
   };
   $("entity-form").onsubmit = (event) => {
     event.preventDefault();
@@ -102,19 +128,27 @@ export function createPlacementInspector({
     for (const key of ["x", "y", "w", "h"])
       $("entity-" + key).value = entity[key] ?? "";
     $("entity-locked").checked = entity.locked;
-    $("choose-building-skin").hidden = obstacle || keep;
-    $("choose-building-skin").parentElement.hidden = obstacle || keep;
+    $("choose-building-skin").hidden = obstacle;
+    $("choose-building-skin").parentElement.hidden = obstacle;
+    $("choose-building-skin").disabled = !canEdit();
+    $("choose-building-skin").setAttribute(
+      "aria-label",
+      keep ? "Choose castle for this map" : "Choose building",
+    );
+    $("map-castle-note").hidden = !keep;
+    $("map-castle-note").textContent = `${entity.w} × ${entity.h} tiles. ${
+      entity.castleOverride === undefined
+        ? "Using the player's castle."
+        : "This castle is used only on this map."
+    }`;
+    $("use-player-castle").hidden =
+      !keep || entity.castleOverride === undefined;
+    $("use-player-castle").disabled = !canEdit();
     $("entity-w").closest("label").hidden = !obstacle;
     $("entity-h").closest("label").hidden = !obstacle;
     $("entity-w").readOnly = !obstacle || !canEdit();
     $("entity-h").readOnly = !obstacle || !canEdit();
-    const asset = assets.get(entity.skin);
-    $("game-footprint").hidden =
-      !asset?.footprint ||
-      (entity.w === asset.footprint && entity.h === asset.footprint);
-    $("game-footprint").textContent = asset?.footprint
-      ? `Use game size: ${asset.footprint} × ${asset.footprint}`
-      : "Use game size";
+    const asset = assets.get(mapSkin(entity));
     if (asset) renderCastleButton($("choose-building-skin"), asset);
   }
   return { render };

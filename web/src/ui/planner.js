@@ -22,6 +22,7 @@ import { createNotifier } from "./notifications.js";
 import { createCatalogBrowser } from "./catalog-browser.js";
 import { bindMapInteraction } from "./map-interaction.js";
 import { createDemoPlan } from "../domain/plan.js";
+import { mapSkin } from "../domain/castles.js";
 import { validatePlan } from "../domain/validation.js";
 import { MapRenderer } from "../rendering/map-renderer.js";
 import { createReadOnlyView } from "./read-only-view.js";
@@ -207,7 +208,11 @@ export function createPlanner(
     root: $("catalog-dialog"),
     assets,
     getCatalog: () => catalog,
-    selected: () => players?.draft() || selected(),
+    selected: () =>
+      players?.draft() ||
+      (screens.isPlayer()
+        ? selected()
+        : { ...selected(), skin: mapSkin(selected()) }),
   });
   function persist() {
     workspace?.persist();
@@ -318,7 +323,7 @@ export function createPlanner(
     });
   }
 
-  store.subscribe(({ kind }) => {
+  store.subscribe(({ kind, footprintRepairs }) => {
     if (kind === "replace") {
       placement.id = null;
       players.resetTag();
@@ -331,6 +336,13 @@ export function createPlanner(
     }
     if (kind === "edit" || kind === "undo") persist();
     render();
+    if (footprintRepairs.length) {
+      const names = [...new Set(footprintRepairs.map(({ name }) => name))];
+      toast(
+        `Game sizes restored. Place ${names.join(", ")} again; the corrected footprints no longer fit their old positions.`,
+        true,
+      );
+    }
   });
   renderer = new MapRenderer($("map"), assets, getPlan, {
     terrainFor,

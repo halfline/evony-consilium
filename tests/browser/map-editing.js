@@ -201,7 +201,8 @@ export async function mapEditing({
     rect.y + rect.height / 2 + 150,
   );
   assert.notEqual(await page.locator("#entity-x").inputValue(), "");
-  // Building browsing, placement, and editable footprints.
+  // Building browsing, placement, and fixed game footprints.
+  assert.equal(await page.locator("#game-footprint").count(), 0);
   await formationScreen();
   await page.locator("[data-tab=hive]").click();
   await page.locator("[data-building=alliance]").click();

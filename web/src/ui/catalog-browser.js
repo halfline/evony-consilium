@@ -1,6 +1,7 @@
 import { castlePickerEntries, castleForLevel } from "../domain/castles.js";
 import { view } from "./dom.js";
 import { artPreview } from "./art-preview.js";
+import { footprint } from "../domain/entities.js";
 export function createCatalogBrowser({
   root,
   variantDialog,
@@ -12,10 +13,12 @@ export function createCatalogBrowser({
   $("catalog-search").oninput = render;
   let catalogKind = "keep",
     categoryFilter = "",
-    catalogCallback = null;
-  function open(kind, callback) {
+    catalogCallback = null,
+    showFootprints = false;
+  function open(kind, callback, options = {}) {
     catalogKind = kind;
     catalogCallback = callback;
+    showFootprints = !!options.showFootprints;
     $("catalog-title").textContent =
       kind === "keep" ? "Choose a castle" : "Choose a " + kind + " sprite";
     $("catalog-search").value = "";
@@ -99,6 +102,14 @@ export function createCatalogBrowser({
         name.textContent = family.name;
         name.title = family.name;
         b.append(im, name);
+        if (showFootprints) {
+          const size = document.createElement("small");
+          size.textContent =
+            [...new Set(variants.map(footprint))]
+              .map((size) => `${size} × ${size}`)
+              .join(" or ") + " tiles";
+          b.append(size);
+        }
         if (!family.automatic && variants.length > 1) {
           const tier = document.createElement("small");
           tier.textContent = variants.length + " tiers";
@@ -131,6 +142,11 @@ export function createCatalogBrowser({
                   label.textContent =
                     variant.variantName || "Tier " + variant.tier;
                   button.append(img, label);
+                  if (showFootprints) {
+                    const size = document.createElement("small");
+                    size.textContent = `${footprint(variant)} × ${footprint(variant)} tiles`;
+                    button.append(size);
+                  }
                   if (variant.unavailable) {
                     const note = document.createElement("small");
                     note.textContent = "Resource unavailable in this snapshot";

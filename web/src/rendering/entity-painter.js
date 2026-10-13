@@ -1,7 +1,9 @@
+import { mapSkin } from "../domain/castles.js";
+
 export function drawEntity(view, e, p, z, fixed, { deferLabel = false } = {}) {
   const c = view.ctx;
   const center = view.screen(e.x + e.w / 2, e.y + e.h / 2);
-  const asset = view.assets.get(e.skin);
+  const asset = view.assets.get(mapSkin(e));
   const major = fixed && (e.skin === "map-kingdom" || e.skin.endsWith("shrin"));
   const spriteZoom = major ? Math.max(z, 0.18) : z;
   const selected = e.id === view.selected || view.selectedIds?.has(e.id);

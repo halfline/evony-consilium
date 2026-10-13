@@ -1,5 +1,6 @@
 import { bindTileActions } from "./tile-actions.js";
 import { view } from "./dom.js";
+import { mapSkin } from "../domain/castles.js";
 
 // Compact placement rows belong to the formation workflow, separate from player profile tiles.
 export function createFormationList({
@@ -26,7 +27,7 @@ export function createFormationList({
     button.className =
       "players-row" + (getSelection() === entity.id ? " selected" : "");
     button.dataset.entity = entity.id;
-    const asset = assets.get(entity.skin);
+    const asset = assets.get(mapSkin(entity));
     if (asset) {
       const image = document.createElement("img");
       image.src = asset.previewSrc || asset.src;
@@ -45,6 +46,8 @@ export function createFormationList({
         : `X ${entity.x} · Y ${entity.y}`;
     if (!("level" in entity) && asset?.name)
       detail.textContent += " · " + asset.name;
+    if ("level" in entity && entity.castleOverride !== undefined && asset)
+      detail.textContent += ` · ${asset.name} (${entity.w} × ${entity.h})`;
     text.append(name, detail);
     button.append(text);
     if ("level" in entity) {

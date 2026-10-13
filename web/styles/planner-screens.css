@@ -1657,6 +1657,23 @@
 #map-editor #entity-form {
   max-width: 660px;
 }
+#entity-form .player-appearance {
+  justify-content: flex-start;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+#entity-form .castle-choice {
+  width: 64px;
+  height: 64px;
+}
+#map-castle-note {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+}
+#use-player-castle {
+  padding: 6px 10px;
+  font-size: 0.85rem;
+}
 #entity-form .player-appearance[hidden] {
   display: none;
 }
