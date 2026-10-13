@@ -2,6 +2,7 @@ import { readTeamDocument } from "../../domain/document-migrations.js";
 import {
   playerDocument,
   readPlayerDocument,
+  readPlayerActivity,
 } from "../../domain/player-document.js";
 import { isTeamLogo } from "../../domain/team.js";
 import {
@@ -142,14 +143,18 @@ export class Drive {
       const after = await this.metadata(file);
       if (before.version !== after.version) continue;
       after.resourceKey ||= file.resourceKey || "";
-      return { file: after, profile: readPlayerDocument(data) };
+      return {
+        file: after,
+        profile: readPlayerDocument(data),
+        activityLog: readPlayerActivity(data),
+      };
     }
     throw new DriveError(
       "This player changed while opening. Open it again.",
       409,
     );
   }
-  createPlayer(profile, folder) {
+  createPlayer(profile, folder, activityLog = []) {
     if (!folder?.id || !folder.capabilities?.canAddChildren)
       throw new DriveError(
         "Player files need a writable central team folder.",
@@ -157,15 +162,15 @@ export class Drive {
       );
     return this.createJSON(
       playerFilename(profile.name),
-      playerDocument(profile),
+      playerDocument(profile, activityLog),
       folder,
       { mimeType: PLAYER_MIME },
     );
   }
-  async savePlayer(file, profile) {
+  async savePlayer(file, profile, activityLog = []) {
     return this.conditionalSave(
       file,
-      () => playerDocument(profile),
+      () => playerDocument(profile, activityLog),
       playerFilename(profile.name),
       PLAYER_MIME,
     );
