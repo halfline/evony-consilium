@@ -10,6 +10,7 @@ import { migratePlan } from "./document-migrations.js";
 import { validateTeamNotes } from "./note-document.js";
 import { overlap, unproject } from "./geometry.js";
 import { MAX_ENTITIES, ENTITY_COLLECTIONS } from "./entities.js";
+import { normalizeGameFootprints } from "./game-footprints.js";
 
 function validateMapPresets(plan) {
   if (!Array.isArray(plan.mapPresets) || plan.mapPresets.length > 30)
@@ -49,9 +50,12 @@ function validateCustomAssets(plan) {
   }
 }
 
-function validateEntities(plan, catalog) {
-  const assets = new Set(
-    [...(catalog.assets || []), ...plan.customAssets].map((asset) => asset.id),
+function validateEntities(plan, catalog, footprintRepairs) {
+  const assets = new Map(
+    [...(catalog.assets || []), ...plan.customAssets].map((asset) => [
+      asset.id,
+      asset,
+    ]),
   );
   const ids = new Set();
   for (const collection of ENTITY_COLLECTIONS) {
@@ -72,6 +76,24 @@ function validateEntities(plan, catalog) {
         );
       ids.add(entity.id);
       string(entity.name, 100, "name");
+      if (collection === "keeps") {
+        validatePlayerProfile(entity, plan.allianceTag || "");
+        if (entity.playerSource !== undefined)
+          validatePlayerSource(entity.playerSource);
+        if (entity.castleOverride !== undefined) {
+          string(entity.castleOverride, 120, "map castle");
+          if (assets.get(entity.castleOverride)?.kind !== "keep")
+            throw new Error("Choose a valid castle for this map.");
+        }
+      }
+      if (collection !== "obstacles" && !assets.has(entity.skin))
+        throw new Error("Missing castle sprite: " + entity.skin);
+      entity.locked = Boolean(entity.locked);
+    }
+  }
+  footprintRepairs.push(...normalizeGameFootprints(plan, assets));
+  for (const collection of ENTITY_COLLECTIONS)
+    for (const entity of plan[collection]) {
       number(entity.w, 1, 20, "footprint");
       number(entity.h, 1, 20, "footprint");
       if (entity.x === null) {
@@ -80,16 +102,7 @@ function validateEntities(plan, catalog) {
         number(entity.x, 0, plan.extent - entity.w, "X");
         number(entity.y, 0, plan.extent - entity.h, "Y");
       }
-      if (collection === "keeps") {
-        validatePlayerProfile(entity, plan.allianceTag || "");
-        if (entity.playerSource !== undefined)
-          validatePlayerSource(entity.playerSource);
-      }
-      if (collection !== "obstacles" && !assets.has(entity.skin))
-        throw new Error("Missing castle sprite: " + entity.skin);
-      entity.locked = Boolean(entity.locked);
     }
-  }
 }
 
 function validatePlacement(plan) {
@@ -231,6 +244,7 @@ export function validatePlan(
   input,
   catalog = { assets: [] },
   validateMaps = true,
+  footprintRepairs = [],
 ) {
   if (!input || typeof input !== "object" || Array.isArray(input))
     throw new Error("Invalid team document.");
@@ -238,7 +252,7 @@ export function validatePlan(
   validateDocument(plan);
   if (plan.teamNotes) plan.teamNotes = validateTeamNotes(plan.teamNotes);
   validateCustomAssets(plan);
-  validateEntities(plan, catalog);
+  validateEntities(plan, catalog, footprintRepairs);
   validatePlayerOwnership(plan.keeps);
   validatePlacement(plan);
   validateBackgrounds(plan);

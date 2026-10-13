@@ -7,6 +7,7 @@ import {
   syncMapLayouts,
 } from "../domain/map-plans.js";
 import { updateKeepAppearances } from "../domain/castles.js";
+import { normalizeGameFootprints } from "../domain/game-footprints.js";
 
 // Stored documents are immutable; callers must use an edit transaction.
 function readonly(value) {
@@ -39,10 +40,11 @@ export class TeamStore {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
   }
-  emit(kind) {
-    for (const listener of this.listeners) listener({ kind, plan: this.#plan });
+  emit(kind, footprintRepairs = []) {
+    for (const listener of this.listeners)
+      listener({ kind, plan: this.#plan, footprintRepairs });
   }
-  prepare(input) {
+  prepare(input, footprintRepairs = []) {
     const next = structuredClone(input);
     const assets = new Map(
       [...this.catalog.assets, ...next.customAssets].map((asset) => [
@@ -51,6 +53,7 @@ export class TeamStore {
       ]),
     );
     updateKeepAppearances(next.keeps, assets);
+    footprintRepairs.push(...normalizeGameFootprints(next, assets));
     ensureMapRallySetters(next);
     return readonly(syncMapLayouts(next));
   }
@@ -62,22 +65,27 @@ export class TeamStore {
   replace(input, { force = false } = {}) {
     if (this.readOnly && !force) return false;
     // Downloads/imports are the trust boundary. Unknown profile fields survive validation.
-    const next = this.prepare(validatePlan(input, this.catalog));
+    const repairs = [];
+    const next = this.prepare(
+      validatePlan(input, this.catalog, true, repairs),
+      repairs,
+    );
     this.#plan = next;
     this.#history = [];
     this.refreshAssets();
-    this.emit("replace");
+    this.emit("replace", repairs);
   }
   commit(input) {
     if (this.readOnly) return false;
-    const next = this.prepare(input);
+    const repairs = [];
+    const next = this.prepare(input, repairs);
     if (projectFingerprint(next) === projectFingerprint(this.#plan))
       return false;
     this.#history.push(this.#plan);
     if (this.#history.length > this.#historyLimit) this.#history.shift();
     this.#plan = next;
     this.refreshAssets();
-    this.emit("edit");
+    this.emit("edit", repairs);
     return true;
   }
   mutate(change) {
@@ -87,8 +95,10 @@ export class TeamStore {
     return this.commit(next);
   }
   refresh(input, rebaseHistory = (plan) => plan) {
+    const repairs = [];
     const next = this.prepare(
-      validatePlan(structuredClone(input), this.catalog),
+      validatePlan(structuredClone(input), this.catalog, true, repairs),
+      repairs,
     );
     this.#history = this.#history.flatMap((snapshot) => {
       try {
@@ -101,10 +111,10 @@ export class TeamStore {
     });
     this.#plan = next;
     this.refreshAssets();
-    this.emit("refresh");
+    this.emit("refresh", repairs);
   }
   openMap(id) {
-    this.#plan = readonly(ensureRallySetter(selectMapPlan(this.#plan, id)));
+    this.#plan = this.prepare(ensureRallySetter(selectMapPlan(this.#plan, id)));
     this.refreshAssets();
     this.emit("navigate");
   }
