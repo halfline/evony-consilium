@@ -15,7 +15,10 @@ import {
 import { createEmptyPlan } from "../domain/plan.js";
 import { parseTeamLink } from "../domain/drive-links.js";
 import { isFileAccessError } from "./google/drive.js";
-import { teamCreationActivity } from "../domain/team-activity.js";
+import {
+  teamCreationActivity,
+  teamLoginActivity,
+} from "../domain/team-activity.js";
 
 // Account and shared-document lifetime; callers supply presentation callbacks.
 export class TeamWorkspace {
@@ -39,7 +42,10 @@ export class TeamWorkspace {
     return Math.max(0, this.session.expires - Date.now());
   }
   async checkRemote() {
+    const generation = this.#generation;
     await this.sync.checkRemote();
+    if (generation !== this.#generation) return;
+    await this.recordLogin();
     this.rememberCurrent();
     if (this.sync.canCheck()) await this.players.probe(this.getPlayer(), true);
     await this.refreshPlayers();
@@ -99,6 +105,8 @@ export class TeamWorkspace {
     });
     this.account = null;
     this.project = null;
+    this.loggedInTeams = new Set();
+    this.loginActivities = new Map();
     this.players = new PlayerFiles({
       drive,
       picker,
@@ -136,6 +144,7 @@ export class TeamWorkspace {
       validate: validatePlan,
       resolve: resolveTeamConflicts,
       activityActor: () => this.account,
+      activitySession: () => this.activitySessionId,
       status,
       expired,
       canCheck: () => canCheck() && !!session.token(),
@@ -230,6 +239,9 @@ export class TeamWorkspace {
     this.notes.reset();
     this.account = null;
     this.project = null;
+    this.loggedInTeams.clear();
+    this.loginActivities.clear();
+    this.activitySessionId = null;
   }
   async signIn(options) {
     const current = this.#begin();
@@ -245,6 +257,9 @@ export class TeamWorkspace {
       this.project = null;
     }
     this.account = account;
+    this.loggedInTeams.clear();
+    this.loginActivities.clear();
+    this.activitySessionId = crypto.randomUUID();
     return account;
   }
   authorize() {
@@ -252,6 +267,39 @@ export class TeamWorkspace {
     const error = new Error("Your Google session expired. Sign in again.");
     error.status = 401;
     throw error;
+  }
+  async recordLogin() {
+    const file = this.sync.file;
+    if (
+      !file?.capabilities?.canEdit ||
+      !this.account ||
+      this.loggedInTeams.has(file.id)
+    )
+      return;
+    const generation = this.#generation;
+    const current = () => {
+      if (generation !== this.#generation) throw new OperationCancelled();
+    };
+    let activity = this.loginActivities.get(file.id);
+    if (!activity) {
+      activity = teamLoginActivity(this.account, this.activitySessionId);
+      this.loginActivities.set(file.id, activity);
+    }
+    try {
+      const saved = await this.sync.publish((shared) => shared, { activity });
+      current();
+      if (
+        (saved || this.sync.basePlan)?.activityLog?.some(
+          (entry) => entry.id === activity.id,
+        )
+      )
+        this.loggedInTeams.add(file.id);
+    } catch (error) {
+      current();
+      if (error instanceof OperationCancelled || error.status === 401)
+        throw error;
+      this.status(`Login activity could not be saved: ${error.message}`, true);
+    }
   }
   remember(plan = this.getPlan()) {
     this.project.folder.name = plan.title;
@@ -304,6 +352,8 @@ export class TeamWorkspace {
     current();
     this.sync.opened(draft.file, plan, file.version, draft.basePlan);
     this.remember(draft.plan);
+    await this.recordLogin();
+    current();
     if (this.drive.noteIndexes)
       this.notes.initialize().catch((error) => {
         if (!(error instanceof OperationCancelled))
@@ -346,6 +396,8 @@ export class TeamWorkspace {
     // Preserve the local snapshot; a different shared version follows normal conflict handling.
     await this.sync.checkRemote();
     current();
+    await this.recordLogin();
+    current();
   }
   async playerFolder({ interactive = true } = {}) {
     this.authorize();
@@ -380,7 +432,9 @@ export class TeamWorkspace {
     const plan = createEmptyPlan();
     plan.title = name.trim();
     plan.projectLogo = logo;
-    plan.activityLog = [teamCreationActivity(this.account)];
+    plan.activityLog = [
+      teamCreationActivity(this.account, this.activitySessionId),
+    ];
     const folder = await this.drive.createFolder(plan.title);
     current();
     await this.drive.initializeProject(folder, plan);
