@@ -137,8 +137,22 @@ export async function uploadProject({
     // A complete pull is required before rebuilding: push replaces the entire
     // remote file list. In particular, never replace an operator's live Config
     // with a locally generated template or drop their extra project files.
-    JSON.parse(await readFile(join(staging, "appsscript.json"), "utf8"));
+    const remoteManifest = await readFile(
+      join(staging, "appsscript.json"),
+      "utf8",
+    );
+    JSON.parse(remoteManifest);
     await build(staging);
+    const manifestPath = join(staging, "appsscript.json");
+    const builtManifest = await readFile(manifestPath, "utf8");
+    if (
+      JSON.stringify(JSON.parse(remoteManifest)) ===
+      JSON.stringify(JSON.parse(builtManifest))
+    ) {
+      // clasp treats even whitespace-only manifest changes as requiring an
+      // interactive confirmation, which silently skips noninteractive pushes.
+      await writeFile(manifestPath, remoteManifest);
+    }
     await run([...options, "push"], { cwd: staging });
     return id;
   } finally {
