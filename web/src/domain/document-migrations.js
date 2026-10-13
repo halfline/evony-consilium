@@ -1,8 +1,11 @@
+import { readActivityLog } from "./activity.js";
 // Normalize historical records before current-schema validation. Never mutate input.
 export function migratePlan(input) {
   if (!input || input.version !== 1)
     throw new Error("This is not a supported formation plan (version 1).");
   const plan = structuredClone(input);
+  if (plan.activityLog !== undefined)
+    plan.activityLog = readActivityLog(plan.activityLog);
   plan.rallyManual ??= !!plan.rallyId;
   for (const map of plan.maps || [])
     if (map?.layout) map.layout.rallyManual ??= !!map.layout.rallyId;
@@ -20,5 +23,8 @@ export function readTeamDocument(input) {
     !input.plan
   )
     throw new Error("This is not a supported Consilium team file.");
-  return structuredClone(input.plan);
+  const plan = structuredClone(input.plan);
+  if (plan.activityLog !== undefined)
+    plan.activityLog = readActivityLog(plan.activityLog);
+  return plan;
 }
