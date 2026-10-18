@@ -122,6 +122,12 @@ test("details survive map switches, shared-file validation, and Undo without cha
   const details = {
     marchSizes: { ground: 7936450 },
     buffs: { city: { ground: { attack: 3385 } } },
+    debuffs: {
+      siege: { attack: -1500.5 },
+      ranged: { defense: -900 },
+      mounted: { hp: 0 },
+      ground: { attack: null },
+    },
     marches: [
       {
         id: "g",
