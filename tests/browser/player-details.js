@@ -13,6 +13,47 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
     "Player · Saved",
   );
   assert.equal(await page.locator("#player-save").isDisabled(), true);
+  assert.deepEqual(
+    await page
+      .locator("[data-player-tab]")
+      .evaluateAll((tabs) =>
+        tabs.slice(0, 4).map((tab) => tab.dataset.playerTab),
+      ),
+    ["overview", "buffs", "debuffs", "march-size"],
+  );
+  await page.locator('[data-player-tab="debuffs"]').click();
+  assert.equal(await page.locator("[data-debuff]").count(), 12);
+  await page.locator('[data-debuff="ground.attack"]').focus();
+  for (const key of ["ground.defense", "ground.hp", "ranged.attack"]) {
+    await page.keyboard.press("Tab");
+    assert.equal(
+      await page.evaluate(() => document.activeElement?.dataset.debuff),
+      key,
+    );
+  }
+  await page.keyboard.press("Shift+Tab");
+  assert.equal(
+    await page.evaluate(() => document.activeElement?.dataset.debuff),
+    "ground.hp",
+  );
+  await page.locator('[data-debuff="siege.attack"]').fill("-1000001");
+  await page.locator('[data-player-tab="overview"]').click();
+  await page.locator("#player-save").click();
+  assert.equal(
+    await page
+      .locator('[data-player-tab="debuffs"]')
+      .getAttribute("aria-selected"),
+    "true",
+  );
+  await page.locator('[data-debuff="siege.attack"]').fill("-1500.5");
+  await page.locator('[data-debuff="ranged.defense"]').fill("-900");
+  assert.equal(
+    await page.locator('[data-debuff="ranged.defense"]').inputValue(),
+    "-900",
+  );
+  await page.locator('[data-debuff="mounted.hp"]').fill("0");
+  await page.locator('[data-debuff="ground.attack"]').fill("-700");
+  await page.screenshot({ path: "test-results/player-debuffs.png" });
   await page.locator('[data-player-tab="buffs"]').click();
   const focusedBuff = () =>
     page.evaluate(() => document.activeElement?.dataset.buff);
@@ -352,6 +393,11 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
   assert.equal(details.buffs.rally.ground.attack, 4333);
   assert.equal(details.buffs.city.siege.hp, 0);
   assert.equal(details.buffs.city.ground.hp, null);
+  assert.equal(details.debuffs.siege.attack, -1500.5);
+  assert.equal(details.debuffs.ranged.defense, -900);
+  assert.equal(details.debuffs.mounted.hp, 0);
+  assert.equal(details.debuffs.ground.attack, -700);
+  assert.equal(details.debuffs.ground.hp, null);
   assert.equal(details.marches.length, 2);
   assert.deepEqual(
     details.reinforcementMarches[0].layers.sort((a, b) => b.tier - a.tier),
@@ -372,6 +418,11 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
   assert.equal(details.subcities, undefined);
   await playersScreen();
   await page.locator("#players .player-card").last().click();
+  await page.locator('[data-player-tab="debuffs"]').click();
+  assert.equal(
+    await page.locator('[data-debuff="siege.attack"]').inputValue(),
+    "",
+  );
   await page.locator('[data-player-tab="buffs"]').click();
   assert.equal(
     await page.locator('[data-buff="city.ground.attack"]').inputValue(),
@@ -379,6 +430,11 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
   );
   await playersScreen();
   await page.locator("#players .player-card").first().click();
+  await page.locator('[data-player-tab="debuffs"]').click();
+  assert.equal(
+    await page.locator('[data-debuff="siege.attack"]').inputValue(),
+    "-1500.5",
+  );
   await page.locator('[data-player-tab="buffs"]').click();
   assert.equal(
     await page.locator('[data-buff="city.ground.attack"]').inputValue(),
@@ -416,6 +472,23 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
     true,
   );
   await page.screenshot({ path: "test-results/player-details-mobile.png" });
+  await page.locator("#player-section-select").selectOption("debuffs");
+  assert.equal(
+    await page.locator('[data-player-panel="debuffs"]').isVisible(),
+    true,
+  );
+  assert.equal(
+    await page
+      .locator("#player-debuffs")
+      .evaluate((element) => element.scrollWidth <= element.clientWidth),
+    true,
+  );
+  assert.equal(
+    await page.locator('[data-debuff="mounted.hp"]').inputValue(),
+    "0",
+  );
+  await page.screenshot({ path: "test-results/player-debuffs-mobile.png" });
+  await page.locator("#player-section-select").selectOption("buffs");
   await page.setViewportSize({ width: 1440, height: 1000 });
   // Player stats are saved to the source; team Undo does not undo a remote profile save.
   assert.equal(
