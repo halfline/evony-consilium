@@ -45,6 +45,22 @@ test("base counts apply to every lower tier and overlapping explicit layers are 
     /overlap/,
   );
 });
+test("debuffs validate percentages independently for every troop type and stat", () => {
+  const debuffs = {
+    siege: { attack: -1500.5, defense: -1200, hp: 0 },
+    ranged: { attack: -900, defense: null },
+    mounted: { hp: -800 },
+    ground: { defense: -700 },
+  };
+  assert.doesNotThrow(() => validatePlayerDetails({ debuffs }));
+  for (const invalid of [null, [], 1, { siege: [] }, { ranged: null }])
+    assert.throws(() => validatePlayerDetails({ debuffs: invalid }), /debuffs/);
+  for (const value of [1, -1000001, NaN, Infinity, "-100"])
+    assert.throws(
+      () => validatePlayerDetails({ debuffs: { mounted: { attack: value } } }),
+      /debuff/,
+    );
+});
 test("manual reinforcement marches persist separately from generated attack marches", () => {
   const plan = createDemoPlan(catalog);
   const id = plan.keeps[0].id;
