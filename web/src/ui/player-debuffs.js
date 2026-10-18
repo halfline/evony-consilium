@@ -53,6 +53,12 @@ export function createPlayerDebuffs({ root }) {
         input.min = "-1000000";
         input.max = "0";
         input.dataset.debuff = `${type}.${stat}`;
+        const normalize = () => {
+          const value = numeric(input);
+          if (value > 0) input.value = String(-value);
+        };
+        input.addEventListener("input", normalize);
+        input.addEventListener("change", normalize);
         row.insertCell().append(input);
         inputs.set(input.dataset.debuff, input);
       }
