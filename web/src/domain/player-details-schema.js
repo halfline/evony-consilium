@@ -36,6 +36,19 @@ function validateBuffs(buffs) {
     }
   }
 }
+function validateDebuffs(debuffs) {
+  if (!debuffs || typeof debuffs !== "object" || Array.isArray(debuffs))
+    throw new Error("Invalid debuffs.");
+  for (const type of TROOP_TYPES) {
+    const stats = debuffs[type];
+    if (stats === undefined) continue;
+    if (!stats || typeof stats !== "object" || Array.isArray(stats))
+      throw new Error("Invalid troop debuffs.");
+    for (const stat of BUFF_TYPES)
+      if (stats[stat] != null)
+        number(stats[stat], -1000000, 0, `${type} ${stat} debuff`, false);
+  }
+}
 function validateMarchSizes(sizes) {
   if (!sizes || typeof sizes !== "object" || Array.isArray(sizes))
     throw new Error("Invalid march sizes.");
@@ -67,6 +80,7 @@ export function validatePlayerDetails(details) {
     optionalNumber(details[key], Number.MAX_SAFE_INTEGER, key);
   optionalNumber(details.marchBoost, 1000000, "march-size boost", false);
   if (details.buffs !== undefined) validateBuffs(details.buffs);
+  if (details.debuffs !== undefined) validateDebuffs(details.debuffs);
   if (details.marchSizes !== undefined) validateMarchSizes(details.marchSizes);
   if (details.marches !== undefined) validateMarches(details.marches);
   if (details.reinforcementMarches !== undefined)
