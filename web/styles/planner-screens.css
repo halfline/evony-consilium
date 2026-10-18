@@ -1098,22 +1098,22 @@
   .player-section-select select {
     height: 40px;
   }
-  #player-buffs .player-data-table {
+  :is(#player-buffs, #player-debuffs) .player-data-table {
     min-width: 0;
   }
-  #player-buffs .player-data-table th {
+  :is(#player-buffs, #player-debuffs) .player-data-table th {
     padding: 8px 2px;
     font-size: 11px;
     text-align: center;
   }
-  #player-buffs .player-data-table th:first-child {
+  :is(#player-buffs, #player-debuffs) .player-data-table th:first-child {
     width: 62px;
     text-align: left;
   }
-  #player-buffs .player-data-table td {
+  :is(#player-buffs, #player-debuffs) .player-data-table td {
     padding: 3px 2px;
   }
-  #player-buffs .player-data-table input {
+  :is(#player-buffs, #player-debuffs) .player-data-table input {
     padding: 8px 3px;
     text-align: center;
     font-size: 12px;
