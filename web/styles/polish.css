@@ -958,7 +958,10 @@ h2 {
   padding: 12px 10px;
 }
 .player-data-table thead th:not(:first-child),
-#player-buffs .player-data-table thead th:not(:first-child) {
+:is(#player-buffs, #player-debuffs)
+  .player-data-table
+  thead
+  th:not(:first-child) {
   text-align: right;
 }
 .player-data-table thead {
@@ -2121,18 +2124,18 @@ dialog form > label {
   .buff-section h3 {
     font-size: 20px;
   }
-  #player-buffs .player-data-table th {
+  :is(#player-buffs, #player-debuffs) .player-data-table th {
     font-size: 11px;
     padding: 10px 3px;
   }
-  #player-buffs .player-data-table th:first-child {
+  :is(#player-buffs, #player-debuffs) .player-data-table th:first-child {
     width: 58px;
     padding-left: 5px;
   }
-  #player-buffs .player-data-table td {
+  :is(#player-buffs, #player-debuffs) .player-data-table td {
     padding: 3px 1px;
   }
-  #player-buffs .player-data-table input {
+  :is(#player-buffs, #player-debuffs) .player-data-table input {
     font-size: 16px;
     padding: 8px 3px;
     min-height: 42px;
