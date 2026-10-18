@@ -53,7 +53,14 @@ export async function altOwnership({ page, playersScreen }) {
   );
   assert.equal(await page.locator("#alts-return-arrow").isVisible(), true);
   assert.equal(await page.locator("#players-return-arrow").isVisible(), false);
-  for (const tab of ["buffs", "march-size", "rally-capacity", "troops", "alts"])
+  for (const tab of [
+    "buffs",
+    "debuffs",
+    "march-size",
+    "rally-capacity",
+    "troops",
+    "alts",
+  ])
     assert.equal(
       await page.locator(`[data-player-tab="${tab}"]`).isVisible(),
       false,
