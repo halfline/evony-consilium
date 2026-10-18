@@ -1,6 +1,7 @@
 import { view } from "./dom.js";
 import { numeric } from "./player-fields.js";
 import { createPlayerBuffs } from "./player-buffs.js";
+import { createPlayerDebuffs } from "./player-debuffs.js";
 import { createPlayerMarches } from "./player-marches.js";
 import { createPlayerMarchSizes } from "./player-march-sizes.js";
 import { createPlayerReinforcements } from "./player-reinforcements.js";
@@ -10,6 +11,7 @@ export function createPlayerDetails({ root }) {
     playerId,
     original = {};
   const buffs = createPlayerBuffs({ root }),
+    debuffs = createPlayerDebuffs({ root }),
     marchSizes = createPlayerMarchSizes({ root }),
     marches = createPlayerMarches({
       root,
@@ -18,6 +20,7 @@ export function createPlayerDetails({ root }) {
     reinforcements = createPlayerReinforcements({ root });
   const mainOnlyTabs = new Set([
     "buffs",
+    "debuffs",
     "march-size",
     "rally-capacity",
     "troops",
@@ -101,6 +104,9 @@ export function createPlayerDetails({ root }) {
     const result = {
       rallyCapacity: numeric($("player-rally-capacity")),
       ...buffs.read(),
+      ...(debuffs.hasValues() || Object.hasOwn(original, "debuffs")
+        ? debuffs.read()
+        : {}),
       ...marchSizes.read(),
       marches: marches.read(),
       ...(reinforcements.read().length ||
@@ -112,6 +118,7 @@ export function createPlayerDetails({ root }) {
       !Object.keys(original).length &&
       result.rallyCapacity === null &&
       !buffs.hasValues() &&
+      !debuffs.hasValues() &&
       !marchSizes.hasValues() &&
       !result.marches.length &&
       !result.reinforcementMarches?.length
@@ -141,6 +148,7 @@ export function createPlayerDetails({ root }) {
       showTab("overview");
     $("player-rally-capacity").value = original.rallyCapacity ?? "";
     buffs.render(original);
+    debuffs.render(original);
     marchSizes.render(original);
     marches.render(original, player.level, { preserveView: !changedPlayer });
     reinforcements.render(original, player.level, {

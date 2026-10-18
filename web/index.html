@@ -683,6 +683,14 @@
                 <button
                   type="button"
                   role="tab"
+                  data-player-tab="debuffs"
+                  aria-selected="false"
+                >
+                  Debuffs
+                </button>
+                <button
+                  type="button"
+                  role="tab"
                   data-player-tab="march-size"
                   aria-selected="false"
                 >
@@ -734,6 +742,7 @@
                 <select id="player-section-select">
                   <option value="overview">Overview</option>
                   <option value="buffs">Buffs</option>
+                  <option value="debuffs">Debuffs</option>
                   <option value="march-size">March size</option>
                   <option value="rally-capacity">Rally capacity</option>
                   <option value="troops">Marches</option>
@@ -828,6 +837,12 @@
               </div>
               <div data-player-panel="buffs" role="tabpanel" hidden>
                 <div id="player-buffs" class="player-table-scroll"></div>
+              </div>
+              <div data-player-panel="debuffs" role="tabpanel" hidden>
+                <p class="muted">
+                  Enemy troop reductions are shown as negative percentages.
+                </p>
+                <div id="player-debuffs" class="player-table-scroll"></div>
               </div>
               <div data-player-panel="march-size" role="tabpanel" hidden>
                 <div id="player-march-sizes" class="player-table-scroll"></div>
