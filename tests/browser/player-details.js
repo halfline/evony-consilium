@@ -23,6 +23,14 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
   );
   await page.locator('[data-player-tab="debuffs"]').click();
   assert.equal(await page.locator("[data-debuff]").count(), 12);
+  for (const input of await page.locator("[data-debuff]").all()) {
+    await input.fill("125");
+    assert.equal(await input.inputValue(), "-125");
+    await input.fill("-125");
+    assert.equal(await input.inputValue(), "-125");
+    await input.fill("");
+    assert.equal(await input.inputValue(), "");
+  }
   await page.locator('[data-debuff="ground.attack"]').focus();
   for (const key of ["ground.defense", "ground.hp", "ranged.attack"]) {
     await page.keyboard.press("Tab");
@@ -45,14 +53,30 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
       .getAttribute("aria-selected"),
     "true",
   );
-  await page.locator('[data-debuff="siege.attack"]').fill("-1500.5");
+  await page.locator('[data-debuff="siege.attack"]').fill("1500.5");
+  assert.equal(
+    await page.locator('[data-debuff="siege.attack"]').inputValue(),
+    "-1500.5",
+  );
   await page.locator('[data-debuff="ranged.defense"]').fill("-900");
   assert.equal(
     await page.locator('[data-debuff="ranged.defense"]').inputValue(),
     "-900",
   );
   await page.locator('[data-debuff="mounted.hp"]').fill("0");
-  await page.locator('[data-debuff="ground.attack"]').fill("-700");
+  await page.locator('[data-debuff="ground.attack"]').pressSequentially("700");
+  assert.equal(
+    await page.locator('[data-debuff="ground.attack"]').inputValue(),
+    "-700",
+  );
+  await page
+    .locator('[data-debuff="ground.defense"]')
+    .pressSequentially("-12.5");
+  assert.equal(
+    await page.locator('[data-debuff="ground.defense"]').inputValue(),
+    "-12.5",
+  );
+  await page.locator('[data-debuff="ground.defense"]').fill("");
   await page.screenshot({ path: "test-results/player-debuffs.png" });
   await page.locator('[data-player-tab="buffs"]').click();
   const focusedBuff = () =>
