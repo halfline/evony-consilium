@@ -8,7 +8,10 @@ import {
   validateProfile,
 } from "../domain/player-document.js";
 import { recordActivity } from "../domain/activity.js";
-import { playerStatistics, recordPlayerProgress } from "../domain/player-progress.js";
+import {
+  playerStatistics,
+  recordPlayerProgress,
+} from "../domain/player-progress.js";
 import { OperationCancelled } from "./cancellation.js";
 import { isFileAccessError } from "./google/drive.js";
 
@@ -295,6 +298,23 @@ export class PlayerFiles {
             loaded.profile,
             resolution,
           );
+        }
+        if (
+          loaded.profile.details?.progress?.[
+            `auto-${draft.progressEvent.id}`
+          ] &&
+          JSON.stringify(playerStatistics(loaded.profile)) !==
+            JSON.stringify(playerStatistics(result.profile))
+        ) {
+          // The previous upload succeeded before its response was lost. A
+          // reviewed reapplication after another edit is a new observation.
+          draft.progressEvent = {
+            ...draft.progressEvent,
+            id: crypto.randomUUID(),
+            at: new Date().toISOString(),
+          };
+          await this.writeDraft(id, draft);
+          current();
         }
         const profile = validateProfile(
           recordPlayerProgress(loaded.profile, result.profile, {
