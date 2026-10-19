@@ -81,7 +81,7 @@ test("a read-only team's member sees their saved profile without a team upload",
   assert.equal(view.keeps[0].name, "Player-only save");
   assert.deepEqual(view.keeps[1], before.keeps[1]);
 });
-test("cache refresh pulls the source without uploading stale cached values", async () => {
+test("cache refresh initializes history from the source without uploading stale cached values", async () => {
   const f = await fixture();
   f.editRemote("Remote profile");
   let before = f.plan();
@@ -89,13 +89,19 @@ test("cache refresh pulls the source without uploading stale cached values", asy
     await f.profiles.collectCache(before.keeps[0]),
   ]);
   assert.equal(f.plan().keeps[0].name, "Remote profile");
-  assert.equal(f.uploads.length, 0);
+  assert.equal(f.uploads.length, 1);
+  assert.equal(f.uploads[0].name, "Remote profile");
+  assert.equal(
+    Object.values(f.remote().details.progress)[0].values.level,
+    f.remote().level,
+  );
   const unchanged = f.plan();
   before = f.plan();
   f.profiles.commitCaches(before, [
     await f.profiles.collectCache(before.keeps[0]),
   ]);
   assert.equal(f.plan(), unchanged);
+  assert.equal(f.uploads.length, 1);
 });
 test("a source save finishing after a workspace reset cannot update another team's cache", async () => {
   const f = await fixture();

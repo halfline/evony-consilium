@@ -128,14 +128,18 @@ export class PlayerProfiles {
   }
   async collectCache(player) {
     if (this.isEditing()) throw new OperationCancelled();
-    return this.workspace.players.refreshCache(player, (profile) => {
-      if (this.isEditing()) throw new OperationCancelled();
-      const next = structuredClone(this.getPlan());
-      const index = next.keeps.findIndex((item) => item.id === player.id);
-      if (index === -1) throw new OperationCancelled();
-      next.keeps[index] = applyPlayerProfile(next.keeps[index], profile);
-      this.validatePlan(next);
-    });
+    return this.workspace.players.refreshCache(
+      player,
+      (profile) => {
+        if (this.isEditing()) throw new OperationCancelled();
+        const next = structuredClone(this.getPlan());
+        const index = next.keeps.findIndex((item) => item.id === player.id);
+        if (index === -1) throw new OperationCancelled();
+        next.keeps[index] = applyPlayerProfile(next.keeps[index], profile);
+        this.validatePlan(next);
+      },
+      { initializeProgress: true },
+    );
   }
   commitCaches(before, updates) {
     if (this.isEditing() || this.getPlan() !== before)
