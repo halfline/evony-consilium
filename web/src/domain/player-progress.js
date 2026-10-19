@@ -173,6 +173,71 @@ export function progressRecord(
   return record;
 }
 
+// A stable operation ID and time are stored in the submitted draft before upload.
+// Observations use saved source statistics, including the initial baseline.
+export function recordPlayerProgress(before, after, { id, at, account }) {
+  const next = structuredClone(after);
+  const progress = next.details?.progress || {};
+  for (const entry of Object.values(progress)) {
+    const old = before?.details?.progress?.[entry.id];
+    if (!old) entry.account = account;
+    else if (entry.revision !== old.revision) entry.editedBy = account;
+  }
+  if (
+    before?.details?.progress === undefined &&
+    !Object.values(progress).some((entry) => entry.kind === "baseline")
+  ) {
+    const values = Object.fromEntries(
+      Object.entries(playerStatistics(before || after)).filter(
+        ([, value]) => value !== null,
+      ),
+    );
+    if (Object.keys(values).length) {
+      const record = progressRecord(values, {
+        id: `baseline-${id}`,
+        at,
+        account,
+        kind: "baseline",
+      });
+      progress[record.id] ||= record;
+    }
+  }
+  if (before) {
+    const previous = playerStatistics(before);
+    const changed = Object.fromEntries(
+      Object.entries(playerStatistics(after)).filter(
+        ([key, value]) => value !== null && previous[key] !== value,
+      ),
+    );
+    // An explicitly requested correction updates the existing observation rather
+    // than creating a second observation that looks like player growth.
+    for (const entry of Object.values(progress)) {
+      const old = before.details?.progress?.[entry.id];
+      if (
+        !entry.deletedAt &&
+        (entry.applyToCurrent || entry.currentCorrections?.length) &&
+        entry.revision !== old?.revision
+      )
+        for (const key of entry.currentCorrections || Object.keys(entry.values))
+          if (changed[key] === entry.values[key]) delete changed[key];
+    }
+    if (Object.keys(changed).length) {
+      const record = progressRecord(changed, {
+        id: `auto-${id}`,
+        at,
+        account,
+        kind: "automatic",
+      });
+      progress[record.id] ||= record;
+    }
+  }
+  if (Object.keys(progress).length || after.details?.progress !== undefined) {
+    next.details ||= {};
+    next.details.progress = validateProgress(progress);
+  }
+  return next;
+}
+
 export function orderedProgress(progress = {}, includeRemoved = false) {
   return Object.values(progress)
     .filter((entry) => includeRemoved || !entry.deletedAt)
