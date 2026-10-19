@@ -241,5 +241,86 @@ export function renderProgressChart(
       }),
     );
   }
-  root.append(svg);
+  const readout = element("div", undefined, "progress-point-description");
+  const description = element("span");
+  description.setAttribute("role", "status");
+  const controls = element("div", undefined, "progress-point-controls");
+  const action = (label, handler) => {
+    const node = element("button", label);
+    node.type = "button";
+    node.onclick = handler;
+    return node;
+  };
+  const token = (point) => `${point.line.key}:${point.id}:${point.at}`;
+  let selected = points.findIndex((point) => token(point) === state.selected);
+  if (selected < 0) selected = points.length - 1;
+  const selectPoint = (index) => {
+    selected = index;
+    state.selected = token(points[index]);
+    const point = points[index];
+    description.textContent = `${point.line.label}: ${progressValue(point.value, point.line.unit)} · ${progressDate(observedAt(point), point)}`;
+    for (const node of svg.querySelectorAll("[data-point-index]"))
+      node.setAttribute(
+        "aria-pressed",
+        String(Number(node.dataset.pointIndex) === index),
+      );
+    previous.disabled = index === 0;
+    next.disabled = index === points.length - 1;
+  };
+  const previous = action("←", () => selectPoint(selected - 1));
+  previous.setAttribute("aria-label", "Previous observation");
+  const next = action("→", () => selectPoint(selected + 1));
+  next.setAttribute("aria-label", "Next observation");
+  controls.append(
+    previous,
+    next,
+    action("View record", () => onSelect(points[selected].id)),
+  );
+  readout.append(description, controls);
+  points.forEach((point, index) => {
+    const label = `${point.line.label}: ${progressValue(point.value, point.line.unit)} · ${progressDate(observedAt(point), point)}`;
+    const dot = svgNode("g", {
+      tabindex: 0,
+      role: "button",
+      "aria-label": label,
+      "data-progress-point": point.id,
+      "data-point-index": index,
+      class: "progress-point",
+    });
+    dot.append(svgNode("title", {}, label));
+    dot.append(
+      svgNode("circle", {
+        cx: x(Date.parse(point.at)),
+        cy: y(point.value),
+        r: 22,
+        fill: "transparent",
+        class: "progress-point-target",
+      }),
+    );
+    dot.append(
+      svgNode("circle", {
+        cx: x(Date.parse(point.at)),
+        cy: y(point.value),
+        r: width < 500 ? 5 : 4,
+        fill: colors[series.indexOf(point.line) % colors.length],
+        class: "progress-point-dot",
+      }),
+    );
+    dot.onfocus = dot.onpointerenter = dot.onclick = () => selectPoint(index);
+    dot.onkeydown = (event) => {
+      if (["Enter", " ", "ArrowLeft", "ArrowRight"].includes(event.key)) {
+        event.preventDefault();
+        selectPoint(
+          event.key === "ArrowLeft"
+            ? Math.max(0, selected - 1)
+            : event.key === "ArrowRight"
+              ? Math.min(points.length - 1, selected + 1)
+              : index,
+        );
+      }
+    };
+    svg.append(dot);
+  });
+  selectPoint(selected);
+  root.append(svg, readout);
 }
