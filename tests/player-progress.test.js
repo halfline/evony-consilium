@@ -254,3 +254,55 @@ test("date windows retain the last observation, its real date, zero, and skip bl
     [1000],
   );
 });
+
+test("independent history additions merge even when neither client has a history baseline", () => {
+  const base = player(),
+    local = structuredClone(base),
+    remote = structuredClone(base);
+  local.details.progress = { a: record("a", { level: 40 }) };
+  remote.details.progress = { b: record("b", { level: 41 }) };
+  const merged = mergePlayerProfiles(base, local, remote);
+  assert.deepEqual(merged.conflicts, []);
+  assert.deepEqual(Object.keys(merged.profile.details.progress).sort(), [
+    "a",
+    "b",
+  ]);
+});
+
+test("removals beat concurrent edits and contradictory corrections require review", () => {
+  const base = player();
+  base.details.progress = { a: record("a", { level: 40 }) };
+  const local = structuredClone(base),
+    remote = structuredClone(base);
+  local.details.progress.a = {
+    ...local.details.progress.a,
+    revision: 2,
+    values: { level: 41 },
+  };
+  remote.details.progress.a = {
+    ...remote.details.progress.a,
+    revision: 2,
+    values: { level: 39 },
+  };
+  assert.deepEqual(mergePlayerProfiles(base, local, remote).conflicts, [
+    "details.progress.a",
+  ]);
+  assert.equal(
+    mergePlayerProfiles(base, local, remote, "player").profile.details.progress
+      .a.values.level,
+    39,
+  );
+  remote.details.progress.a.deletedAt = at;
+  const merged = mergePlayerProfiles(base, local, remote);
+  assert.deepEqual(merged.conflicts, []);
+  assert.equal(orderedProgress(merged.profile.details.progress).length, 0);
+  const restored = structuredClone(remote);
+  delete restored.details.progress.a.deletedAt;
+  restored.details.progress.a.revision++;
+  assert.equal(
+    orderedProgress(
+      mergePlayerProfiles(remote, restored, remote).profile.details.progress,
+    ).length,
+    1,
+  );
+});
