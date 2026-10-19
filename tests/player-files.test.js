@@ -347,3 +347,26 @@ test("saved stat changes record once after a concurrent write and refreshes add 
   await f.files.refreshCache(cached);
   assert.equal(Object.keys(f.remote().details.progress).length, 2);
 });
+
+test("an upload with a lost response cannot duplicate its progress record after restart", async () => {
+  const f = fixture();
+  const linked = await f.files.create(f.player, folder);
+  const save = f.options.drive.savePlayer;
+  f.options.drive.savePlayer = async (...args) => {
+    await save(...args);
+    throw new Error("Lost response");
+  };
+  await assert.rejects(
+    f.files.saveOwn({ ...linked, level: 43 }),
+    /Lost response/,
+  );
+  const operation = f.drafts.get("source").progressEvent;
+  assert.ok(operation.id);
+  assert.equal(Object.keys(f.remote().details.progress).length, 2);
+  f.options.drive.savePlayer = save;
+  f.files.reset();
+  await f.files.open(linked);
+  await f.files.saveOwn(f.files.profile(linked));
+  assert.equal(Object.keys(f.remote().details.progress).length, 2);
+  assert.ok(f.remote().details.progress[`auto-${operation.id}`]);
+});
