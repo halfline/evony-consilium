@@ -128,7 +128,18 @@ export function mergePlayerProfiles(base, team, remote, resolution = null) {
     if (equal(local, source) || equal(before, source))
       return structuredClone(local);
     if (equal(before, local)) return structuredClone(source);
-    if (object(before) && object(local) && object(source)) {
+    if (path.startsWith("details.progress.")) {
+      if (local?.deletedAt || source?.deletedAt)
+        return structuredClone(source?.deletedAt ? source : local);
+      conflicts.push(path);
+      return structuredClone(resolution === "player" ? source : local);
+    }
+    if (
+      (object(before) || before === undefined) &&
+      object(local) &&
+      object(source)
+    ) {
+      before ||= {};
       const result = {};
       for (const key of new Set([
         ...Object.keys(before),
