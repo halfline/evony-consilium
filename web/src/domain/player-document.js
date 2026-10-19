@@ -63,10 +63,24 @@ export function playerProfileChanges(before, after) {
   return Object.entries(labels)
     .filter(
       ([field]) =>
-        profileFingerprint(before?.[field]) !==
-        profileFingerprint(after?.[field]),
+        profileFingerprint(
+          field === "details"
+            ? { ...before?.details, progress: undefined }
+            : before?.[field],
+        ) !==
+        profileFingerprint(
+          field === "details"
+            ? { ...after?.details, progress: undefined }
+            : after?.[field],
+        ),
     )
-    .map(([, label]) => `Updated ${label}`);
+    .map(([, label]) => `Updated ${label}`)
+    .concat(
+      profileFingerprint(before?.details?.progress) !==
+        profileFingerprint(after?.details?.progress)
+        ? ["Updated progress history"]
+        : [],
+    );
 }
 export function validatePlayerSource(source) {
   if (
