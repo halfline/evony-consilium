@@ -321,3 +321,29 @@ test("a profile save waits for a background refresh of the same source", async (
   assert.equal(f.remote().name, "Saved after refresh");
   assert.equal(f.files.state(cached).busy, false);
 });
+
+test("saved stat changes record once after a concurrent write and refreshes add no samples", async () => {
+  const f = fixture();
+  const linked = await f.files.create(f.player, folder);
+  const save = f.options.drive.savePlayer;
+  let attempts = 0;
+  f.options.drive.savePlayer = async (...args) => {
+    if (!attempts++) {
+      f.editRemote((profile) => {
+        profile.accountId = "0055";
+      });
+      throw Object.assign(new Error("Changed"), { status: 412 });
+    }
+    return save(...args);
+  };
+  await f.files.saveOwn({ ...linked, level: 43 });
+  const records = Object.values(f.remote().details.progress);
+  assert.equal(records.length, 2);
+  assert.deepEqual(records.find((entry) => entry.kind === "automatic").values, {
+    level: 43,
+  });
+  assert.equal(f.remote().accountId, "0055");
+  const cached = await f.files.refreshCache(linked);
+  await f.files.refreshCache(cached);
+  assert.equal(Object.keys(f.remote().details.progress).length, 2);
+});
