@@ -386,3 +386,29 @@ test("failed uploads retain the progress operation without changing remote histo
   assert.ok(f.remote().details.progress[`auto-${id}`]);
   assert.equal(Object.keys(f.remote().details.progress).length, 2);
 });
+
+test("reapplying a committed draft after a later conflicting change records a fresh observation", async () => {
+  const f = fixture(),
+    linked = await f.files.create(f.player, folder);
+  const save = f.options.drive.savePlayer;
+  f.options.drive.savePlayer = async (...args) => {
+    await save(...args);
+    throw new Error("Lost response");
+  };
+  await assert.rejects(
+    f.files.saveOwn({ ...linked, level: 43 }),
+    /Lost response/,
+  );
+  const originalId = f.drafts.get("source").progressEvent.id;
+  f.editRemote((profile) => {
+    profile.level = 44;
+  });
+  f.options.drive.savePlayer = save;
+  await f.files.saveOwn({ ...linked, level: 43 }, async () => "team");
+  const observations = Object.values(f.remote().details.progress).filter(
+    (entry) => entry.kind === "automatic",
+  );
+  assert.equal(observations.length, 2);
+  assert.ok(observations.some((entry) => entry.id === `auto-${originalId}`));
+  assert.equal(f.remote().level, 43);
+});
