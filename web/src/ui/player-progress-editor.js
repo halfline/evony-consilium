@@ -54,7 +54,51 @@ export function createProgressEditor({
     footer.replaceChildren();
     footer.hidden = true;
   }
-  function save() {}
+  function save() {
+    if (!editor || !canEdit()) return;
+    const { date, record, message } = editor;
+    message.textContent = "";
+    try {
+      if (!date.reportValidity() || !historical.validate()) return;
+      if (record && getProgress()[record.id]?.revision !== record.revision)
+        throw new Error(
+          "This record has changed. Discard this draft and reopen the record.",
+        );
+      const pending = draft();
+      const values = historicalChanges(
+        editor.baseline,
+        pending.statistics,
+        record,
+      );
+      if (!Object.keys(values).length)
+        throw new Error("Change a stat before saving a historical entry.");
+      const at = new Date().toISOString();
+      const observedAt =
+        record && date.value === progressDay(record.observedAt)
+          ? record.observedAt
+          : new Date(`${date.value}T23:59:59.999`).toISOString();
+      const next = record
+        ? {
+            ...record,
+            observedAt,
+            dateOnly:
+              record.dateOnly || date.value !== progressDay(record.observedAt),
+            updatedAt: at,
+            revision: record.revision + 1,
+            note: pending.note.trim(),
+            values,
+            applyToCurrent: false,
+            currentCorrections: [],
+          }
+        : progressRecord(values, { observedAt, note: pending.note.trim() });
+      validateProgress({ [next.id]: next });
+      close();
+      onDraft();
+      onSave(next);
+    } catch (error) {
+      message.textContent = error.message;
+    }
+  }
   function open(record = null, pending = null) {
     if (!canEdit() && !pending) return;
     pending ||= !record ? suspended : null;
