@@ -467,3 +467,18 @@ test("baseline initialization retries against newer source statistics", async ()
   assert.equal(entries[0].values.level, cached.level + 1);
   assert.equal(attempts, 2);
 });
+
+test("automatic initialization respects read-only sources and intentionally empty history", async () => {
+  for (const writable of [false, true]) {
+    const f = fixture({ writable });
+    if (writable)
+      f.editRemote((profile) => {
+        profile.details = { progress: {} };
+      });
+    const cached = f.linked();
+    await f.files.open(cached);
+    await f.files.refreshCache(cached, () => {}, { initializeProgress: true });
+    assert.equal(f.calls.filter(([kind]) => kind === "save").length, 0);
+    assert.deepEqual(f.remote().details?.progress, writable ? {} : undefined);
+  }
+});
