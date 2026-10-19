@@ -12,6 +12,7 @@ export function editPlayerDetails(plan, id, changes) {
     "rallyCapacity",
     "buffs",
     "debuffs",
+    "progress",
     "marchSizes",
     "marches",
     "reinforcementMarches",

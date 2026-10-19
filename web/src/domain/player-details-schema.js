@@ -1,4 +1,5 @@
 import { number, string } from "./constraints.js";
+import { validateProgress } from "./player-progress.js";
 import {
   TROOP_TYPES,
   BUFF_CONTEXTS,
@@ -81,6 +82,7 @@ export function validatePlayerDetails(details) {
   optionalNumber(details.marchBoost, 1000000, "march-size boost", false);
   if (details.buffs !== undefined) validateBuffs(details.buffs);
   if (details.debuffs !== undefined) validateDebuffs(details.debuffs);
+  if (details.progress !== undefined) validateProgress(details.progress);
   if (details.marchSizes !== undefined) validateMarchSizes(details.marchSizes);
   if (details.marches !== undefined) validateMarches(details.marches);
   if (details.reinforcementMarches !== undefined)
