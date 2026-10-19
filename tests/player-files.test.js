@@ -412,3 +412,36 @@ test("reapplying a committed draft after a later conflicting change records a fr
   assert.ok(observations.some((entry) => entry.id === `auto-${originalId}`));
   assert.equal(f.remote().level, 43);
 });
+
+test("opening a legacy profile initializes saved source stats once while preserving its draft", async () => {
+  const f = fixture(),
+    cached = f.linked();
+  f.drafts.set("source", {
+    baseline: playerProfile(cached),
+    profile: { ...playerProfile(cached), level: cached.level + 1 },
+  });
+  await f.files.open(cached);
+  f.editRemote((profile) => {
+    profile.name = "Authoritative name";
+    profile.details = { buffs: { city: { siege: { attack: 1350 } } } };
+  });
+  const result = await f.files.refreshCache(cached, () => {}, {
+    initializeProgress: true,
+  });
+  const entries = Object.values(f.remote().details.progress);
+  assert.equal(entries.length, 1);
+  assert.equal(entries[0].kind, "baseline");
+  assert.equal(entries[0].account, "editor@example.test");
+  assert.deepEqual(entries[0].values, {
+    level: cached.level,
+    "buffs.city.siege.attack": 1350,
+  });
+  assert.equal(f.remote().name, "Authoritative name");
+  assert.equal(f.files.profile(result).level, cached.level + 1);
+  assert.equal(f.drafts.get("source").profile.level, cached.level + 1);
+  assert.equal(
+    await f.files.refreshCache(result, () => {}, { initializeProgress: true }),
+    result,
+  );
+  assert.equal(f.calls.filter(([kind]) => kind === "save").length, 1);
+});
