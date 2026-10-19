@@ -171,3 +171,86 @@ test("current corrections suppress only explicitly corrected measurements", () =
     "buffs.city.ground.hp": 100,
   });
 });
+
+test("daily charts choose the final value per statistic rather than the final record", () => {
+  const progress = {
+    a: record(
+      "a",
+      { "buffs.city.ground.attack": 100 },
+      "2026-10-17T10:00:00.000Z",
+    ),
+    b: record("b", { "buffs.city.ground.hp": 0 }, "2026-10-17T11:00:00.000Z"),
+    c: record(
+      "c",
+      { "buffs.city.ground.attack": 150 },
+      "2026-10-17T12:00:00.000Z",
+    ),
+    d: record("d", { "buffs.city.ground.attack": null }, at),
+  };
+  const keys = ["buffs.city.ground.attack", "buffs.city.ground.hp"];
+  assert.deepEqual(
+    progressSeries(progress, keys)[0].points.map((point) => point.value),
+    [150],
+  );
+  assert.deepEqual(
+    progressSeries(progress, keys)[1].points.map((point) => point.value),
+    [0],
+  );
+  assert.equal(
+    progressSeries(progress, keys, { daily: false })[0].points.length,
+    2,
+  );
+  assert.equal(
+    progressSeries(progress, keys, { since: at })[0].points.length,
+    1,
+  );
+  progress.c.deletedAt = at;
+  assert.deepEqual(
+    progressSeries(progress, keys)[0].points.map((point) => point.value),
+    [100],
+  );
+});
+
+test("date windows retain the last observation, its real date, zero, and skip blank records", () => {
+  const progress = {
+    initial: record(
+      "initial",
+      { level: 43, "buffs.city.ground.hp": 0, rallyCapacity: 1000 },
+      "2026-08-01T12:00:00.000Z",
+    ),
+    unknown: record(
+      "unknown",
+      { rallyCapacity: null },
+      "2026-08-02T12:00:00.000Z",
+    ),
+    change: record("change", { level: 44 }, "2026-10-01T12:00:00.000Z"),
+  };
+  const since = "2026-09-01T00:00:00.000Z";
+  const [level, hp, rally] = progressSeries(
+    progress,
+    ["level", "buffs.city.ground.hp", "rallyCapacity"],
+    { since },
+  );
+  assert.deepEqual(
+    level.points.map((point) => point.value),
+    [43, 44],
+  );
+  assert.equal(level.points[0].at, since);
+  assert.equal(level.points[0].observedAt, progress.initial.observedAt);
+  assert.equal(level.points[0].carried, true);
+  assert.deepEqual(
+    hp.points.map((point) => point.value),
+    [0],
+  );
+  assert.deepEqual(
+    rally.points.map((point) => point.value),
+    [1000],
+  );
+  progress.unknown.deletedAt = at;
+  assert.deepEqual(
+    progressSeries(progress, ["rallyCapacity"], { since })[0].points.map(
+      (point) => point.value,
+    ),
+    [1000],
+  );
+});
