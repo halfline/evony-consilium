@@ -197,6 +197,7 @@ test("player history groups saves into one entry per sign-in session", async () 
     "Created player file",
     "Updated name",
     "Updated keep level",
+    "Updated progress history",
   ]);
   assert.equal(f.activity()[0].account, "editor@example.test");
   assert.deepEqual(f.files.activitySnapshots()[0].activityLog, f.activity());
