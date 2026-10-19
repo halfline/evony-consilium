@@ -370,3 +370,19 @@ test("an upload with a lost response cannot duplicate its progress record after 
   assert.equal(Object.keys(f.remote().details.progress).length, 2);
   assert.ok(f.remote().details.progress[`auto-${operation.id}`]);
 });
+
+test("failed uploads retain the progress operation without changing remote history", async () => {
+  const f = fixture();
+  const linked = await f.files.create(f.player, folder);
+  const save = f.options.drive.savePlayer;
+  f.options.drive.savePlayer = async () => {
+    throw new Error("Offline");
+  };
+  await assert.rejects(f.files.saveOwn({ ...linked, level: 43 }), /Offline/);
+  const id = f.drafts.get("source").progressEvent.id;
+  assert.equal(Object.keys(f.remote().details.progress).length, 1);
+  f.options.drive.savePlayer = save;
+  await f.files.saveOwn({ ...linked, level: 43 });
+  assert.ok(f.remote().details.progress[`auto-${id}`]);
+  assert.equal(Object.keys(f.remote().details.progress).length, 2);
+});
