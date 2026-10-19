@@ -254,3 +254,75 @@ export function progressDay(at) {
   const date = new Date(at);
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
+
+// Duplicate observations do not make a day ambiguous. Count actual changes in
+// the selected metrics, sharing the same decision between chart and history.
+export function progressRecordsWithTime(progress, keys) {
+  const previous = {},
+    days = new Map();
+  for (const record of orderedProgress(progress)) {
+    let changed = false;
+    for (const key of keys) {
+      const value = record.values[key];
+      if (value == null) continue;
+      if (value !== previous[key]) changed = true;
+      previous[key] = value;
+    }
+    if (!changed) continue;
+    const day = progressDay(record.observedAt);
+    if (!days.has(day)) days.set(day, []);
+    days.get(day).push(record);
+  }
+  return new Set(
+    [...days.values()]
+      .filter((records) => records.length > 1)
+      .flatMap((records) =>
+        records
+          .filter((record) => record.kind !== "manual" && !record.dateOnly)
+          .map((record) => record.id),
+      ),
+  );
+}
+
+export function progressSeries(
+  progress,
+  keys,
+  { daily = true, since = null } = {},
+) {
+  const records = orderedProgress(progress);
+  const timed = progressRecordsWithTime(progress, keys);
+  return keys.map((key) => {
+    const points = [];
+    let previous;
+    for (const entry of records) {
+      if (entry.values[key] == null) continue;
+      const point = {
+        id: entry.id,
+        at: entry.observedAt,
+        value: entry.values[key],
+        showTime: timed.has(entry.id),
+      };
+      if (since && entry.observedAt < since) {
+        previous = point;
+        continue;
+      }
+      if (
+        daily &&
+        points.length &&
+        progressDay(points.at(-1).at) === progressDay(point.at)
+      )
+        points[points.length - 1] = point;
+      else points.push(point);
+    }
+    // Carry the last observation into the window without inventing a new one.
+    // Keep the boundary point separate from daily aggregation.
+    if (previous)
+      points.unshift({
+        ...previous,
+        at: since,
+        observedAt: previous.at,
+        carried: true,
+      });
+    return { ...PROGRESS_METRIC_BY_KEY.get(key), points };
+  });
+}
