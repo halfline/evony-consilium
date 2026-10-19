@@ -311,7 +311,11 @@ export class PlayerFiles {
       }
     });
   }
-  async refreshCache(player, validate = () => {}) {
+  async refreshCache(
+    player,
+    validate = () => {},
+    { initializeProgress = false } = {},
+  ) {
     const source = player.playerSource;
     if (!source || !this.state(player).connected)
       throw new Error("Player file access is needed to refresh its cache.");
@@ -325,11 +329,60 @@ export class PlayerFiles {
         current();
         file.resourceKey ||= source.resourceKey || "";
         const entry = this.#files.get(source.fileId);
-        const loaded =
+        let loaded =
           entry?.profile && !entry.error && entry.file.version === file.version
             ? { file, profile: entry.profile, activityLog: entry.activityLog }
             : await this.drive.loadPlayer(file);
         current();
+        if (
+          initializeProgress &&
+          loaded.file.capabilities?.canEdit &&
+          loaded.profile.details?.progress === undefined
+        ) {
+          const observation = {
+            id: crypto.randomUUID(),
+            at: new Date().toISOString(),
+            account:
+              this.actor()?.email ||
+              this.actor()?.sub ||
+              "Unknown Google account",
+          };
+          for (let attempt = 0; attempt < 4; attempt++) {
+            const saved = validateProfile(loaded.profile);
+            validate(saved);
+            if (
+              saved.details?.progress !== undefined ||
+              !loaded.file.capabilities?.canEdit
+            )
+              break;
+            const initialized = validateProfile(
+              recordPlayerProgress(null, saved, observation),
+            );
+            validate(initialized);
+            const activityLog = recordActivity(
+              loaded.activityLog || [],
+              this.actor(),
+              this.activitySession(),
+              ["Started progress history"],
+            );
+            try {
+              const updatedFile = await this.drive.savePlayer(
+                loaded.file,
+                initialized,
+                activityLog,
+              );
+              current();
+              loaded = { file: updatedFile, profile: initialized, activityLog };
+              break;
+            } catch (error) {
+              current();
+              if (![409, 412].includes(error.status) || attempt === 3)
+                throw error;
+              loaded = await this.drive.loadPlayer(loaded.file);
+              current();
+            }
+          }
+        }
         const profile = validateProfile(loaded.profile);
         validate(profile);
         const previous = this.#files.get(source.fileId);
