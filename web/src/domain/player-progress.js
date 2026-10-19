@@ -326,3 +326,42 @@ export function progressSeries(
     return { ...PROGRESS_METRIC_BY_KEY.get(key), points };
   });
 }
+
+// Date-only entries represent the end of the selected local day. When editing
+// an existing observation, stop at that observation, including same-day order.
+export function progressObservationsAt(progress, day, record = null) {
+  const values = {};
+  for (const entry of orderedProgress(progress)) {
+    if (progressDay(entry.observedAt) > day) break;
+    Object.assign(
+      values,
+      Object.fromEntries(
+        Object.entries(entry.values).filter(([, value]) => value !== null),
+      ),
+    );
+    if (
+      record &&
+      progressDay(record.observedAt) === day &&
+      entry.id === record.id
+    )
+      break;
+  }
+  return values;
+}
+
+export function progressStatisticsAt(progress, day, record = null) {
+  return {
+    ...Object.fromEntries(PROGRESS_METRICS.map(({ key }) => [key, null])),
+    ...progressObservationsAt(progress, day, record),
+  };
+}
+
+export function historicalChanges(baseline, values, record = null) {
+  return Object.fromEntries(
+    Object.entries(values).filter(
+      ([key, value]) =>
+        value !== null &&
+        (value !== baseline[key] || record?.values[key] != null),
+    ),
+  );
+}
