@@ -10,6 +10,7 @@ import { subcityOwnership } from "./browser/subcity-ownership.js";
 import { subcities } from "./browser/subcities.js";
 import { playerSharing } from "./browser/player-sharing.js";
 import { playerDetails } from "./browser/player-details.js";
+import { playerProgress } from "./browser/player-progress.js";
 import { entryWorkflow, signInFeedback } from "./browser/entry.js";
 import { playerCreation } from "./browser/players.js";
 import { mapSelection } from "./browser/maps.js";
@@ -90,6 +91,7 @@ try {
   await terrainAndMobile({ page, formationScreen });
   await sharingAndRecovery({ page, driveFiles });
   await playerSharing({ browser });
+  await playerProgress({ browser });
   await playerImport({ browser });
   await playerNotes({ browser });
   await unattendedSync({ browser });

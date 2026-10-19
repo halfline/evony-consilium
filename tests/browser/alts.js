@@ -56,6 +56,7 @@ export async function altOwnership({ page, playersScreen }) {
   for (const tab of [
     "buffs",
     "debuffs",
+    "progress",
     "march-size",
     "rally-capacity",
     "troops",

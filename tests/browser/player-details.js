@@ -17,9 +17,17 @@ export async function playerDetails({ page, playersScreen, driveFiles }) {
     await page
       .locator("[data-player-tab]")
       .evaluateAll((tabs) =>
-        tabs.slice(0, 4).map((tab) => tab.dataset.playerTab),
+        tabs.slice(0, 7).map((tab) => tab.dataset.playerTab),
       ),
-    ["overview", "buffs", "debuffs", "march-size"],
+    [
+      "overview",
+      "buffs",
+      "debuffs",
+      "march-size",
+      "rally-capacity",
+      "troops",
+      "progress",
+    ],
   );
   await page.locator('[data-player-tab="debuffs"]').click();
   assert.equal(await page.locator("[data-debuff]").count(), 12);
