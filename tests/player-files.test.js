@@ -445,3 +445,25 @@ test("opening a legacy profile initializes saved source stats once while preserv
   );
   assert.equal(f.calls.filter(([kind]) => kind === "save").length, 1);
 });
+
+test("baseline initialization retries against newer source statistics", async () => {
+  const f = fixture(),
+    cached = f.linked();
+  await f.files.open(cached);
+  const save = f.options.drive.savePlayer;
+  let attempts = 0;
+  f.options.drive.savePlayer = async (...args) => {
+    if (!attempts++) {
+      f.editRemote((profile) => {
+        profile.level++;
+      });
+      throw Object.assign(new Error("Changed"), { status: 412 });
+    }
+    return save(...args);
+  };
+  await f.files.refreshCache(cached, () => {}, { initializeProgress: true });
+  const entries = Object.values(f.remote().details.progress);
+  assert.equal(entries.length, 1);
+  assert.equal(entries[0].values.level, cached.level + 1);
+  assert.equal(attempts, 2);
+});
