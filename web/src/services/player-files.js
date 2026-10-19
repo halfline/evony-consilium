@@ -8,6 +8,7 @@ import {
   validateProfile,
 } from "../domain/player-document.js";
 import { recordActivity } from "../domain/activity.js";
+import { recordPlayerProgress } from "../domain/player-progress.js";
 import { OperationCancelled } from "./cancellation.js";
 import { isFileAccessError } from "./google/drive.js";
 
@@ -228,7 +229,16 @@ export class PlayerFiles {
       const existing = this.created.get(player.id);
       if (existing)
         return linkedPlayer(player, existing.profile, existing.file);
-      const profile = validateProfile(player);
+      const profile = validateProfile(
+        recordPlayerProgress(null, player, {
+          id: crypto.randomUUID(),
+          at: new Date().toISOString(),
+          account:
+            this.actor()?.email ||
+            this.actor()?.sub ||
+            "Unknown Google account",
+        }),
+      );
       const activityLog = recordActivity(
         [],
         this.actor(),
