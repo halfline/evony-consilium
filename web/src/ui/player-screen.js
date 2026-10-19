@@ -4,6 +4,7 @@ import { editPlayerProfile } from "../domain/players.js";
 import {
   playerProfile,
   mergePlayerProfiles,
+  profileFingerprint,
 } from "../domain/player-document.js";
 import { validatePlan } from "../domain/validation.js";
 import { changeAppearance } from "../domain/appearance-commands.js";
@@ -39,7 +40,11 @@ export function createPlayerScreen({
 }) {
   const $ = view(root),
     form = $("player-form"),
-    details = createPlayerDetails({ root });
+    details = createPlayerDetails({
+      root,
+      canEdit: () => !!getPlayer() && canEdit(getPlayer()),
+      saveChanges: () => save(getPlayer()),
+    });
   // Handle invalid inputs ourselves so a field on a hidden tab can be shown.
   form.noValidate = true;
   uppercaseInput($("player-tag"));
@@ -57,12 +62,19 @@ export function createPlayerScreen({
   function entry(player) {
     const id = key(player);
     if (entries.has(id)) return entries.get(id);
-    const state = { draft: null, revision: 0, loading: true };
+    const state = {
+      draft: null,
+      progressEditor: null,
+      revision: 0,
+      loading: true,
+    };
     entries.set(id, state);
     readDraft(player)
       .then((draft) => {
-        if (!state.revision && draft?.fields && draft.baseline)
-          state.draft = draft;
+        if (!state.revision && draft?.fields && draft.baseline) {
+          state.progressEditor = draft.progressEditor || null;
+          if (draft.profileDirty !== false) state.draft = draft;
+        }
       })
       .catch(() => status("Player draft backup unavailable.", true))
       .finally(() => {
@@ -75,8 +87,35 @@ export function createPlayerScreen({
       });
     return state;
   }
+  function storedDraft(player, state) {
+    if (!state.draft && !state.progressEditor) return null;
+    return {
+      ...(state.draft || {
+        baseline: playerProfile(player),
+        fields: Object.fromEntries(
+          Object.keys(fields).map((field) => [
+            field,
+            String(player[field] ?? ""),
+          ]),
+        ),
+        details: player.details,
+        avatarId: player.avatarId,
+        skin: player.skin,
+      }),
+      profileDirty: !!state.draft,
+      progressEditor: state.progressEditor,
+    };
+  }
   function persist(player, state) {
-    writeDraft(player, state.draft).catch(() => {});
+    return writeDraft(player, storedDraft(player, state)).catch(() => {});
+  }
+  function captureProgressEditor() {
+    const player = getPlayer();
+    if (!player || entry(player).loading) return;
+    const state = entry(player);
+    state.progressEditor = details.progressEditorDraft();
+    persist(player, state);
+    draftChanged();
   }
   function paintStatus() {
     const player = getPlayer();
@@ -142,20 +181,34 @@ export function createPlayerScreen({
     )
       return;
     const state = entry(player);
+    const values = formValues(player, state);
+    const signature = profileFingerprint(values);
+    // A native change event can follow input or blur during an upload/render.
+    // Only newly edited values create another draft revision.
+    if (signature === state.formSignature) return;
+    state.formSignature = signature;
     state.error = null;
     state.draft = {
       baseline: state.draft?.baseline || playerProfile(player),
-      fields: Object.fromEntries(
-        Object.entries(fields).map(([field, id]) => [field, $(id).value]),
-      ),
-      details: details.snapshot(),
-      avatarId: state.draft?.avatarId ?? player.avatarId,
-      skin: state.draft?.skin ?? player.skin,
+      ...values,
     };
     state.revision++;
     persist(player, state);
     paintStatus();
     draftChanged();
+  }
+  function formValues(player, state) {
+    return {
+      fields: Object.fromEntries(
+        Object.entries(fields).map(([field, id]) => [
+          field,
+          field === "level" ? details.currentLevel() : $(id).value,
+        ]),
+      ),
+      details: details.snapshot(),
+      avatarId: state.draft?.avatarId ?? player.avatarId,
+      skin: state.draft?.skin ?? player.skin,
+    };
   }
   const teamAction = (event) =>
     event
@@ -167,17 +220,32 @@ export function createPlayerScreen({
       );
   for (const event of ["input", "change"])
     form.addEventListener(event, (event) => {
-      if (!teamAction(event) && event.target.id !== "player-section-select")
+      if (
+        details.isHistorical() ||
+        event.target.closest?.("[data-progress-editor]")
+      ) {
+        queueMicrotask(captureProgressEditor);
+        return;
+      }
+      if (
+        !teamAction(event) &&
+        event.target.id !== "player-section-select" &&
+        !event.target.closest?.("[data-progress-view]")
+      )
         queueMicrotask(capture);
     });
+  form.addEventListener("progressdraftchange", captureProgressEditor);
   form.addEventListener("click", (event) => {
     const button = event.target.closest("button");
     if (
+      details.isHistorical() ||
       !button ||
       button.type === "submit" ||
       button.hasAttribute("data-player-tab") ||
       button.hasAttribute("data-march-tab") ||
       button.hasAttribute("data-buff-context") ||
+      button.hasAttribute("data-player-progress-link") ||
+      event.composedPath().some((node) => node.id === "player-progress") ||
       button.id === "player-march-back" ||
       button.id === "player-reinforcement-back" ||
       button.id === "player-discard-draft" ||
@@ -196,12 +264,23 @@ export function createPlayerScreen({
     if (!interactive && (!entry(player).draft || entry(player).review)) return;
     const visible = getPlayer() && key(getPlayer()) === key(player);
     if (visible) {
-      if (!form.checkValidity()) {
+      const invalid = [...form.elements].find(
+        (input) =>
+          !input.closest("[data-progress-editor]") &&
+          !(
+            details.isHistorical() &&
+            (input.id === "player-level" ||
+              input.id === "player-rally-capacity" ||
+              input.matches("[data-buff], [data-debuff], [data-march-size]"))
+          ) &&
+          input.willValidate &&
+          !input.validity.valid,
+      );
+      if (invalid) {
         entry(player).error =
           "Complete the required fields before this player can be saved.";
         paintStatus();
         if (interactive) {
-          const invalid = form.querySelector(":invalid");
           const panel = invalid?.closest("[data-player-panel]");
           if (panel)
             root
@@ -266,7 +345,10 @@ export function createPlayerScreen({
         state.draft.baseline = playerProfile(updated);
         renderedKey = null;
       }
-      await writeDraft(player, state.draft);
+      await writeDraft(
+        updated || player,
+        storedDraft(updated || player, state),
+      );
       if (updated && getPlayer() && key(getPlayer()) === id) {
         applied(updated);
         if (!state.draft) {
@@ -290,6 +372,7 @@ export function createPlayerScreen({
   }
   form.onsubmit = (event) => {
     event.preventDefault();
+    if (details.isHistorical()) return details.saveHistorical();
     return save(getPlayer());
   };
   $("player-discard-draft").onclick = async () => {
@@ -309,6 +392,7 @@ export function createPlayerScreen({
     renderedKey = null;
     details.reset();
     render();
+    persist(player, state);
     draftChanged();
   };
   function stage(change) {
@@ -316,8 +400,12 @@ export function createPlayerScreen({
     const player = getPlayer();
     if (!player) return;
     const state = entry(player);
-    if (!state.draft) return;
+    state.draft ||= {
+      baseline: playerProfile(player),
+      ...formValues(player, state),
+    };
     Object.assign(state.draft, change);
+    state.formSignature = profileFingerprint(formValues(player, state));
     state.revision++;
     persist(player, state);
     paintAppearance(player, state);
@@ -379,6 +467,12 @@ export function createPlayerScreen({
       .classList.remove("player-name-actions-open");
     if (changedPlayer || !state.draft) {
       if (changedPlayer) details.reset();
+      for (const [field, fieldId] of Object.entries(fields)) {
+        if (field === "level" && details.isHistoricalFor(player.id)) continue;
+        $(fieldId).value = state.draft
+          ? (state.draft.fields[field] ?? "")
+          : (player[field] ?? "");
+      }
       details.render(
         state.draft
           ? {
@@ -387,12 +481,10 @@ export function createPlayerScreen({
               level: Number(state.draft.fields.level) || player.level,
             }
           : player,
+        { progressEditor: state.progressEditor },
       );
-      for (const [field, fieldId] of Object.entries(fields))
-        $(fieldId).value = state.draft
-          ? (state.draft.fields[field] ?? "")
-          : (player[field] ?? "");
       renderedKey = id;
+      state.formSignature = profileFingerprint(formValues(player, state));
     }
     paintAppearance(player, state);
     paintStatus();
@@ -408,9 +500,12 @@ export function createPlayerScreen({
       }
     },
     ready: () => !getPlayer() || !entry(getPlayer()).loading,
-    hasDraft: (player = getPlayer()) => !!player && !!entry(player).draft,
+    hasDraft: (player = getPlayer()) =>
+      !!player && !!(entry(player).draft || entry(player).progressEditor),
     draftStatus: (player) => {
       const state = entry(player);
+      if (!state.draft && state.progressEditor)
+        return "Past stats draft · on this device";
       return !canEdit(player)
         ? "Player draft kept · profile read-only"
         : state.review

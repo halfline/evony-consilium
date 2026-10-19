@@ -715,6 +715,14 @@
                 <button
                   type="button"
                   role="tab"
+                  data-player-tab="progress"
+                  aria-selected="false"
+                >
+                  Progress
+                </button>
+                <button
+                  type="button"
+                  role="tab"
                   data-player-tab="alts"
                   aria-selected="false"
                 >
@@ -746,6 +754,7 @@
                   <option value="march-size">March size</option>
                   <option value="rally-capacity">Rally capacity</option>
                   <option value="troops">Marches</option>
+                  <option value="progress">Progress</option>
                   <option value="alts">Alts</option>
                   <option value="subcities">Subcities</option>
                   <option value="notes">Notes</option>
@@ -839,11 +848,10 @@
                 <div id="player-buffs" class="player-table-scroll"></div>
               </div>
               <div data-player-panel="debuffs" role="tabpanel" hidden>
-                <p class="muted">
-                  Enemy troop reductions are shown as negative percentages.
-                  Positive entries are converted automatically.
-                </p>
                 <div id="player-debuffs" class="player-table-scroll"></div>
+              </div>
+              <div data-player-panel="progress" role="tabpanel" hidden>
+                <div id="player-progress"></div>
               </div>
               <div data-player-panel="march-size" role="tabpanel" hidden>
                 <div id="player-march-sizes" class="player-table-scroll"></div>
