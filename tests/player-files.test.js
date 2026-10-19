@@ -482,3 +482,25 @@ test("automatic initialization respects read-only sources and intentionally empt
     assert.deepEqual(f.remote().details?.progress, writable ? {} : undefined);
   }
 });
+
+test("a lost initialization response does not create a second baseline", async () => {
+  const f = fixture(),
+    cached = f.linked();
+  await f.files.open(cached);
+  const save = f.options.drive.savePlayer;
+  f.options.drive.savePlayer = async (...args) => {
+    await save(...args);
+    throw new Error("Connection lost");
+  };
+  await assert.rejects(
+    f.files.refreshCache(cached, () => {}, { initializeProgress: true }),
+    /Connection lost/,
+  );
+  f.options.drive.savePlayer = save;
+  const initialized = structuredClone(f.remote().details.progress);
+  const result = await f.files.refreshCache(cached, () => {}, {
+    initializeProgress: true,
+  });
+  assert.deepEqual(result.details.progress, initialized);
+  assert.equal(f.calls.filter(([kind]) => kind === "save").length, 1);
+});
