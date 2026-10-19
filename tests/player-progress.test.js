@@ -306,3 +306,146 @@ test("removals beat concurrent edits and contradictory corrections require revie
     1,
   );
 });
+
+test("historical snapshots carry sparse values, skip blank measurements and omit future or removed records", async () => {
+  const { progressStatisticsAt, historicalChanges } = await import(
+    "../web/src/domain/player-progress.js"
+  );
+  const progress = {
+    a: record(
+      "a",
+      { level: 40, "buffs.city.ground.attack": 700, "buffs.city.ground.hp": 0 },
+      "2025-04-01T10:00:00.000Z",
+    ),
+    b: record(
+      "b",
+      { "buffs.city.ground.attack": 900 },
+      "2025-06-01T10:00:00.000Z",
+    ),
+    c: record(
+      "c",
+      { "buffs.city.ground.hp": null },
+      "2025-07-01T10:00:00.000Z",
+    ),
+    d: {
+      ...record("d", { level: 44 }, "2025-07-02T10:00:00.000Z"),
+      deletedAt: at,
+    },
+    e: record("e", { level: 50 }, "2026-01-01T10:00:00.000Z"),
+  };
+  const snapshot = progressStatisticsAt(progress, "2025-08-01");
+  assert.equal(snapshot.level, 40);
+  assert.equal(snapshot["buffs.city.ground.attack"], 900);
+  assert.equal(snapshot["buffs.city.ground.hp"], 0);
+  assert.equal(snapshot["marchSizes.ground"], null);
+  assert.equal(
+    progressStatisticsAt(progress, "2025-05-01")["buffs.city.ground.hp"],
+    0,
+  );
+  assert.equal(progressStatisticsAt(progress, "2024-01-01").level, null);
+  assert.deepEqual(historicalChanges(snapshot, { ...snapshot, level: 41 }), {
+    level: 41,
+  });
+  assert.deepEqual(
+    historicalChanges(snapshot, { ...snapshot, level: null }),
+    {},
+  );
+  assert.deepEqual(historicalChanges(snapshot, snapshot), {});
+  assert.deepEqual(historicalChanges(snapshot, snapshot, progress.b), {
+    "buffs.city.ground.attack": 900,
+  });
+});
+
+test("editing an observation excludes subsequent changes on the same day", async () => {
+  const { progressStatisticsAt } = await import(
+    "../web/src/domain/player-progress.js"
+  );
+  const early = record("early", { level: 40 }, "2025-04-01T10:00:00.000Z");
+  const late = record("late", { level: 41 }, "2025-04-01T11:00:00.000Z");
+  assert.equal(progressStatisticsAt({ early, late }, "2025-04-01").level, 41);
+  assert.equal(
+    progressStatisticsAt({ early, late }, "2025-04-01", early).level,
+    40,
+  );
+});
+
+test("editing legacy blank metrics never promotes inherited values to observations", async () => {
+  const { progressStatisticsAt, historicalChanges } = await import(
+    "../web/src/domain/player-progress.js"
+  );
+  const initial = record(
+    "initial",
+    { level: 40, "buffs.city.ground.hp": 0 },
+    "2025-01-01T10:00:00.000Z",
+  );
+  const legacy = record(
+    "legacy",
+    { level: 41, "buffs.city.ground.hp": null },
+    "2025-02-01T10:00:00.000Z",
+  );
+  const baseline = progressStatisticsAt(
+    { initial, legacy },
+    "2025-02-01",
+    legacy,
+  );
+  assert.equal(baseline["buffs.city.ground.hp"], 0);
+  assert.deepEqual(historicalChanges(baseline, baseline, legacy), {
+    level: 41,
+  });
+  assert.deepEqual(
+    historicalChanges(
+      baseline,
+      { ...baseline, "buffs.city.ground.hp": 10 },
+      legacy,
+    ),
+    { level: 41, "buffs.city.ground.hp": 10 },
+  );
+});
+
+test("time labels distinguish only multiple real changes in the selected stats", async () => {
+  const { progressRecordsWithTime } = await import(
+    "../web/src/domain/player-progress.js"
+  );
+  const automatic = (id, values, time) => ({
+    ...record(id, values, time),
+    kind: "automatic",
+  });
+  const progress = {
+    first: automatic("first", { level: 40 }, "2025-04-01T10:00:00.000Z"),
+    duplicate: automatic(
+      "duplicate",
+      { level: 40 },
+      "2025-04-01T11:00:00.000Z",
+    ),
+    second: automatic("second", { level: 41 }, "2025-04-01T12:00:00.000Z"),
+    buff: automatic(
+      "buff",
+      { "buffs.city.ground.hp": 0 },
+      "2025-04-01T13:00:00.000Z",
+    ),
+    manual: record("manual", { level: 42 }, "2025-04-01T14:00:00.000Z"),
+    next: automatic("next", { level: 43 }, "2025-04-02T10:00:00.000Z"),
+    removed: {
+      ...automatic("removed", { level: 44 }, "2025-04-02T11:00:00.000Z"),
+      deletedAt: at,
+    },
+  };
+  assert.deepEqual(
+    [...progressRecordsWithTime(progress, ["level"])],
+    ["first", "second"],
+  );
+  assert.deepEqual(
+    [...progressRecordsWithTime(progress, ["buffs.city.ground.hp"])],
+    [],
+  );
+  const points = progressSeries(progress, ["level"], { daily: false })[0]
+    .points;
+  assert.equal(points.find((point) => point.id === "manual").showTime, false);
+  assert.equal(points.find((point) => point.id === "first").showTime, true);
+  assert.equal(points.find((point) => point.id === "next").showTime, false);
+  progress.second.dateOnly = true;
+  assert.deepEqual(
+    [...progressRecordsWithTime(progress, ["level"])],
+    ["first"],
+  );
+});
