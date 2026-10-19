@@ -8,7 +8,7 @@ import {
   validateProfile,
 } from "../domain/player-document.js";
 import { recordActivity } from "../domain/activity.js";
-import { recordPlayerProgress } from "../domain/player-progress.js";
+import { playerStatistics, recordPlayerProgress } from "../domain/player-progress.js";
 import { OperationCancelled } from "./cancellation.js";
 import { isFileAccessError } from "./google/drive.js";
 
@@ -264,6 +264,15 @@ export class PlayerFiles {
       const draft = {
         profile: validateProfile(player),
         baseline: entry.draft?.baseline || baseline || entry.profile,
+        progressEvent:
+          entry.draft?.progressEvent?.fingerprint ===
+          JSON.stringify(playerStatistics(player))
+            ? entry.draft.progressEvent
+            : {
+                id: crypto.randomUUID(),
+                at: new Date().toISOString(),
+                fingerprint: JSON.stringify(playerStatistics(player)),
+              },
       };
       entry.draft = draft;
       await this.writeDraft(id, draft);
@@ -287,7 +296,12 @@ export class PlayerFiles {
             resolution,
           );
         }
-        const profile = validateProfile(result.profile);
+        const profile = validateProfile(
+          recordPlayerProgress(loaded.profile, result.profile, {
+            ...draft.progressEvent,
+            account: actor?.email || actor?.sub || "Unknown Google account",
+          }),
+        );
         const changes = playerProfileChanges(loaded.profile, profile);
         const activityLog = recordActivity(
           loaded.activityLog || [],
