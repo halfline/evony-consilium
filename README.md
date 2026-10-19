@@ -36,6 +36,16 @@ The Team dashboard includes Players, Subcities, and Maps counts. The header dist
 
 Screen, player, and map navigation is reflected in the URL. Browser Back restores the previous view, and opening a team link after sign-in restores its requested view subject to the usual Drive permissions.
 
+## Player progress
+
+The player's **Progress** tab, after Marches, shows buffs, debuffs, per-type march sizes at +200%, rally capacity, and keep level over time. It opens on a statistic with recorded data. Choose a statistic, troop type, buff context, and date range; irrelevant filters stay hidden. Value cards show the latest observations, recorded dates, and changes. Date ranges retain the last observation from before the period; chart and history use the same filters. Multiple days show a graph of last recorded values. Select a graph point to read its exact value, then **View record** to inspect its entry. Series buttons let you focus the graph on individual stats. The stat tabs also link directly to their progress views. **Chart options** switches between daily values and every saved change. Unknown values break a line; zero remains a measured value.
+
+History starts automatically. New player files record their known stats at creation; existing writable profiles get their first snapshot when the team is opened and their source is accessible. Subsequent successful stat saves record only changed values. History saves in the same player file and follows the same permissions. Team viewers can inspect the shared history and use the graphs.
+
+**Add past stats** switches the familiar stat tabs into a visibly distinct **Historical edit** mode. Choose a date to see each stat's last known value on or before that day; later observations never fill earlier gaps. **Save historical changes** records only the values you change, leaving today's profile untouched. Each stat carries forward its last recorded value. Leaving a cleared historical field restores that value when one exists. **Edit record** opens the same stat tabs at that observation. **Return to current stats** keeps the unfinished entry on this device; **Resume historical entry** restores it. **Discard historical changes** removes the draft. Entries survive navigation and reload independently of current-profile autosave.
+
+**Remove entry** excludes a mistake from the graph and history list immediately. **Undo removal** restores the last removal; **History options → Show removed records** provides **Restore entry** after reopening a player. Record details and authorship are available inside each expanded record. Independent entries from different editors merge; conflicting corrections to the same record require the existing save-conflict review.
+
 ## Player and alt notes
 
 Every player and alt has a **Notes** tab, independent of permission to edit that player's profile. **New note** creates a separate Drive file. Choose **Only me** for your personal notes folder, **Specific people** to grant a Google account Viewer or Editor access, or **Team** for the shared team folder. Personal notes and their attachment index stay outside the team document, exports, and activity. **Attach note** connects a Consilium note for the same player; copying a note link does not grant Drive access.
