@@ -2034,7 +2034,7 @@ dialog form > label {
     padding: 28px 16px;
   }
   .entry-card {
-    padding: 28px;
+    padding: 40px 28px 28px;
   }
   .entry-introduction {
     grid-template-columns: 1fr;
@@ -2209,7 +2209,7 @@ dialog form > label {
     min-height: 44px;
   }
   .entry-card {
-    padding: 24px;
+    padding: 40px 24px 24px;
   }
   .entry-header .brand {
     font-size: 14px;

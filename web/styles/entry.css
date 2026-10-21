@@ -8,6 +8,7 @@
   background: radial-gradient(ellipse at top, #304936, #101b17);
 }
 .entry-card {
+  position: relative;
   width: min(100%, 720px);
   padding: clamp(24px, 5vw, 48px);
   border: 1px solid #536347;
@@ -238,13 +239,16 @@
   overflow-wrap: anywhere;
 }
 .entry-progress {
+  position: absolute;
+  top: 6px;
+  right: 16px;
   display: flex;
   align-items: center;
   gap: 10px;
   color: var(--gold);
-  margin-top: 20px;
 }
 .progress-spinner {
+  flex-shrink: 0;
   width: 18px;
   height: 18px;
   border: 2px solid var(--line);
